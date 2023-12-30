@@ -9,7 +9,7 @@ HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.hpp")
 
 RM				=	rm -f
 CC				=	clang++
-CFLAGS			=	-std=c++98 -I $(HEADERS_DIR) #-Wall -Wextra -Werror
+CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR)/readsocket #-Wall -Wextra -Werror
 NAME			=	webserv
 
 GREEN			=	\033[1;32m
@@ -23,7 +23,7 @@ CUT				=	"\033[K"
 all: $(NAME)
 
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp $(HEADERS) Makefile
-	@mkdir -p $(dir $@)
+	@mkdir -p $(@D)
 	@echo "$(YELLOW)Compiling [$<]$(DEFAULT)"
 	@$(CC) $(CFLAGS) -c $< -o $@
 

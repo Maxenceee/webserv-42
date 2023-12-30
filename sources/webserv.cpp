@@ -6,14 +6,26 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:08 by mgama             #+#    #+#             */
-/*   Updated: 2023/12/30 15:29:54 by mgama            ###   ########.fr       */
+/*   Updated: 2023/12/30 17:26:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Server.hpp"
 #include "webserv.hpp"
 
 int	main(int argc, char const **argv)
 {
-	std::cout << "WebServ" << std::endl;
+
+	if (argc != 2)
+	{
+		std::cerr << W_PREFIX"Invalid usage" << std::endl;
+		std::cout << W_PREFIX"usage: [configuration file]" << std::endl;
+		return (EXIT_FAILURE);
+	}
+	Server	server(W_DEFAULT_PORT);
+	if (server.init())
+		return (EXIT_FAILURE);
+	if (server.run())
+		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }
