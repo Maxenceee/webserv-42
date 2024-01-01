@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2023/12/30 18:25:15 by mgama            ###   ########.fr       */
+/*   Updated: 2023/12/31 18:25:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,9 @@
 class Server
 {
 private:
-	uint16_t	port;
-	int			socket_fd;
+	uint16_t			port;
+	int					socket_fd;
+	struct sockaddr_in	socket_addr;
 
 public:
 	Server(int port);
