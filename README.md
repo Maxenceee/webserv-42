@@ -1,8 +1,21 @@
 # webserv
 
-ressources utiles :
+utilisation :
 
-article a lire pour comprendre le principe
+``` sh
+./webserv ./config
+```
+
+pour tester 
+``` sh
+curl http://localhost:4242 -i
+```
+
+`./config` ne sert a rien pour le moment, la gestion du fichier de config n'est pas encore implmenté
+
+### ressources utiles
+
+article à lire pour comprendre le principe
 https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa
 
 https://ncona.com/2019/04/building-a-simple-server-with-cpp/
