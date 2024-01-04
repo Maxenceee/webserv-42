@@ -6,19 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2023/12/31 18:25:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/04 19:22:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <stdint.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <poll.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h> 
+#include "webserv.hpp"
 
 #include "readsocket.hpp"
 
@@ -28,6 +22,7 @@ private:
 	uint16_t			port;
 	int					socket_fd;
 	struct sockaddr_in	socket_addr;
+	fd_set				_fd_set;
 
 public:
 	Server(int port);
@@ -36,7 +31,8 @@ public:
 	bool	exit;
 
 	const int	init(void);
-	const int	run(void);
+	const int	start(void);
+	void		kill(void);
 
 	const uint16_t	getPort(void) const;
 
