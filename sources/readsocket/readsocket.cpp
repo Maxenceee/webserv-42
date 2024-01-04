@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 21:46:34 by mgama             #+#    #+#             */
-/*   Updated: 2023/12/31 18:32:51 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/04 18:25:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ unsigned char	*readsocket(int fd, unsigned char *file, uint32_t *rsize)
 	read_bytes = 1;
 	while (read_bytes != 0)
 	{
-		read_bytes = read(fd, buff, BUFFER_SIZE);
+		read_bytes = recv(fd, buff, BUFFER_SIZE, 0);
 		if (read_bytes == -1)
 			return (free(buff), CNULL);
 		buff[read_bytes] = '\0';
