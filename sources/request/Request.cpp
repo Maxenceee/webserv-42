@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 14:14:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 14:20:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,7 +161,8 @@ int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
 		value = readValue(line);
 		this->_headers[key] = value;
 	}
-	this->_host = this->_headers["Host"]; // must remove port from raw host before 
+	// this->_host = this->_headers["Host"]; // must remove port from raw host before 
+	this->getHostname(this->_headers["Host"]);
 	this->_body = str.substr(i, std::string::npos);
 	return (REQ_SUCCESS);
 }
@@ -205,5 +206,17 @@ int	Request::getRequestQuery(void)
             break;
         }
     }
+	return (REQ_SUCCESS);
+}
+
+int	Request::getHostname(const std::string &host)
+{
+	size_t	i;
+
+	if (!host.size())
+		return (REQ_SUCCESS);
+	i = host.find_first_of(':');
+	this->_host = host.substr(0, i);
+	this->_port = host.substr(i);
 	return (REQ_SUCCESS);
 }

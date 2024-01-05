@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 13:47:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 14:20:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@ std::ostream	&operator<<(std::ostream &os, const Request &req)
 	std::map<std::string, std::string>::const_iterator	it;
 
 	os << "Method: " << req.getMethod() << " | HTTP version: " << req.getVersion() << '\n';
-	// os << "Port : " << req.getPort() << '\n';
 	os << "Path: " << req.getPath() << '\n';
 	os << "Host: " << req.getHost() << '\n';
+	os << "Port: " << req.getPort() << '\n';
 
 	os << "Headers: \n";
 	const std::map<std::string, std::string> &headers = req.getHeaders();
@@ -54,6 +54,11 @@ const std::string		Request::getPath(void) const
 const std::string		Request::getHost(void) const
 {
 	return (this->_host);
+}
+
+const std::string		Request::getPort(void) const
+{
+	return (this->_port);
 }
 
 const std::map<std::string, std::string>	Request::getQueries(void) const
