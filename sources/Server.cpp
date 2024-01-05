@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 20:08:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 21:48:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ const int	Server::start(void)
 
 				Response response = Response(newClient, this->getStaticDir(), request.getVersion(), request.getSatus());
 				response.setCookie("42-webserv", "42");
-				response.render("index.html").end();
+				response.sendFile("./public/index.html").end();
 				std::cout << response << std::endl;
 				printf(B_YELLOW"------------------Response sent-------------------%s\n\n", RESET);
 			} else if (valread == 0) {

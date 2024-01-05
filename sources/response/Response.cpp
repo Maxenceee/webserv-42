@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 20:09:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 21:48:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,17 +100,17 @@ Response	&Response::sendFile(const std::string filepath)
 /**
  * A voir si on la garde
  */
-Response	&Response::render(const std::string filename)
-{
-	if (!this->_static_dir.count(filename))
-	{
-		this->status(500);
-		this->setHeader("Content-Type", "text/html");
-		this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file</body></html>";
-	}
-	this->sendFile(this->_static_dir[filename]);
-	return (*this);
-}
+// Response	&Response::render(const std::string filename)
+// {
+// 	if (!this->_static_dir.count(filename))
+// 	{
+// 		this->status(500);
+// 		this->setHeader("Content-Type", "text/html");
+// 		this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file</body></html>";
+// 	}
+// 	this->sendFile(this->_static_dir[filename]);
+// 	return (*this);
+// }
 
 Response	&Response::end()
 {
