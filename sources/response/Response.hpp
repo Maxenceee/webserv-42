@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/04 22:10:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 13:12:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,11 @@ private:
 	std::map<int, std::string>				_res_codes;
 
 	const std::string	prepareResponse(void);
+	void				initCodes();
 
 public:
 	Response(int socket, std::string version);
+	Response(int socket, std::string version, int status);
 	~Response(void);
 
 	Response		&status(const uint16_t code);
@@ -39,5 +41,5 @@ public:
 
 	Response		&setHeader(const std::string header, const std::string value);
 
-	void				initCodes();
+	const bool		canSend(void);
 };

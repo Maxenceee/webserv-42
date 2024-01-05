@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/04 22:26:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 13:14:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,24 @@ Response::Response(int socket, std::string version): _sent(false), _status(200),
 {
 	this->_socket = socket;
 	this->initCodes();
+	this->setHeader("Server", "42-webserv");
+}
+
+Response::Response(int socket, std::string version, int status = 200): _sent(false), _status(status), _version(version)
+{
+	this->_socket = socket;
+	this->initCodes();
+	this->setHeader("Server", "42-webserv");
+	if (status != 200)
+	{
+		this->end();
+	}
 }
 
 Response::~Response(void)
 {
-	this->end();
+	if (!this->_sent)
+		this->end();
 }
 
 Response	&Response::status(const uint16_t status)
@@ -89,6 +102,10 @@ Response	&Response::end()
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
 		this->_sent = true;
 	}
+	else
+	{
+		std::cerr << "Response error: cannot set header it was sent" << std::endl;
+	}
 	return (*this);
 }
 
@@ -129,4 +146,10 @@ void	Response::initCodes()
 	this->_res_codes[413] = "Payload Too Large";
 	this->_res_codes[418] = "I’m a teapot";
 	this->_res_codes[500] = "Internal Server Error";
+	this->_res_codes[505] = "HTTP Version not supported";
+}
+
+const bool	Response::canSend(void)
+{
+	return (!this->_sent);
 }
