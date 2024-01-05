@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 20:05:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 21:48:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ public:
 	Response		&status(const int code);
 	Response		&send(const std::string data);
 	Response		&sendFile(const std::string filepath);
-	Response		&render(const std::string filename);
+	// Response		&render(const std::string filename);
 	Response		&end();
 
 	Response		&setHeader(const std::string header, const std::string value);
