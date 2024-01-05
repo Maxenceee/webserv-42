@@ -46,3 +46,10 @@ https://fr.wikipedia.org/wiki/Liste_des_codes_HTTP
 cgi 
 
 http://www.mnuwer.dbasedeveloper.co.uk/dlearn/web/session01.htm
+
+
+## TODO
+
+Faire une class Cluster qui gere autant de Server que necessaire.
+Ajouter le parser pour le fichier config
+
