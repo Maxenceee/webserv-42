@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 14:20:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 14:21:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,6 +217,6 @@ int	Request::getHostname(const std::string &host)
 		return (REQ_SUCCESS);
 	i = host.find_first_of(':');
 	this->_host = host.substr(0, i);
-	this->_port = host.substr(i);
+	this->_port = host.substr(i + 1);
 	return (REQ_SUCCESS);
 }
