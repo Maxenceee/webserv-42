@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 13:09:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 18:46:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,23 +95,19 @@ const int	Server::start(void)
 				perror("accept");
     			continue;
 			}
-			// // char buffer[100];
-			// // int read_bytes = read(newClient, buffer, 100);
-			// std::cout << "The message was: " << buffer;
-			// std::string response = "Good talking to you\n";
-			// send(newClient, response.c_str(), response.size(), 0);
 			char buffer[RECV_SIZE] = {0};
-			// char *hello = "HTTP/1.1 200 OK\nContent-Length: 12\nContent-Type: text/plain\n\nHello world!\n";
 
 			int valread = recv(newClient, buffer, sizeof(buffer), 0);
 			if (valread > 0) {
-				printf("Received %d bytes: \n%s\n", valread, buffer);
+				// printf("Received %d bytes: \n`\n%s\n`\n", valread, buffer);
 
 				Request	request = Request(std::string(buffer));
 				std::cout << request << std::endl;
 
 				Response response = Response(newClient, request.getVersion(), request.getSatus());
-				response.send("hello world!\n").end();
+				response.setCookie("42-webserv", "42");
+				response.sendFile("./test/index.html").end();
+				std::cout << response << std::endl;
 				printf(B_YELLOW"------------------Response sent-------------------%s\n", RESET);
 			} else if (valread == 0) {
 				printf("Connection closed by the client\n");

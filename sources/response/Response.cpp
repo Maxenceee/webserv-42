@@ -6,11 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 13:14:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 18:47:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
+
+std::map<int, std::string>	Response::_res_codes = Response::initCodes();
 
 int		pathIsFile(const std::string& path)
 {
@@ -46,13 +48,37 @@ Response::Response(int socket, std::string version, int status = 200): _sent(fal
 	}
 }
 
+std::map<int, std::string>	Response::initCodes()
+{
+	std::map<int, std::string>	codes;
+	
+	codes[100] = "Continue";
+	codes[101] = "Switching Protocols";
+	codes[200] = "OK";
+	codes[201] = "Created";
+	codes[204] = "No Content";
+	codes[301] = "Moved Permanently";
+	codes[302] = "Found";
+	codes[310] = "Too many Redirects";
+	codes[400] = "Bad Request";
+	codes[401] = "Unauthorized";
+	codes[403] = "Forbidden";
+	codes[404] = "Not Found";
+	codes[405] = "Method Not Allowed";
+	codes[413] = "Payload Too Large";
+	codes[418] = "I’m a teapot";
+	codes[500] = "Internal Server Error";
+	codes[505] = "HTTP Version not supported";
+	return (codes);
+}
+
 Response::~Response(void)
 {
 	if (!this->_sent)
 		this->end();
 }
 
-Response	&Response::status(const uint16_t status)
+Response	&Response::status(const int status)
 {
 	this->_status = status;
 	return (*this);
@@ -113,10 +139,13 @@ const std::string	Response::prepareResponse(void)
 {
 	std::string	res;
 	
-	res = "HTTP/" + this->_version + " " + std::to_string(this->_status) + " " + this->_res_codes[this->_status] + "\n";
-	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it) {
-        res += it->first + ": " + it->second + "\n";
-    }
+	res = "HTTP/" + this->_version + " " + std::to_string(this->_status) + " " + this->getSatusName() + "\n";
+	for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
+		res += it->first + ": " + it->second + "\n";
+	}
+	for (std::map<std::string, std::string>::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
+		res += "Set-Cookie: " + it->second + "\n";
+	}
 	res += "\n";
 	res += this->_body + "\n";
 	return (res);
@@ -128,28 +157,28 @@ Response	&Response::setHeader(const std::string header, const std::string value)
 	return (*this);
 }
 
-void	Response::initCodes()
+Response	&Response::setCookie(const std::string name, const std::string value, const CookieOptions &options)
 {
-	this->_res_codes[100] = "Continue";
-	this->_res_codes[101] = "Switching Protocols";
-	this->_res_codes[200] = "OK";
-	this->_res_codes[201] = "Created";
-	this->_res_codes[204] = "No Content";
-	this->_res_codes[301] = "Moved Permanently";
-	this->_res_codes[302] = "Found";
-	this->_res_codes[310] = "Too many Redirects";
-	this->_res_codes[400] = "Bad Request";
-	this->_res_codes[401] = "Unauthorized";
-	this->_res_codes[403] = "Forbidden";
-	this->_res_codes[404] = "Not Found";
-	this->_res_codes[405] = "Method Not Allowed";
-	this->_res_codes[413] = "Payload Too Large";
-	this->_res_codes[418] = "I’m a teapot";
-	this->_res_codes[500] = "Internal Server Error";
-	this->_res_codes[505] = "HTTP Version not supported";
-}
+	std::string cookieStr = name + "=" + value;
 
-const bool	Response::canSend(void)
-{
-	return (!this->_sent);
+	cookieStr += "; path=" + (!options.path.empty() ? options.path : "/");
+
+	if (!options.domain.empty()) {
+		cookieStr += "; domain=" + options.domain;
+	}
+
+	if (options.maxAge >= 0) {
+		cookieStr += "; Max-Age=" + std::to_string(options.maxAge);
+	}
+
+	if (options.secure) {
+		cookieStr += "; secure";
+	}
+
+	if (options.httpOnly) {
+		cookieStr += "; HttpOnly";
+	}
+
+	this->_cookie[name] = cookieStr;
+	return (*this);
 }

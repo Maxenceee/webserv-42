@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 14:21:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 17:33:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,8 @@
 
 std::vector<std::string>	Request::methods = Request::initMethods();
 
-Request::Request(const std::string &str): _raw(str), _status(200), _host(""), _body("")
+Request::Request(const std::string &str): _raw(str), _status(200), _host(""), _body(""), _port(80)
 {
-	this->resetHeaders();
 	this->parse();
 }
 
@@ -39,32 +38,6 @@ std::vector<std::string>		Request::initMethods()
 	return methods;
 }
 
-void	Request::resetHeaders(void)
-{
-	this->_headers.clear();
-
-// 	this->_headers["Accept-Charsets"] = "";
-// 	this->_headers["Accept-Language"] = "";
-// 	this->_headers["Allow"] = "";
-// 	this->_headers["Auth-Scheme"] = "";
-// 	this->_headers["Authorization"] = "";
-// 	this->_headers["Content-Language"] = "";
-// 	this->_headers["Content-Length"] = "";
-// 	this->_headers["Content-Location"] = "";
-// 	this->_headers["Content-Type"] = "";
-// 	this->_headers["Date"] = "";
-// 	this->_headers["Host"] = "";
-// 	this->_headers["Last-Modified"] = "";
-// 	this->_headers["Location"] = "";
-// 	this->_headers["Referer"] = "";
-// 	this->_headers["Retry-After"] = "";
-// 	this->_headers["Server"] = "";
-// 	this->_headers["Transfer-Encoding"] = "";
-// 	this->_headers["User-Agent"] = "";
-// 	this->_headers["Www-Authenticate"] = "";
-// 	this->_headers["Connection"] = "Keep-Alive";
-}
-
 int	Request::parse(void)
 {
 	size_t	i;
@@ -75,6 +48,7 @@ int	Request::parse(void)
 	}
 	this->getRequestHeadersAndBody(this->_raw, i);
 	this->getRequestQuery();
+	this->getRequestCookies();
 	return (REQ_SUCCESS);
 }
 
@@ -161,8 +135,7 @@ int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
 		value = readValue(line);
 		this->_headers[key] = value;
 	}
-	// this->_host = this->_headers["Host"]; // must remove port from raw host before 
-	this->getHostname(this->_headers["Host"]);
+	this->getRequestHostname(this->_headers["Host"]);
 	this->_body = str.substr(i, std::string::npos);
 	return (REQ_SUCCESS);
 }
@@ -181,42 +154,74 @@ int	Request::getRequestQuery(void)
 	if (!query.size())
 		return (REQ_SUCCESS);
 	size_t pos = 0;
-    while (pos < query.length()) {
-        size_t ampersandPos = query.find('&', pos);
+	while (pos < query.length()) {
+		size_t ampersandPos = query.find('&', pos);
 
-        std::string pair;
-        if (ampersandPos != std::string::npos) {
-            pair = query.substr(pos, ampersandPos - pos);
-        } else {
-            pair = query.substr(pos);
-        }
+		std::string pair;
+		if (ampersandPos != std::string::npos) {
+			pair = query.substr(pos, ampersandPos - pos);
+		} else {
+			pair = query.substr(pos);
+		}
 
-        size_t equalPos = pair.find('=');
+		size_t equalPos = pair.find('=');
 
-        std::string key = pair.substr(0, equalPos);
-        std::string value = "";
-        if (equalPos != std::string::npos) {
+		std::string key = pair.substr(0, equalPos);
+		std::string value = "";
+		if (equalPos != std::string::npos) {
 			value = pair.substr(equalPos + 1);
-        }
-    	this->_query[key] = value;
+		}
+		this->_query[key] = value;
 
-        if (ampersandPos != std::string::npos) {
-            pos = ampersandPos + 1;
-        } else {
-            break;
-        }
-    }
+		if (ampersandPos != std::string::npos) {
+			pos = ampersandPos + 1;
+		} else {
+			break;
+		}
+	}
 	return (REQ_SUCCESS);
 }
 
-int	Request::getHostname(const std::string &host)
+int	Request::getRequestHostname(const std::string &host)
 {
 	size_t	i;
 
 	if (!host.size())
 		return (REQ_SUCCESS);
 	i = host.find_first_of(':');
-	this->_host = host.substr(0, i);
-	this->_port = host.substr(i + 1);
+	if (i < std::string::npos)
+	{
+		this->_host = host.substr(0, i);
+		this->_port = atoi(host.substr(i + 1).c_str());
+	}
+	else
+	{
+		this->_host = host;
+	}
+	return (REQ_SUCCESS);
+}
+
+int	Request::getRequestCookies(void)
+{
+	std::vector<std::string>::iterator	it;
+
+	std::string	cookies_string = this->_headers["Cookie"];
+	if (!cookies_string.size())
+		return (REQ_SUCCESS);
+
+	std::vector<std::string> cookies = split(cookies_string, ';');
+	
+	for (it = cookies.begin(); it != cookies.end(); it++)
+	{
+		std::string c = trim(*it, ' ');
+		size_t equalPos = c.find('=');
+
+        std::string key = c.substr(0, equalPos);
+        std::string value = "";
+        if (equalPos != std::string::npos) {
+			value = c.substr(equalPos + 1);
+        }
+    	this->_cookie[key] = value;
+	}
 	return (REQ_SUCCESS);
 }
