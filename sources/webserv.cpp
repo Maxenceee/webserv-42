@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/04 17:49:51 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 19:30:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ int	main(int argc, char const **argv)
 	Server	server(W_DEFAULT_PORT);
 	if (server.init())
 		return (EXIT_FAILURE);
+	server.setStaticDir("./public");
 	if (server.start())
 		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);

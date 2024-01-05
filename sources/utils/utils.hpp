@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 13:23:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 19:25:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,5 +26,11 @@ std::string					&capitalize(std::string &str);
 
 template <typename T>
 bool	contains(const T &container, const std::string &test);
+
+/* fs */
+
+void	printFileInfo(const char *filename);
+int		isFile(const std::string &path);
+bool	isDirectory(const std::string &path);
 
 #include "list.tpp"
