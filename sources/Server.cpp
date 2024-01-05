@@ -6,13 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/04 22:31:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 13:09:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Server.hpp"
 #include "response/Response.hpp"
+#include "request/Request.hpp"
 
 Server::Server(int port): port(port)
 {
@@ -106,7 +107,10 @@ const int	Server::start(void)
 			if (valread > 0) {
 				printf("Received %d bytes: \n%s\n", valread, buffer);
 
-				Response response = Response(newClient, "1.1");
+				Request	request = Request(std::string(buffer));
+				std::cout << request << std::endl;
+
+				Response response = Response(newClient, request.getVersion(), request.getSatus());
 				response.send("hello world!\n").end();
 				printf(B_YELLOW"------------------Response sent-------------------%s\n", RESET);
 			} else if (valread == 0) {
