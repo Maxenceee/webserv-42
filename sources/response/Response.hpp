@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 18:45:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 20:05:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,37 +27,39 @@ struct CookieOptions {
 class Response
 {
 private:
-	int										_socket;
-	bool									_sent;
-	int										_status;
-	std::string								_version;
-	std::map<std::string, std::string>		_headers;
-	std::map<std::string, std::string>		_cookie;
-	std::string								_body;
+	int				_socket;
+	bool			_sent;
+	int				_status;
+	std::string		_version;
+	t_mapss			_headers;
+	t_mapss			_cookie;
+	std::string		_body;
+
+	t_mapss			_static_dir;
 	
 	static std::map<int, std::string>		_res_codes;
 	static std::map<int, std::string>		initCodes();
 
 public:
 	const std::string	prepareResponse(void);
-	Response(int socket, std::string version);
-	Response(int socket, std::string version, int status);
+	Response(int socket, t_mapss static_dir, std::string version, int status = 200);
 	~Response(void);
 
 	Response		&status(const int code);
 	Response		&send(const std::string data);
 	Response		&sendFile(const std::string filepath);
+	Response		&render(const std::string filename);
 	Response		&end();
 
 	Response		&setHeader(const std::string header, const std::string value);
 	Response		&setCookie(const std::string name, const std::string value, const CookieOptions &options = CookieOptions());
 
-	const std::string							getVersion(void) const;
-	const int									getSatus(void) const;
-	const std::string							getSatusName(void) const;
-	const std::map<std::string, std::string>	getHeaders(void) const;
-	const std::map<std::string, std::string>	getCookies(void) const;
-	const std::string							getBody(void) const;
+	const std::string		getVersion(void) const;
+	const int				getSatus(void) const;
+	const std::string		getSatusName(void) const;
+	const t_mapss			getHeaders(void) const;
+	const t_mapss			getCookies(void) const;
+	const std::string		getBody(void) const;
 
 	const bool		canSend(void) const;
 };

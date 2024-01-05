@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 18:47:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/05 20:09:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,30 +14,7 @@
 
 std::map<int, std::string>	Response::_res_codes = Response::initCodes();
 
-int		pathIsFile(const std::string& path)
-{
-	struct stat s;
-	if (stat(path.c_str(), &s) == 0 )
-	{
-		if (s.st_mode & S_IFDIR)
-			return 0;
-		else if (s.st_mode & S_IFREG)
-			return 1;
-		else
-			return 0;
-	}
-	else
-		return 0;
-}
-
-Response::Response(int socket, std::string version): _sent(false), _status(200), _version(version)
-{
-	this->_socket = socket;
-	this->initCodes();
-	this->setHeader("Server", "42-webserv");
-}
-
-Response::Response(int socket, std::string version, int status = 200): _sent(false), _status(status), _version(version)
+Response::Response(int socket, t_mapss static_dir, std::string version, int status): _sent(false), _static_dir(static_dir), _status(status), _version(version)
 {
 	this->_socket = socket;
 	this->initCodes();
@@ -96,7 +73,7 @@ Response	&Response::sendFile(const std::string filepath)
 	std::ofstream		file;
 	std::stringstream	buffer;
 
-	if (pathIsFile(filepath))
+	if (isFile(filepath))
 	{
 		file.open(filepath.c_str(), std::ifstream::in);
 		if (file.is_open() == false)
@@ -120,6 +97,21 @@ Response	&Response::sendFile(const std::string filepath)
 	return (*this);
 }
 
+/**
+ * A voir si on la garde
+ */
+Response	&Response::render(const std::string filename)
+{
+	if (!this->_static_dir.count(filename))
+	{
+		this->status(500);
+		this->setHeader("Content-Type", "text/html");
+		this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file</body></html>";
+	}
+	this->sendFile(this->_static_dir[filename]);
+	return (*this);
+}
+
 Response	&Response::end()
 {
 	if (!this->_sent)
@@ -140,10 +132,10 @@ const std::string	Response::prepareResponse(void)
 	std::string	res;
 	
 	res = "HTTP/" + this->_version + " " + std::to_string(this->_status) + " " + this->getSatusName() + "\n";
-	for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
+	for (t_mapss::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
 		res += it->first + ": " + it->second + "\n";
 	}
-	for (std::map<std::string, std::string>::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
+	for (t_mapss::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
 		res += "Set-Cookie: " + it->second + "\n";
 	}
 	res += "\n";
