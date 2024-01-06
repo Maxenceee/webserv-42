@@ -54,6 +54,7 @@ void	Router::setRoot(const std::string path)
 		std::cout << B_RED"Root is already set, abording." << RESET << std::endl;
 	} else {
 		this->_root = path;
+		this->_aliasing = false;
 	}
 	setActiveDir(path);
 }
@@ -66,6 +67,7 @@ void	Router::setAlias(const std::string path)
 		std::cout << B_RED"Alias is already set, abording." << RESET << std::endl;
 	} else {
 		this->_root = path;
+		this->_aliasing = true;
 	}
 	setActiveDir(path);
 }
