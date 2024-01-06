@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 21:48:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/06 18:01:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 std::map<int, std::string>	Response::_res_codes = Response::initCodes();
 
-Response::Response(int socket, t_mapss static_dir, std::string version, int status): _sent(false), _static_dir(static_dir), _status(status), _version(version)
+Response::Response(const Server &server, int socket, std::string version, int status): _server(server), _sent(false), _status(status), _version(version)
 {
 	this->_socket = socket;
 	this->initCodes();
@@ -80,19 +80,19 @@ Response	&Response::sendFile(const std::string filepath)
 		{
 			this->status(500);
 			this->setHeader("Content-Type", "text/html");
-			this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file</body></html>";
+			this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file. Cannot find: "+filepath+"</body></html>";
 			return (*this);
 		}
 		buffer << file.rdbuf();
 		file.close();
-		this->setHeader("Content-Type", "text/html");
+		// this->setHeader("Content-Type", "text/html");
 		this->_body = buffer.str();
 	}
 	else
 	{
 		this->status(500);
 		this->setHeader("Content-Type", "text/html");
-		this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file</body></html>";
+		this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file. Cannot find: "+filepath+"</body></html>";
 	}
 	return (*this);
 }
