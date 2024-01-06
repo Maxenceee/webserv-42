@@ -6,22 +6,27 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 19:58:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/06 17:54:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "webserv.hpp"
+#include "Server.hpp"
 
 #define REQ_SUCCESS		0
 #define REQ_ERROR		1
 
+class Server;
+
 class Request
 {
 private:
+	const Server				&_server;
 	int							_status;
 	const std::string			&_raw;
+	const int					_socket;
 	std::string					_version;
 	std::string					_method;
 	std::string					_path;
@@ -43,11 +48,8 @@ private:
 
 	std::string	nextLine(const std::string &str, size_t& i);
 
-	static std::vector<std::string>		methods;
-	static std::vector<std::string>		initMethods();
-
 public:
-	Request(const std::string &str);
+	Request(const Server &server, const std::string &str, int socket);
 	~Request(void);
 
 	const std::string		getMethod(void) const;
@@ -60,6 +62,7 @@ public:
 	const t_mapss			getCookies(void) const;
 	const std::string		getBody(void) const;
 	const int				getSatus(void) const;
+	const int				getClientSocket(void) const;
 };
 
 std::ostream	&operator<<(std::ostream &os, const Request &req);

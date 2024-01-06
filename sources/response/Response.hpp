@@ -6,13 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 21:48:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/06 17:56:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "webserv.hpp"
+#include "Server.hpp"
 
 struct CookieOptions {
     std::string		path;
@@ -27,22 +28,24 @@ struct CookieOptions {
 class Response
 {
 private:
-	int				_socket;
-	bool			_sent;
-	int				_status;
-	std::string		_version;
-	t_mapss			_headers;
-	t_mapss			_cookie;
-	std::string		_body;
+	const Server		&_server;
+	int					_socket;
+	bool				_sent;
+	int					_status;
+	std::string			_version;
+	t_mapss				_headers;
+	t_mapss				_cookie;
+	std::string			_body;
 
-	t_mapss			_static_dir;
+	// t_mapss				_static_dir;
 	
 	static std::map<int, std::string>		_res_codes;
 	static std::map<int, std::string>		initCodes();
+	const std::string	prepareResponse(void);
 
 public:
-	const std::string	prepareResponse(void);
-	Response(int socket, t_mapss static_dir, std::string version, int status = 200);
+	// Response(const Server &server, int socket, t_mapss static_dir, std::string version, int status = 200);
+	Response(const Server &server, int socket, std::string version, int status = 200);
 	~Response(void);
 
 	Response		&status(const int code);

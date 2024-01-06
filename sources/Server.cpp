@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 21:48:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/06 17:53:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "response/Response.hpp"
 #include "request/Request.hpp"
 
+std::vector<std::string>	Server::methods = Server::initMethods();
+
 Server::Server(int port): port(port)
 {
 	this->exit = false;
@@ -22,6 +24,21 @@ Server::Server(int port): port(port)
 
 Server::~Server(void)
 {
+}
+
+std::vector<std::string>	Server::initMethods()
+{
+	std::vector<std::string>	methods;
+
+	methods.push_back("GET");
+	methods.push_back("HEAD");
+	methods.push_back("POST");
+	methods.push_back("PUT");
+	methods.push_back("DELETE");
+	methods.push_back("OPTIONS");
+	methods.push_back("TRACE" );
+
+	return methods;
 }
 
 const int	Server::init(void)
@@ -59,7 +76,16 @@ const int	Server::init(void)
 		perror("bind");
 		return (W_SOCKET_ERR);
 	}
+	this->setupRoutes();
 	return (W_NOERR);
+}
+
+void	Server::setupRoutes(void)
+{
+	Router router = Router(*this, "/static/");
+	router.allowMethod("GET");
+	router.setRoot("./public/router_1");
+	this->_routes.push_back(router);
 }
 
 const int	Server::start(void)
@@ -87,38 +113,16 @@ const int	Server::start(void)
 			perror("poll");
 			return (W_SOCKET_ERR);
 		}
-		if (fds.revents & POLLIN) {
+		if (fds.revents & POLLIN)
+		{
 			socklen_t len = sizeof(this->socket_addr);
 			int newClient = accept(this->socket_fd, (sockaddr *)&this->socket_addr, &len);
 			if (newClient == -1)
 			{
 				perror("accept");
-    			continue;
+				continue;
 			}
-			char buffer[RECV_SIZE] = {0};
-
-			int valread = recv(newClient, buffer, sizeof(buffer), 0);
-			if (valread > 0) {
-				// printf("Received %d bytes: \n`\n%s\n`\n", valread, buffer);
-
-				Request	request = Request(std::string(buffer));
-				std::cout << request << std::endl;
-
-				Response response = Response(newClient, this->getStaticDir(), request.getVersion(), request.getSatus());
-				response.setCookie("42-webserv", "42");
-				response.sendFile("./public/index.html").end();
-				std::cout << response << std::endl;
-				printf(B_YELLOW"------------------Response sent-------------------%s\n\n", RESET);
-			} else if (valread == 0) {
-				printf("Connection closed by the client\n");
-			} else {
-				if (errno == EAGAIN || errno == EWOULDBLOCK) {
-					printf("not ready to read\n");
-				} else {
-					perror("recv");
-				}
-			}
-			close(newClient);
+			this->handleRequest(newClient);
 		}
 	} while (!this->exit);
 	close(this->socket_fd);
@@ -141,7 +145,7 @@ void	Server::setPort(const uint16_t port)
 	this->port = port;
 }
 
-void listFilesInDirectory(const std::string &path, t_mapss& fileMap)
+void listFilesInDirectory(const std::string &path, t_mapss &fileMap)
 {
 	DIR				*dir;
     struct dirent	*ent;
@@ -181,7 +185,42 @@ int		Server::setStaticDir(const std::string &path)
 	return (W_NOERR);
 }
 
-t_mapss		Server::getStaticDir(void)
+const t_mapss		Server::getStaticDir(void) const
 {
 	return (this->static_dir);
+}
+
+const std::vector<std::string>	Server::getMethods(void) const
+{
+	return (this->methods);
+}
+
+void	Server::handleRequest(const int client)
+{
+	char buffer[RECV_SIZE] = {0};
+
+	int valread = recv(client, buffer, sizeof(buffer), 0);
+	if (valread == -1) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			std::cerr << "Client not ready to read" << std::endl;
+		} else {
+			perror("recv");
+		}
+		return ;
+	} else if (valread == 0) {
+		std::cerr << "Connection closed by the client" << std::endl;
+		return ;
+	}
+	Request	request = Request(*this, std::string(buffer), client);
+	std::cout << request << std::endl;
+	this->handleRoutes(request);
+	printf(B_YELLOW"------------------Response sent-------------------%s\n\n", RESET);
+	close(client);
+}
+
+void	Server::handleRoutes(const Request &req)
+{
+	for (std::vector<Router>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+		it->use(req);
+	}
 }

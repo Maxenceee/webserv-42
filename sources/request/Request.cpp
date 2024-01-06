@@ -6,36 +6,19 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 17:33:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/06 17:54:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-std::vector<std::string>	Request::methods = Request::initMethods();
-
-Request::Request(const std::string &str): _raw(str), _status(200), _host(""), _body(""), _port(80)
+Request::Request(const Server &server, const std::string &str, int socket): _server(server), _raw(str), _socket(socket), _status(200), _host(""), _body(""), _port(80)
 {
 	this->parse();
 }
 
 Request::~Request(void)
 {
-}
-
-std::vector<std::string>		Request::initMethods()
-{
-	std::vector<std::string>	methods;
-
-	methods.push_back("GET");
-	methods.push_back("HEAD");
-	methods.push_back("POST");
-	methods.push_back("PUT");
-	methods.push_back("DELETE");
-	methods.push_back("OPTIONS");
-	methods.push_back("TRACE" );
-
-	return methods;
 }
 
 int	Request::parse(void)
@@ -103,7 +86,7 @@ int	Request::getRequestVersion(const std::string &str)
 		std::cerr << B_RED << "RFC error: invalid HTTP version" << RESET << std::endl;
 		return (400);
 	}
-	if (!contains(this->methods, this->_method))
+	if (!contains(this->_server.getMethods(), this->_method))
 		return (405);
 	return (200);
 }
@@ -187,7 +170,10 @@ int	Request::getRequestHostname(const std::string &host)
 	size_t	i;
 
 	if (!host.size())
-		return (REQ_SUCCESS);
+	{
+		this->_status = 400;
+		return (REQ_ERROR);
+	}
 	i = host.find_first_of(':');
 	if (i < std::string::npos)
 	{

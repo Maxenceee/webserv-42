@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 20:03:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/06 17:55:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,4 +89,9 @@ const std::string	Request::getBody(void) const
 const int		Request::getSatus(void) const
 {
 	return (this->_status);
+}
+
+const int		Request::getClientSocket(void) const
+{
+	return (this->_socket);
 }
