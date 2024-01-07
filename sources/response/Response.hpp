@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 17:17:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 00:28:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "request/Request.hpp"
 
 class Server;
+class Request;
 
 struct CookieOptions {
     std::string		path;

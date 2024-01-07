@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/06 17:54:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 00:37:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,13 @@ int	Request::parse(void)
 {
 	size_t	i;
 
+	/**
+	 * La norme RFC impose que chaque requête HTTP suive un modèle strict.
+	 * Ligne de commande (Commande, URL, Version de protocole)
+	 * En-tête de requête
+	 * [Ligne vide]
+	 * Corps de requête
+	 */
 	if ((this->_status = this->getRequestLine(this->_raw, i)) != 200)
 	{
 		return (REQ_ERROR);
@@ -40,17 +47,21 @@ int	Request::getRequestLine(const std::string &str, size_t &i)
 	size_t		j;
 	std::string	req_line;
 
+	/**
+	 * Une requête HTTP commmence par une ligne une ligne de commande
+	 * (Commande, URL, Version de protocole), on s'assure qu'elle est correctement
+	 * formée. (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.1)
+	 */
 	i = str.find_first_of('\n');
 	req_line = str.substr(0, i);
 	i += 1;
 	j = req_line.find_first_of(' ');
-
 	if (j == std::string::npos)
 	{
 		std::cerr << B_RED << "RFC error: no space after method" << RESET << std::endl;
 		return (400);
 	}
-	this->_method.assign(req_line, 0, j);
+	this->_method.assign(req_line, 0, j); // on extrait la méthode de la requête
 	return (this->getRequestPath(req_line));
 }
 
@@ -64,7 +75,7 @@ int	Request::getRequestPath(const std::string &str)
 		std::cerr << B_RED << "RFC error: missing PATH or HTTP version" << RESET << std::endl;
 		return (400);
 	}
-	this->_path = req_tokens[1];
+	this->_path = req_tokens[1]; // on extrait le chemin de la requête
 	return (this->getRequestVersion(req_tokens[2]));
 }
 
@@ -74,7 +85,10 @@ int	Request::getRequestVersion(const std::string &str)
 
 	if (str.compare(0, 5, http) == 0)
 	{
-		this->_version.assign(str, 5, 3);
+		this->_version.assign(str, 5, 3); // on extrait la version du protocole de la requête
+		// le serveur n'accepte que les version 1.0 et 1.1 du protocole HTTP.
+		// Ces vieilles versions datent du début des années 2000 et offrent largement moins de
+		// fonctionnalitées que les versions plus récentes (2023, HTTP/3).
 		if (this->_version != "1.0" && this->_version != "1.1")
 		{
 			std::cerr << B_RED << "request error: unsupported HTTP version" << RESET << std::endl;
@@ -86,6 +100,10 @@ int	Request::getRequestVersion(const std::string &str)
 		std::cerr << B_RED << "RFC error: invalid HTTP version" << RESET << std::endl;
 		return (400);
 	}
+	/**
+	 * On vérifie que la méthode de la requête n'est pas éronée.
+	 * (https://www.rfc-editor.org/rfc/rfc7231#section-4)
+	 */
 	if (!contains(this->_server.getMethods(), this->_method))
 		return (405);
 	return (200);
@@ -112,6 +130,13 @@ int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
 	std::string	value;
 	std::string	line;
 
+	/**
+	 * Selon la norme RFC les en-têtes doivent suivrent un modèle precis (Nom-Du-Champs: [espace?] valeur [espace?])
+	 * Le nom du en-tête doit être en majuscule, s'il contient plusieurs mots, ils
+	 * doivent aussi avoir une majuscule et être liés par un tiré '-'. Les en-tête sont sensibles à
+	 * la case et chaque type de en-tête a son format spécifique pour ses différentes valeurs.
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2)
+	 */
 	while ((line = nextLine(str, i)) != "\r" && line != "")
 	{
 		key = readKey(line);
@@ -169,15 +194,25 @@ int	Request::getRequestHostname(const std::string &host)
 {
 	size_t	i;
 
+	/**
+	 * La norme RFC impose que pour chaque requête le en-tête `Host`soir présent
+	 * afin de fournir les informations sur l'hôte et le port à partir de l'URI cible,
+	 * permettant au serveur d'origine de distinguer entre les ressources tout en
+	 * traitant les demandes pour plusieurs noms d'hôte sur une seule adresse IP.
+	 * 
+	 * Sachant qu'une seule machine hôte peut héberger plusieurs serveurs, l'en-tête
+	 * permet au serveur de savoir à quel domaine (nom d'hôte) et port vous souhaitez accéder.
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-5.4)
+	 */
 	if (!host.size())
 	{
 		this->_status = 400;
 		return (REQ_ERROR);
 	}
 	i = host.find_first_of(':');
+	this->_host = host.substr(0, i);
 	if (i < std::string::npos)
 	{
-		this->_host = host.substr(0, i);
 		this->_port = atoi(host.substr(i + 1).c_str());
 	}
 	else

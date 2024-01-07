@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/07 15:51:01 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 16:52:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 00:51:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,18 @@
 #include <iostream>
 #include <map>
 
+/**
+ * Les types de média (MIME) servent à présicier explicitement au client
+ * le type de données qu'il reçoit.
+ * (https://en.wikipedia.org/wiki/MIME)
+ */
 class MimeTypes {
 private:
     static std::map<std::string, std::string> mimeTypeMapping;
 
     static std::map<std::string, std::string> initMappings() {
         std::map<std::string, std::string> temp;
+
 		temp["xul"] = "application/vnd.mozilla.xul+xml";
         temp["json"] = "application/json";
         temp["ice"] = "x-conference/x-cooltalk";
@@ -60,6 +66,7 @@ private:
         temp["ief"] = "image/ief";
         temp["cgm"] = "image/cgm";
         temp["bmp"] = "image/bmp";
+        temp["webp"] = "image/webp";
         temp["xyz"] = "chemical/x-xyz";
         temp["pdb"] = "chemical/x-pdb";
         temp["ra"] = "audio/x-pn-realaudio";
@@ -202,6 +209,9 @@ public:
         if (it != mimeTypeMapping.end()) {
             return it->second;
         }
+        /**
+         * Par défault nous considérons que le média est un simple texte.
+         */
         return "text/plain";
     }
 };

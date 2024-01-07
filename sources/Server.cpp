@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 19:45:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/07 23:53:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,11 +40,9 @@ Server::~Server(void)
  * a pour but de ne faire qu'une modification partielle.
  * 
  * La méthode TRACE est aussi assez simple, elle consiste à simplement retourner le contenu
- * de la requete au client afin que celui-ci puisse évaluer la qualité de la connexion.
+ * de la requête au client afin que celui-ci puisse évaluer la qualité de la connexion.
  * 
  * OPTION et CONNECT sont inutiles dans notre cas.
- * 
- * @return std::vector<std::string> 
  */
 std::vector<std::string>	Server::initMethods()
 {
@@ -82,10 +80,10 @@ const int	Server::init(void)
 	 * la possibilité d'utiliser la protocole UDP (User Datagram Protocol) avec la
 	 * macro SOCK_DGRAM privilégiant quant à lui la rapidité au détriment de la fiabilité. 
 	 * 
-	 * La fonction renvoie un file descriptor.
+	 * La fonction renvoie un descripteurs de fichiers.
 	 */
 	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	FD_SET(this->socket_fd, &this->_fd_set);
+	FD_SET(this->socket_fd, &this->_fd_set); // permet d'ajouter à l'ensemble `fdset` (inutilisé pour le moment)
 	if (this->socket_fd == -1)
 	{
 		std::cerr << W_PREFIX"error: Could not create socket" << std::endl;
@@ -123,7 +121,7 @@ const int	Server::init(void)
 	 * sur le réseau. ce qui signifie que le socket utilisera cette adresse
 	 * pour communiquer sur le réseau.
 	 * 
-	 * Elle prend un paramètre le file descriptor du socket conserné et une structure
+	 * Elle prend un paramètre le descripteurs de fichiers du socket conserné et une structure
 	 * de donné de type spéfique en focntion du type de connexion. Dans nôtre cas
 	 * `sockaddr_in` ou `sockaddr_in6` en fonction de la version passé lors de la
 	 * création du socket, dans notre cas nous utilisons INET soit IPV4 donc 
@@ -154,8 +152,8 @@ const int	Server::init(void)
 void	Server::setupRoutes(void)
 {
 	/**
-	 * En fonction de la configuration passé par l'utilisateur, nous créons des Router
-	 * pour chaque Location spécifié.
+	 * En fonction de la configuration passé par l'utilisateur, nous créons des instances
+	 * de la classe Router pour chaque `Location` spécifié.
 	 */
 	Router router1 = Router(*this, "/static/");
 	/**
@@ -182,14 +180,16 @@ const int	Server::start(void)
 	pollfd		fds;
 	const int	timeout = (3 * 1000);
 
+	struct sockaddr_in	client_addr;
+	socklen_t			len = sizeof(client_addr);
+
 	std::cout << B_GREEN"Listening on port " << this->port << RESET << std::endl;
 	/**
 	 * La fonction listen() permet de marquer un socket comme étant un socket en
 	 * attente de connexions entrantes.
 	 * 
-	 * Elle prend en paramètre le file descriptor du socket et la taille de la file
+	 * Elle prend en paramètre le descripteurs de fichiers du socket et la taille de la file
 	 * d'attente.
-	 * 
 	 */
 	int	error = listen(this->socket_fd, 32);
 	if (error == -1)
@@ -199,26 +199,53 @@ const int	Server::start(void)
 		return (W_SOCKET_ERR);
 	}
 
+	/**
+	 * Boucle principale du serveur.
+	 */
+	fds.fd = this->socket_fd;
+	fds.events = POLLIN;
 	do
 	{
-		fds.fd = this->socket_fd;
-		fds.events = POLLIN;
-
+		/**
+		 * La fonction poll() est utilisée pour surveiller plusieurs descripteurs de
+		 * fichiers en même temps, notamment des sockets, des fichiers, ou d'autres
+		 * types de descripteurs, afin de déterminer s'ils sont prêts pour une lecture,
+		 * une écriture ou s'ils ont généré une exception.
+		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
+		 * pour chaque élément, le descripteurs de fichiers et l'événements à surveiller.
+		 * 
+		 * La focntion attend que l'un des événements spécifiés se produise pour l'un
+		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire.
+		 * 
+		 * Dans ce cas elle permet de s'assurer que le descripteurs de fichiers du socket est pret
+		 * pour la lecture.
+		 */
 		if (poll(&fds, 1, timeout) == -1)
 		{
 			std::cerr << W_PREFIX"error: an error occured while poll'ing" << std::endl;
 			perror("poll");
 			return (W_SOCKET_ERR);
 		}
+		/**
+		 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
+		 * les faux positifs lorsque timeout expire ou lorsqu'il y a une exception.
+		 */
 		if (fds.revents & POLLIN)
 		{
-			socklen_t len = sizeof(this->socket_addr);
-			int newClient = accept(this->socket_fd, (sockaddr *)&this->socket_addr, &len);
+			/**
+			 * La fonction accept() est utilisé pour accepter une connexion entrant d'un client.
+			 * Elle prend en paramètre le descripteurs de fichiers du socket ainsi que le pointeur
+			 * d'une structure `sockaddr` ou seront écrite les information sur le client (adresse IP, port, etc.).
+			 * 
+			 * La fonction retourne un nouveau descripteurs de fichiers vers le client.
+			 */
+			int newClient = accept(this->socket_fd, (sockaddr *)&client_addr, &len);
 			if (newClient == -1)
 			{
 				perror("accept");
 				continue;
 			}
+			std::cout << "client ip: " << client_addr.sin_addr.s_addr << " port: " << client_addr.sin_port << std::endl;
 			this->handleRequest(newClient);
 		}
 	} while (!this->exit);
@@ -254,7 +281,7 @@ void listFilesInDirectory(const std::string &path, t_mapss &fileMap, bool recurs
 
 	if (!isDirectory(path.c_str()))
 	{
-		throw std::invalid_argument(B_RED"Invalid static dir: "+path+RESET);
+		throw std::invalid_argument(B_RED"Server error: Invalid static dir: "+path+RESET);
 	}
 
 	if ((dir = opendir(path.c_str())) != NULL)
@@ -306,6 +333,12 @@ void	Server::handleRequest(const int client)
 {
 	char buffer[RECV_SIZE] = {0};
 
+	/**
+	 * La focntion recv() sert à lire le contenu d'un descripteurs de fichiers, ici
+	 * le descripteurs du client. À la difference de read, la fonction recv est
+	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
+	 * gestion de la lecture dans un contexte de travaille en réseau.
+	 */
 	int valread = recv(client, buffer, sizeof(buffer), 0);
 	if (valread == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -318,6 +351,11 @@ void	Server::handleRequest(const int client)
 		std::cerr << "Connection closed by the client" << std::endl;
 		return ;
 	}
+	/**
+	 * Pour chaque requete entrante, on créer une instance des classes Request et Response
+	 * qui se charge de l'interprétation des données de la requête et de la génération
+	 * de la réponse.
+	 */
 	Request	request = Request(*this, std::string(buffer), client);
 	std::cout << request << std::endl;
 	Response response = Response(*this, request.getClientSocket(), request);
@@ -334,6 +372,10 @@ void	Server::handleRoutes(Request &req, Response &res)
 		if (!res.canSend())
 			break;
 	}
+	/**
+	 * Dans le cas où la route demandée n'a pu être géré par aucun des routers du serveur,
+	 * on renvoie la réponse par defaut. (Error 404, not found)
+	 */
 	if (res.canSend())
 	{
 		res.sendNotFound().end();
