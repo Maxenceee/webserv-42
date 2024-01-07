@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 18:39:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 00:53:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 /**
  * Pour le moment une seule instance de Server est créée avec un port
- * definit par la macro W_DEFAULT_PORT. Sachant que la qu'il doit être
+ * definit par la macro W_DEFAULT_PORT. Sachant qu'il doit être
  * possible de créer plusieurs serveurs sur differents port simultanement
  * je préconise l'ajout d'une Class Cluster, permettant de gérer les differents
  * serveurs.
