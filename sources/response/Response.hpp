@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/06 17:56:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/07 17:17:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,9 @@
 
 #include "webserv.hpp"
 #include "Server.hpp"
+#include "request/Request.hpp"
+
+class Server;
 
 struct CookieOptions {
     std::string		path;
@@ -33,6 +36,8 @@ private:
 	bool				_sent;
 	int					_status;
 	std::string			_version;
+	std::string			_method;
+	std::string			_path;
 	t_mapss				_headers;
 	t_mapss				_cookie;
 	std::string			_body;
@@ -45,12 +50,13 @@ private:
 
 public:
 	// Response(const Server &server, int socket, t_mapss static_dir, std::string version, int status = 200);
-	Response(const Server &server, int socket, std::string version, int status = 200);
+	Response(const Server &server, int socket, const Request &req);
 	~Response(void);
 
 	Response		&status(const int code);
 	Response		&send(const std::string data);
 	Response		&sendFile(const std::string filepath);
+	Response		&sendNotFound(void);
 	// Response		&render(const std::string filename);
 	Response		&end();
 

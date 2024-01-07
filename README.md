@@ -48,6 +48,16 @@ cgi
 http://www.mnuwer.dbasedeveloper.co.uk/dlearn/web/session01.htm
 
 
+technic
+
+https://fr.wikipedia.org/wiki/Hypertext_Transfer_Protocol
+
+https://www.gipsa-lab.grenoble-inp.fr/~christian.bulfone/MIASHS-L3/PDF/3-Les_protocoles_UDP_TCP.pdf
+
+https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Connection
+
+https://fr.wikipedia.org/wiki/Multipurpose_Internet_Mail_Extensions
+
 ## TODO
 
 Faire une class Cluster qui gere autant de Server que necessaire.
