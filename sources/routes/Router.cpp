@@ -6,15 +6,15 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/06 17:59:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/07 19:42:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Router.hpp"
-#include "response/Response.hpp"
 
 Router::Router(const Server &server, const std::string path, const bool strict, const bool alias): _server(server), _path(path), _strict(strict), _aliasing(alias)
 {
+	this->_root = server.getRoot();
 	removeTrailingSlash(this->_path);
 	// std::cout << "router path: " << path << " normalized: " << this->_path << std::endl;
 }
@@ -72,22 +72,34 @@ void	Router::setAlias(const std::string path)
 	setActiveDir(path);
 }
 
-void	Router::use(const Request &req) const
+void	Router::route(Request &request, Response &response)
 {
-	if (!this->isValidMethod(req.getMethod()) && this->_allowed_methods.size())
+	if (!this->isValidMethod(request.getMethod()) && this->_allowed_methods.size())
 		return ;
-	std::cout << "Root: " << this->_path << "\nUse path: " << req.getPath() << std::endl;
+	std::cout << "Root: " << this->_path << "\nUse path: " << request.getPath() << std::endl;
 
-	Response response = Response(this->_server, req.getClientSocket(), req.getVersion(), req.getSatus());
 	if (!response.canSend())
 		return ;
-	if (req.getPath().compare(0, this->_path.size(), this->_path) == 0)
+	if (request.getPath().compare(0, this->_path.size(), this->_path) == 0)
 	{
-		std::cout << "valid route for " << req.getPath() << std::endl;
-		std::string fullpath = this->_root + req.getPath().substr(this->_path.size());
+		std::cout << "valid route for " << request.getPath() << std::endl;
+		std::string fullpath = this->_root + request.getPath().substr(this->_path.size());
 		std::cout << "full path: " << fullpath << std::endl;
-		response.sendFile(fullpath).end();
-		std::cout << response << std::endl;
+		if (isDirectory(fullpath)) {
+			if (isFile(fullpath+"/index.html"))
+				response.sendFile(fullpath+"/index.html");
+			else {
+				std::cerr << "cannot get " << fullpath << std::endl;
+				// response.setHeader("Content-Type", "text/html");
+				// response.send(this->getDirList(fullpath, request.getPath()));
+				response.sendNotFound();
+			}
+		} else if (isFile(fullpath)) {
+			response.sendFile(fullpath);
+		} else {
+			response.sendNotFound();
+		}
+		response.end();
 	}
 }
 
@@ -104,4 +116,18 @@ void	Router::removeTrailingSlash(std::string &str)
 	if (str[str.size() - 1] == '/') {
 		str.resize(str.size() - 1);
 	}
+}
+
+const std::string	Router::getDirList(const std::string dirpath, const std::string reqPath) const
+{
+	t_mapss		temp;
+	std::string	res;
+
+	listFilesInDirectory(dirpath, temp, false);
+	res = "<!DOCTYPE html>\n<html><title>"+reqPath+"</title><body>";
+	for (t_mapss::iterator it = temp.begin(); it != temp.end(); it++) {
+		res += "<a href=\""+reqPath+"/"+it->first+"\">" + it->first + "</a>";
+	}
+	res += "</body></html>";
+	return (res);
 }

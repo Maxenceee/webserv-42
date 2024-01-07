@@ -6,20 +6,25 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/06 18:01:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/07 17:52:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
+#include "MIMEType.hpp"
 
 std::map<int, std::string>	Response::_res_codes = Response::initCodes();
 
-Response::Response(const Server &server, int socket, std::string version, int status): _server(server), _sent(false), _status(status), _version(version)
+Response::Response(const Server &server, int socket, const Request &req): _server(server), _sent(false)
 {
 	this->_socket = socket;
+	this->_version = req.getVersion();
+	this->_method = req.getMethod();
+	this->_status = req.getSatus();
+	this->_path = req.getPath();
 	this->initCodes();
 	this->setHeader("Server", "42-webserv");
-	if (status != 200)
+	if (this->_status != 200)
 	{
 		this->end();
 	}
@@ -78,22 +83,26 @@ Response	&Response::sendFile(const std::string filepath)
 		file.open(filepath.c_str(), std::ifstream::in);
 		if (file.is_open() == false)
 		{
-			this->status(500);
-			this->setHeader("Content-Type", "text/html");
-			this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file. Cannot find: "+filepath+"</body></html>";
+			this->sendNotFound();
 			return (*this);
 		}
 		buffer << file.rdbuf();
 		file.close();
-		// this->setHeader("Content-Type", "text/html");
+		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath)));
 		this->_body = buffer.str();
 	}
 	else
 	{
-		this->status(500);
-		this->setHeader("Content-Type", "text/html");
-		this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file. Cannot find: "+filepath+"</body></html>";
+		this->sendNotFound();
 	}
+	return (*this);
+}
+
+Response	&Response::sendNotFound(void)
+{
+	this->status(404);
+	this->setHeader("Content-Type", "text/html");
+	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Error</title></head><body><pre>Cannot "+this->_method+" "+this->_path+"</pre></body></html>");
 	return (*this);
 }
 
@@ -119,6 +128,7 @@ Response	&Response::end()
 		std::string	res = this->prepareResponse();
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
 		this->_sent = true;
+		printf(B_YELLOW"------------------Response sent-------------------%s\n\n", RESET);
 	}
 	else
 	{
