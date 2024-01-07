@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 17:52:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 00:43:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@ Response::Response(const Server &server, int socket, const Request &req): _serve
 	this->_path = req.getPath();
 	this->initCodes();
 	this->setHeader("Server", "42-webserv");
+	/**
+	 * On vérifie si la requête la renvoyé aucune erreur de parsing.
+	 */
 	if (this->_status != 200)
 	{
 		this->end();
@@ -56,6 +59,10 @@ std::map<int, std::string>	Response::initCodes()
 
 Response::~Response(void)
 {
+	/**
+	 * Si la réponse n'a pas été envoyé au client avant qu'elle ne soit
+	 * détruite on l'envoie;
+	 */
 	if (!this->_sent)
 		this->end();
 }
@@ -88,6 +95,10 @@ Response	&Response::sendFile(const std::string filepath)
 		}
 		buffer << file.rdbuf();
 		file.close();
+		/**
+		 * Lors que l'envoie d'un fichier il est préférable d'envoyer son
+		 * type MIME via l'en-tête 'Content-Type'.
+		 */
 		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath)));
 		this->_body = buffer.str();
 	}
@@ -126,6 +137,12 @@ Response	&Response::end()
 	if (!this->_sent)
 	{
 		std::string	res = this->prepareResponse();
+		/**
+		 * La fonction send() sert à écrire le contenu d'un descripteurs de fichiers, ici
+		 * le descripteurs du client. À la difference de write, la fonction send est
+		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
+		 * gestion de la l'écriture dans un contexte de travaille en réseau.
+		 */
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
 		this->_sent = true;
 		printf(B_YELLOW"------------------Response sent-------------------%s\n\n", RESET);
@@ -140,7 +157,15 @@ Response	&Response::end()
 const std::string	Response::prepareResponse(void)
 {
 	std::string	res;
-	
+
+	/**
+	 * La norme RFC impose que chaque réponse HTTP suive un modèle strict.
+	 * Ligne de statut (Version, Code-réponse, Texte-réponse)
+     * En-tête de réponse
+     * [Ligne vide]
+     * Corps de réponse
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
+	 */
 	res = "HTTP/" + this->_version + " " + std::to_string(this->_status) + " " + this->getSatusName() + "\n";
 	for (t_mapss::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
 		res += it->first + ": " + it->second + "\n";
