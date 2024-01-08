@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 00:43:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:33:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,9 +161,9 @@ const std::string	Response::prepareResponse(void)
 	/**
 	 * La norme RFC impose que chaque réponse HTTP suive un modèle strict.
 	 * Ligne de statut (Version, Code-réponse, Texte-réponse)
-     * En-tête de réponse
-     * [Ligne vide]
-     * Corps de réponse
+	 * En-tête de réponse
+	 * [Ligne vide]
+	 * Corps de réponse
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
 	 */
 	res = "HTTP/" + this->_version + " " + std::to_string(this->_status) + " " + this->getSatusName() + "\n";
