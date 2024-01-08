@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 12:17:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 18:30:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class Router
 private:
 	const Server					&_server;
 	bool							_strict;
+	bool							_autoindex;
 	std::string						_path;
 	struct s_Router_Root			_root;
 	struct s_Router_Redirection		_redirection;
@@ -46,6 +47,8 @@ private:
 	std::string						_index;
 
 	void	checkLeadingTrailingSlash(std::string &str);
+	
+	const std::string		getDirList(const std::string dirpath, std::string reqPath);
 
 public:
 	Router(const Server &server, const std::string path, const bool strict = false);
@@ -61,8 +64,7 @@ public:
 	void	setAlias(const std::string path);
 
 	void	setRedirection(const std::string to, bool permanent = false);
+	void	setAutoIndex(const bool autoindex);
 
 	bool	isValidMethod(const std::string method) const;
-
-	const std::string		getDirList(const std::string dirpath, const std::string reqPath) const;
 };

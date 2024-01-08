@@ -6,13 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 12:33:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 18:48:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Router.hpp"
 
-Router::Router(const Server &server, const std::string path, const bool strict): _server(server), _path(path), _strict(strict)
+Router::Router(const Server &server, const std::string path, const bool strict): _server(server), _path(path), _strict(strict), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite du chemin de son parent. Celui peut être
@@ -97,6 +97,11 @@ void	Router::setRedirection(const std::string to, bool permanent)
 	this->_redirection.enabled = true;
 }
 
+void	Router::setAutoIndex(const bool autoindex)
+{
+	this->_autoindex = autoindex;
+}
+
 void	Router::route(Request &request, Response &response)
 {
 	/**
@@ -137,11 +142,16 @@ void	Router::route(Request &request, Response &response)
 		std::string fullpath = this->_root.path + request.getPath().substr(this->_path.size());
 		std::cout << "full path: " << fullpath << std::endl;
 		if (isDirectory(fullpath)) {
-			if (isFile(fullpath+"/index.html"))
-				response.sendFile(fullpath+"/index.html");
-			else {
+			if (isFile(fullpath+"/index.html")) {
+				response.sendFile(fullpath+"/index.html");	
+			} else {
 				std::cerr << "cannot get " << fullpath << std::endl;
-				response.sendNotFound();
+				if (this->_autoindex) {
+					response.setHeader("Content-Type", "text/html");
+					response.send(this->getDirList(fullpath, request.getPath()));
+				} else {
+					response.sendNotFound();
+				}
 			}
 		} else if (isFile(fullpath)) {
 			response.sendFile(fullpath);
@@ -180,16 +190,36 @@ void	Router::checkLeadingTrailingSlash(std::string &str)
 	}
 }
 
-const std::string	Router::getDirList(const std::string dirpath, const std::string reqPath) const
+const std::string	Router::getDirList(const std::string dirpath, std::string reqPath)
 {
-	t_mapss		temp;
+	t_mapss		content;
 	std::string	res;
 
-	listFilesInDirectory(dirpath, temp, false);
-	res = "<!DOCTYPE html>\n<html><title>"+reqPath+"</title><body>";
-	for (t_mapss::iterator it = temp.begin(); it != temp.end(); it++) {
-		res += "<a href=\""+reqPath+"/"+it->first+"\">" + it->first + "</a>";
+	this->checkLeadingTrailingSlash(reqPath);
+	listFilesInDirectory(dirpath, content, false);
+	content.insert(content.begin(), std::pair<std::string, std::string>("..", reqPath));
+	res = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>listing directory <%= dir_name %></title><style>*{margin:0;padding:0;outline:0}body{padding:80px 100px;font:13px \"Helvetica Neue\",\"Lucida Grande\",Arial;background:#ece9e9 -webkit-gradient(linear,0 0,0 100%,from(#fff),to(#ece9e9));background:#ece9e9 -moz-linear-gradient(top,#fff,#ece9e9);background-repeat:no-repeat;color:#555;-webkit-font-smoothing:antialiased}h1,h2,h3{font-size:22px;color:#343434}h1 em,h2 em{padding:0 5px;font-weight:400}h1{font-size:60px}h2{margin-top:10px}h3{margin:5px 0 10px 0;padding-bottom:5px;border-bottom:1px solid #eee;font-size:18px}ul li{list-style:none}ul li:hover{cursor:pointer;color:#2e2e2e}ul li .path{padding-left:5px;font-weight:700}ul li .line{padding-right:5px;font-style:italic}ul li:first-child .path{padding-left:0}p{line-height:1.5}a{color:#555;text-decoration:none}a:hover{color:#303030}#stacktrace{margin-top:15px}.directory h1{margin-bottom:15px;font-size:18px}ul#files{width:100%;height:100%;overflow:hidden}ul#files li{float:left;width:30%;line-height:25px;margin:1px}ul#files li a{display:block;height:25px;border:1px solid transparent;-webkit-border-radius:5px;-moz-border-radius:5px;border-radius:5px;overflow:hidden;white-space:nowrap}ul#files li a:focus,ul#files li a:hover{background:rgba(255,255,255,.65);border:1px solid #ececec}ul#files li a.highlight{-webkit-transition:background .4s ease-in-out;background:#ffff4f;border-color:#e9dc51}#search{display:block;position:fixed;top:20px;right:20px;width:90px;-webkit-transition:width ease .2s,opacity ease .4s;-moz-transition:width ease .2s,opacity ease .4s;-webkit-border-radius:32px;-moz-border-radius:32px;-webkit-box-shadow:inset 0 0 3px rgba(0,0,0,.25),inset 0 1px 3px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.03);-moz-box-shadow:inset 0 0 3px rgba(0,0,0,.25),inset 0 1px 3px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.03);-webkit-font-smoothing:antialiased;text-align:left;font:13px \"Helvetica Neue\",Arial,sans-serif;padding:4px 10px;border:none;background:0 0;margin-bottom:0;outline:0;opacity:.7;color:#888}#search:focus{width:120px;opacity:1}#files span{display:inline-block;overflow:hidden;text-overflow:ellipsis;text-indent:10px}#files .name{background-repeat:no-repeat}#files .icon .name{text-indent:28px}.view-tiles .name{width:100%;background-position:8px 5px}.view-tiles .date,.view-tiles .size{display:none}ul#files.view-details li{float:none;display:block;width:90%}ul#files.view-details li.header{height:25px;background:#000;color:#fff;font-weight:700}.view-details .header{border-radius:5px}.view-details .name{width:60%;background-position:8px 5px}.view-details .size{width:10%}.view-details .date{width:30%}.view-details .date,.view-details .size{text-align:right;direction:rtl}@media (max-width:768px){body{font-size:13px;line-height:16px;padding:0}#search{position:static;width:100%;font-size:2em;line-height:1.8em;text-indent:10px;border:0;border-radius:0;padding:10px 0;margin:0}#search:focus{width:100%;border:0;opacity:1}.directory h1{font-size:2em;line-height:1.5em;color:#fff;background:#000;padding:15px 10px;margin:0}ul#files{border-top:1px solid #cacaca}ul#files li{float:none;width:auto!important;display:block;border-bottom:1px solid #cacaca;font-size:2em;line-height:1.2em;text-indent:0;margin:0}ul#files li:nth-child(odd){background:#e0e0e0}ul#files li a{height:auto;border:0;border-radius:0;padding:15px 10px}ul#files li a:focus,ul#files li a:hover{border:0}#files .date,#files .header,#files .size{display:none!important}#files .name{float:none;display:inline-block;width:100%;text-indent:0;background-position:0 50%}#files .icon .name{text-indent:41px}}#files .icon-directory .name{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAAWtQTFRFAAAA/PPQ9Nhc2q402qQ12qs2/PTX2pg12p81+/LM89NE9dto2q82+/fp2rM22qY39d6U+/bo2qo2/frx/vz32q812qs12qE279SU8c4w9NZP+/LK//367s9y7s925cp0/vzw9t92//342po2/vz25s1579B6+OSO2bQ0/v799NyT8tE79dld8Msm+OrC/vzx79KA2IYs7s6I9d6R4cJe9+OF/PLI/fry79OF/v30//328tWB89RJ8c9p8c0u9eCf//7+9txs6sts5Mdr+++5+u2z/vrv+/fq6cFz8dBs8tA57cpq+OaU9uGs27Y8//799NdX/PbY9uB89unJ//z14sNf+emh+emk+vDc+uys9+OL8dJy89NH+eic8tN5+OaV+OWR9N2n9dtl9t529+KF9+GB9Nue9NdU8tR/9t5y89qW9dpj89iO89eG/vvu2pQ12Y4z/vzy2Ict/vvv48dr/vzz4sNg///+2Igty3PqwQAAAAF0Uk5TAEDm2GYAAACtSURBVBjTY2AgA2iYlJWVhfohBPg0yx38y92dS0pKVOVBAqIi6sb2vsWWpfrFeTI8QAEhYQEta28nCwM1OVleZqCAmKCEkUdwYWmhQnFeOStQgL9cySqkNNDHVJGbiY0FKCCuYuYSGRsV5KgjxcXIARRQNncNj09JTgqw0ZbkZAcK5LuFJaRmZqfHeNnpSucDBQoiEtOycnIz4qI9bfUKQA6pKKqAgqIKQyK8BgAZ5yfODmnHrQAAAABJRU5ErkJggg==)}#files .icon-text .name {background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADoSURBVBgZBcExblNBGAbA2ceegTRBuIKOgiihSZNTcC5LUHAihNJR0kGKCDcYJY6D3/77MdOinTvzAgCw8ysThIvn/VojIyMjIyPP+bS1sUQIV2s95pBDDvmbP/mdkft83tpYguZq5Jh/OeaYh+yzy8hTHvNlaxNNczm+la9OTlar1UdA/+C2A4trRCnD3jS8BB1obq2Gk6GU6QbQAS4BUaYSQAf4bhhKKTFdAzrAOwAxEUAH+KEM01SY3gM6wBsEAQB0gJ+maZoC3gI6iPYaAIBJsiRmHU0AALOeFC3aK2cWAACUXe7+AwO0lc9eTHYTAAAAAElFTkSuQmCC);}</style></head><body class=\"directory\"><div id=\"wrapper\"><h1><%= dir_tree %></h1><ul id=\"files\" class=\"view-tiles\"> <%= dir_content %> </ul></div></body></html>";
+	replace(res, "<%= dir_name %>", reqPath);
+	std::vector<std::string> list = split(reqPath, '/');
+	std::string temp = "/";
+	for (std::vector<std::string>::iterator it = list.begin(); it != list.end(); it++) {
+		if (it > list.begin() + 1)
+			temp += "/";
+		temp += *it;
+		*it = "<a href=\""+ temp +"\">" + *it + "</a>";
 	}
-	res += "</body></html>";
+	std::string dirhierachy = join(list, " / ");
+	// std::cout << B_RED"dir: " << dirhierachy << std::endl;
+	replace(res, "<%= dir_tree %>", dirhierachy);
+	temp = "";
+	std::string icon;
+	for (t_mapss::iterator it = content.begin(); it != content.end(); it++) {
+		if ((it->first == "..") || isDirectory(it->second))
+			icon = "icon-directory";
+		else
+			icon = "icon-text";
+		temp += "<li><a href=\""+reqPath+"/"+it->first+"\" class=\"icon "+icon+"\" title=\""+it->first+"\"><span class=\"name\">"+it->first+"</span><span class=\"size\"></span><span class=\"date\"></span></a></li>";
+	}
+	replace(res, "<%= dir_content %>", temp);
 	return (res);
 }

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 11:12:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 17:49:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <limits>
 #include <cstdio>
 #include <filesystem>
+#include <numeric>
 
 // CPP Containers
 #include <map>

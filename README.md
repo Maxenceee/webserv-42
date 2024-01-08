@@ -48,6 +48,8 @@ cgi
 http://www.mnuwer.dbasedeveloper.co.uk/dlearn/web/session01.htm
 
 
+https://hackmd.io/@laian/SJZHcOsmT?utm_source=preview-mode&utm_medium=rec
+
 technic
 
 https://fr.wikipedia.org/wiki/Hypertext_Transfer_Protocol
