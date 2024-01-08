@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 01:28:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:34:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,7 +196,7 @@ int	Request::getRequestHostname(const std::string &host)
 	size_t	i;
 
 	/**
-	 * La norme RFC impose que pour chaque requête le en-tête `Host`soir présent
+	 * La norme RFC impose que pour chaque requête l'en-tête `Host` soit présent
 	 * afin de fournir les informations sur l'hôte et le port à partir de l'URI cible,
 	 * permettant au serveur d'origine de distinguer entre les ressources tout en
 	 * traitant les demandes pour plusieurs noms d'hôte sur une seule adresse IP.
