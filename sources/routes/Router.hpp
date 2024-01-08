@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 15:24:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 12:17:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,22 +21,34 @@ class Server;
 class Request;
 class Response;
 
+struct s_Router_Root {
+	bool			set;
+	bool			isAlias;
+	std::string		path;
+};
+
+struct s_Router_Redirection {
+	bool			enabled;
+	bool			permanent;
+	std::string		path;
+};
+
 class Router
 {
 private:
-	const Server				&_server;
-	bool						_strict;
-	bool						_aliasing;
-	std::string					_path;
-	std::string					_root;
-	std::vector<std::string>	_allowed_methods;
-	std::string					_active_dir;
-	std::string					_index;
+	const Server					&_server;
+	bool							_strict;
+	std::string						_path;
+	struct s_Router_Root			_root;
+	struct s_Router_Redirection		_redirection;
+	std::vector<std::string>		_allowed_methods;
+	std::string						_active_dir;
+	std::string						_index;
 
-	void	removeTrailingSlash(std::string &str);
+	void	checkLeadingTrailingSlash(std::string &str);
 
 public:
-	Router(const Server &server, const std::string path, const bool strict = false, const bool alias = false);
+	Router(const Server &server, const std::string path, const bool strict = false);
 	~Router(void);
 
 	void	route(Request &request, Response &response);
@@ -47,6 +59,8 @@ public:
 	// void	setActiveDir(const std::string dirpath);
 	void	setRoot(const std::string path);
 	void	setAlias(const std::string path);
+
+	void	setRedirection(const std::string to, bool permanent = false);
 
 	bool	isValidMethod(const std::string method) const;
 

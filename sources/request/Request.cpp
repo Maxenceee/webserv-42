@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 01:34:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 10:55:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,7 @@ int	Request::getRequestHostname(const std::string &host)
 	 * 
 	 * Sachant qu'une seule machine hôte peut héberger plusieurs serveurs, l'en-tête
 	 * permet au serveur de savoir à quel domaine (nom d'hôte) et port vous souhaitez accéder.
-	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-5.4)
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-5.4)""
 	 */
 	if (!host.size())
 	{
