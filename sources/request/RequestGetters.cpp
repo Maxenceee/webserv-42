@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/06 17:55:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:32:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ std::ostream	&operator<<(std::ostream &os, const Request &req)
 	os << B_CYAN"Path: " << RESET << req.getPath() << "\n";
 	os << B_CYAN"Host: " << RESET << req.getHost() << "\n";
 	os << B_CYAN"Port: " << RESET << req.getPort() << "\n";
+	os << B_CYAN"Origin IP: " << RESET << req.getIP() << "\n";
 
 	os << B_CYAN"Headers: " << RESET << std::endl;
 	const t_mapss &headers = req.getHeaders();
@@ -61,22 +62,22 @@ const std::string	Request::getHost(void) const
 	return (this->_host);
 }
 
-const int		Request::getPort(void) const
+const int			Request::getPort(void) const
 {
 	return (this->_port);
 }
 
-const t_mapss	Request::getQueries(void) const
+const t_mapss		Request::getQueries(void) const
 {
 	return (this->_query);
 }
 
-const t_mapss	Request::getHeaders(void) const
+const t_mapss		Request::getHeaders(void) const
 {
 	return (this->_headers);
 }
 
-const t_mapss	Request::getCookies(void) const
+const t_mapss		Request::getCookies(void) const
 {
 	return (this->_cookie);
 }
@@ -86,12 +87,22 @@ const std::string	Request::getBody(void) const
 	return (this->_body);
 }
 
-const int		Request::getSatus(void) const
+const int			Request::getSatus(void) const
 {
 	return (this->_status);
 }
 
-const int		Request::getClientSocket(void) const
+const int			Request::getClientSocket(void) const
 {
 	return (this->_socket);
+}
+
+const sockaddr_in	Request::getClientAddr(void) const
+{
+	return (this->_clientAddr);
+}
+
+const std::string	Request::getIP(void) const
+{
+	return (this->_ip);
 }
