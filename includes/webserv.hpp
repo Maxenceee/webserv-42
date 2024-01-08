@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 20:02:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 11:12:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#include <ctime>
 #include <limits>
 #include <cstdio>
 #include <filesystem>

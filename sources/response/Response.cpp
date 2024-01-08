@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 01:33:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 11:56:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,34 @@ Response	&Response::sendNotFound(void)
 	return (*this);
 }
 
+Response		&Response::redirect(const std::string &path, bool permanent)
+{
+	this->status(301 + !permanent);
+	this->setHeader("Location", path);
+	return (*this);
+}
+
+std::string		Response::getTime(void)
+{
+	static const char	*wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	static const char	*months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	time_t		now = time(0);
+	tm			*gmtm = gmtime(&now);
+	std::string	date;
+
+	date += wdays[gmtm->tm_wday];
+	date += ", ";
+    date += (gmtm->tm_mday < 10 ? "0" : "") + std::to_string(gmtm->tm_mday);
+	date += " ";
+    date += months[gmtm->tm_mon];
+	date += " ";
+	date += std::to_string(1900 + gmtm->tm_year);
+	date += " ";
+    date += std::to_string(gmtm->tm_hour) + ":" + std::to_string(gmtm->tm_min) + ":" + std::to_string(gmtm->tm_sec);
+	date += " GMT";
+	return (date);
+}
+
 /**
  * A voir si on la garde
  */
@@ -136,6 +164,7 @@ Response	&Response::end()
 {
 	if (!this->_sent)
 	{
+		this->setHeader("Date", this->getTime());
 		std::string	res = this->prepareResponse();
 		/**
 		 * La fonction send() sert à écrire le contenu d'un descripteurs de fichiers, ici

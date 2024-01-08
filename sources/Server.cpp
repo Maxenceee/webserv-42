@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 01:28:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 12:34:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,10 +152,13 @@ const int	Server::init(void)
 void	Server::setupRoutes(void)
 {
 	/**
+	 * DEMO:
+	 */
+	/**
 	 * En fonction de la configuration passé par l'utilisateur, nous créons des instances
 	 * de la classe Router pour chaque `Location` spécifié.
 	 */
-	Router router1 = Router(*this, "/static/");
+	Router router1 = Router(*this, "/static", true);
 	/**
 	 * allowMethod() indique au router qu'elle méthode HTTP il peut servir. Si aucune méthode
 	 * n'est spécifiée le router les accepte toutes.
@@ -170,9 +173,18 @@ void	Server::setupRoutes(void)
 	 * La méthode Server::use() permet d'ajouter un router au serveur.
 	 */
 	this->use(router1);
-	Router router2 = Router(*this, "/api");
+
+	Router router2 = Router(*this, "/static/", true);
 	router2.setRoot("./public/router_2");
 	this->use(router2);
+
+	/**
+	 * Test des redirections
+	 */
+	Router router3 = Router(*this, "/redir");
+	router3.allowMethod("GET");
+	router3.setRedirection("/static", true);
+	this->use(router3);
 }
 
 const int	Server::start(void)

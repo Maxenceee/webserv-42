@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 00:28:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 11:43:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,9 @@ private:
 	
 	static std::map<int, std::string>		_res_codes;
 	static std::map<int, std::string>		initCodes();
+	
 	const std::string	prepareResponse(void);
+	std::string			getTime(void);
 
 public:
 	// Response(const Server &server, int socket, t_mapss static_dir, std::string version, int status = 200);
@@ -59,6 +61,7 @@ public:
 	Response		&sendFile(const std::string filepath);
 	Response		&sendNotFound(void);
 	// Response		&render(const std::string filename);
+	Response		&redirect(const std::string &path, bool permanent = false);
 	Response		&end();
 
 	Response		&setHeader(const std::string header, const std::string value);
