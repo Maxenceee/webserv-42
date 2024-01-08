@@ -336,7 +336,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	char buffer[RECV_SIZE] = {0};
 
 	/**
-	 * La focntion recv() sert à lire le contenu d'un descripteurs de fichiers, ici
+	 * La fonction recv() sert à lire le contenu d'un descripteurs de fichiers, ici
 	 * le descripteurs du client. À la difference de read, la fonction recv est
 	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
 	 * gestion de la lecture dans un contexte de travaille en réseau.
