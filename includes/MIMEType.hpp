@@ -16,7 +16,7 @@
 #include <map>
 
 /**
- * Les types de média (MIME) servent à présicier explicitement au client
+ * Les types de média (MIME) servent à préciser explicitement au client
  * le type de données qu'il reçoit.
  * (https://en.wikipedia.org/wiki/MIME)
  */
