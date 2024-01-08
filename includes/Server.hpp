@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 19:41:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:24:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ private:
 	static std::vector<std::string>		methods;
 	static std::vector<std::string>		initMethods();
 
-	void		handleRequest(const int client);
+	void		handleRequest(const int client, sockaddr_in clientAddr);
 	void		handleRoutes(Request &req, Response &res);
 
 	void		use(const Router &router);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 15:34:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:28:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ std::string					&to_upper(std::string &str);
 std::string					&to_lower(std::string &str);
 std::string					&capitalize(std::string &str);
 std::string					getExtension(const std::string &filename);
+std::string					getIPAddress(int addr);
 
 template <typename T>
 bool	contains(const T &container, const std::string &test);

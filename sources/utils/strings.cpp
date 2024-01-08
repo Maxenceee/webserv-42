@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 15:34:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:28:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,4 +101,18 @@ std::string		getExtension(const std::string &filename)
         return (filename.substr(dotPosition + 1));
     }
     return ("");
+}
+
+std::string	getIPAddress(int addr)
+{
+	std::string	res;
+
+	res += std::to_string((addr & 0xFF000000) >> 24);
+	res += ".";
+	res += std::to_string((addr & 0xFF0000) >> 16);
+	res += ".";
+	res += std::to_string((addr & 0xFF00) >> 8);
+	res += ".";
+	res += std::to_string(addr & 0xFF);
+	return (res);
 }

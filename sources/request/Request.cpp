@@ -6,14 +6,15 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 00:37:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:28:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request(const Server &server, const std::string &str, int socket): _server(server), _raw(str), _socket(socket), _status(200), _host(""), _body(""), _port(80)
+Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _socket(socket), _clientAddr(clientAddr), _status(200), _host(""), _body(""), _port(80)
 {
+	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
 	this->parse();
 }
 

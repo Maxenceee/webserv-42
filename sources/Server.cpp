@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 23:53:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 01:28:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ const int	Server::init(void)
 	 * La fonction socket() permet de créer un point de terminaison (end-point) pour
 	 * la communication réseau. 
 	 * 
-	 * La macro AF_INET permet de spécifier à la fonction quel type de connection
+	 * La macro AF_INET permet de spécifier à la fonction quel type de connexion
 	 * nous voulons, dans notre cas une connection IPV4 (Internet Protocol Version 4) (pour se connecter à internet).
 	 * Pour utiliser le protocol IPV6 il faut utiliser la macro AF_INET6. 
 	 * 
@@ -80,7 +80,7 @@ const int	Server::init(void)
 	 * la possibilité d'utiliser la protocole UDP (User Datagram Protocol) avec la
 	 * macro SOCK_DGRAM privilégiant quant à lui la rapidité au détriment de la fiabilité. 
 	 * 
-	 * La fonction renvoie un descripteurs de fichiers.
+	 * La fonction renvoie un descripteur de fichiers.
 	 */
 	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	FD_SET(this->socket_fd, &this->_fd_set); // permet d'ajouter à l'ensemble `fdset` (inutilisé pour le moment)
@@ -91,13 +91,13 @@ const int	Server::init(void)
 		return (W_SOCKET_ERR);
 	}
 	/**
-	 * La fonction setsockopt() permet permet de configurer notre socket créé précédement.
+	 * La fonction setsockopt() permet de configurer notre socket créé précédement.
 	 * 
 	 * Ici nous spécifions grâce à la macro SOL_SOCKET que le paramètre s'applique directement
 	 * au socket.
 	 * 
 	 * SO_REUSEADDR permet de réutiliser une adresse locale immédiatement après que le socket
-	 * associé a été fermé. Cela peut être utile dans le cas où un programme se termine de manière
+	 * associé ait été fermé. Cela peut être utile dans le cas où le programme se termine de manière
 	 * inattendue et que l'adresse et le port qu'il utilisait sont toujours associés au socket
 	 * pendant un certain temps.
 	 */
@@ -118,24 +118,24 @@ const int	Server::init(void)
 	/**
 	 * La fonction bind permet d'attacher un socket à une adresse IP et un port
 	 * de la machine hôte. Cela permet d'identifier de manière unique le socket
-	 * sur le réseau. ce qui signifie que le socket utilisera cette adresse
+	 * sur le réseau. Cela signifie que le socket utilisera cette adresse
 	 * pour communiquer sur le réseau.
 	 * 
-	 * Elle prend un paramètre le descripteurs de fichiers du socket conserné et une structure
-	 * de donné de type spéfique en focntion du type de connexion. Dans nôtre cas
+	 * Elle prend un paramètre le descripteur de fichiers du socket conserné et une structure
+	 * de donné de type spéfique en fonction du type de connexion. Dans nôtre cas
 	 * `sockaddr_in` ou `sockaddr_in6` en fonction de la version passé lors de la
 	 * création du socket, dans notre cas nous utilisons INET soit IPV4 donc 
 	 * sockaddr_in.
 	 * 
 	 * - Le champs sin_family permet de spécifier le type connection, il soit être identique
-	 * à celui passé à la fonction socket() précedement.
-	 * - Le champs sin_port permet de spécifier le port auquel oon soit attacher le socket. Le
-	 * numéro du port doit être passé dans la fonction htons() en raison des différent ordre
+	 * à celui passé à la fonction socket() précédement.
+	 * - Le champs sin_port permet de spécifier le port auquel on souhaite attacher le socket. Le
+	 * numéro du port doit être passé dans la fonction htons() en raison des différents ordres
 	 * d'octet (endianness) entre le réseau et la machine hôte. Le réseau utilisant un Big-Endian
 	 * cette fonction s'assure que la valeur passé soit convertie en conséquence. Cette conversion
 	 * est éssentielle pour éviter les problèmes de compatibilités.
 	 * - En enfin le champs sin_addr permet de spécifier l'adresse IP que nous voulons associer, 
-	 * dans nôtre cas nous utilisons INADDR_ANY afin d'indiquer que le socket peut associé à
+	 * dans nôtre cas nous utilisons INADDR_ANY afin d'indiquer que le socket peut être associé à
 	 * n'importe quelle adresse IP disponible sur la machine.
 	 */
 	int ret_conn = bind(this->socket_fd, (sockaddr *)&this->socket_addr, sizeof(this->socket_addr));
@@ -188,7 +188,7 @@ const int	Server::start(void)
 	 * La fonction listen() permet de marquer un socket comme étant un socket en
 	 * attente de connexions entrantes.
 	 * 
-	 * Elle prend en paramètre le descripteurs de fichiers du socket et la taille de la file
+	 * Elle prend en paramètre le descripteur de fichiers du socket et la taille de la file
 	 * d'attente.
 	 */
 	int	error = listen(this->socket_fd, 32);
@@ -210,14 +210,15 @@ const int	Server::start(void)
 		 * La fonction poll() est utilisée pour surveiller plusieurs descripteurs de
 		 * fichiers en même temps, notamment des sockets, des fichiers, ou d'autres
 		 * types de descripteurs, afin de déterminer s'ils sont prêts pour une lecture,
-		 * une écriture ou s'ils ont généré une exception.
-		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
-		 * pour chaque élément, le descripteurs de fichiers et l'événements à surveiller.
+		 * une écriture (I/O) ou s'ils ont généré une exception.
 		 * 
-		 * La focntion attend que l'un des événements spécifiés se produise pour l'un
+		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
+		 * pour chaque élément, le descripteur de fichiers et l'événements à surveiller.
+		 * 
+		 * La fonction attend que l'un des événements spécifiés se produise pour l'un
 		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire.
 		 * 
-		 * Dans ce cas elle permet de s'assurer que le descripteurs de fichiers du socket est pret
+		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est pret
 		 * pour la lecture.
 		 */
 		if (poll(&fds, 1, timeout) == -1)
@@ -233,11 +234,11 @@ const int	Server::start(void)
 		if (fds.revents & POLLIN)
 		{
 			/**
-			 * La fonction accept() est utilisé pour accepter une connexion entrant d'un client.
-			 * Elle prend en paramètre le descripteurs de fichiers du socket ainsi que le pointeur
+			 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
+			 * Elle prend en paramètre le descripteur de fichiers du socket ainsi que le pointeur
 			 * d'une structure `sockaddr` ou seront écrite les information sur le client (adresse IP, port, etc.).
 			 * 
-			 * La fonction retourne un nouveau descripteurs de fichiers vers le client.
+			 * La fonction retourne un nouveau descripteur de fichiers vers le client.
 			 */
 			int newClient = accept(this->socket_fd, (sockaddr *)&client_addr, &len);
 			if (newClient == -1)
@@ -245,8 +246,9 @@ const int	Server::start(void)
 				perror("accept");
 				continue;
 			}
-			std::cout << "client ip: " << client_addr.sin_addr.s_addr << " port: " << client_addr.sin_port << std::endl;
-			this->handleRequest(newClient);
+			client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr);
+			client_addr.sin_port = ntohs(client_addr.sin_port);
+			this->handleRequest(newClient, client_addr);
 		}
 	} while (!this->exit);
 	close(this->socket_fd);
@@ -329,7 +331,7 @@ const std::string				Server::getRoot(void) const
 	return (this->_root);
 }
 
-void	Server::handleRequest(const int client)
+void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 {
 	char buffer[RECV_SIZE] = {0};
 
@@ -356,7 +358,7 @@ void	Server::handleRequest(const int client)
 	 * qui se charge de l'interprétation des données de la requête et de la génération
 	 * de la réponse.
 	 */
-	Request	request = Request(*this, std::string(buffer), client);
+	Request	request = Request(*this, std::string(buffer), client, clientAddr);
 	std::cout << request << std::endl;
 	Response response = Response(*this, request.getClientSocket(), request);
 	this->handleRoutes(request, response);
