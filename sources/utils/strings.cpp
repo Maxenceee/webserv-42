@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 01:28:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 17:49:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,29 @@ std::vector<std::string>		split(const std::string &str, char c)
 	while (std::getline(tokenStream, token, c))
 		tokens.push_back(token);
 	return (tokens);
+}
+
+struct StringConcatenator {
+	std::string separator;
+
+	StringConcatenator(const std::string& sep) : separator(sep) {}
+
+	std::string operator()(const std::string& acc, const std::string& element) const {
+		return acc + separator + element;
+	}
+};
+
+std::string					join(const std::vector<std::string> &list, const std::string &c)
+{
+	if (list.empty()) {
+        return ("");
+    }
+	return (std::accumulate(
+		std::next(list.begin()),
+		list.end(),
+		list[0],
+		StringConcatenator(c)
+	));
 }
 
 std::string		&trim(std::string &str, char c)
@@ -115,4 +138,19 @@ std::string	getIPAddress(int addr)
 	res += ".";
 	res += std::to_string(addr & 0xFF);
 	return (res);
+}
+
+void	replace(std::string &buffer, std::string searchValue, std::string replaceValue)
+{
+	std::string	sv(searchValue);
+	std::string	rv(replaceValue);
+	std::size_t found_place = buffer.find(sv);
+
+	while (found_place < UINT64_MAX)
+	{
+		buffer.erase(found_place, sv.length());
+		buffer.insert(found_place, replaceValue);
+		std::size_t last_found = found_place;
+		found_place = buffer.find(sv, found_place + 1);
+	}
 }

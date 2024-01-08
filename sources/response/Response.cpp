@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 11:56:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 18:10:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,6 +165,7 @@ Response	&Response::end()
 	if (!this->_sent)
 	{
 		this->setHeader("Date", this->getTime());
+		this->setHeader("Connection", "close");
 		std::string	res = this->prepareResponse();
 		/**
 		 * La fonction send() sert à écrire le contenu d'un descripteurs de fichiers, ici

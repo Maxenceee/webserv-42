@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 12:34:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/08 19:06:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,7 @@ void	Server::setupRoutes(void)
 	 * En fonction de la configuration passé par l'utilisateur, nous créons des instances
 	 * de la classe Router pour chaque `Location` spécifié.
 	 */
-	Router router1 = Router(*this, "/static", true);
+	Router router1 = Router(*this, "/static");
 	/**
 	 * allowMethod() indique au router qu'elle méthode HTTP il peut servir. Si aucune méthode
 	 * n'est spécifiée le router les accepte toutes.
@@ -170,14 +170,16 @@ void	Server::setupRoutes(void)
 	 */
 	router1.setRoot("./public/router_1");
 	/**
+	 * setAutoIndex() permet d'activer le listage des dossiers si aucun fichier d'index n'est trouvé
+	 */
+	router1.setAutoIndex(true);
+	/**
 	 * La méthode Server::use() permet d'ajouter un router au serveur.
 	 */
 	this->use(router1);
-
-	Router router2 = Router(*this, "/static/", true);
-	router2.setRoot("./public/router_2");
-	this->use(router2);
-
+	// Router router2 = Router(*this, "/static/", true);
+	// router2.setRoot("./public/router_2");
+	// this->use(router2);
 	/**
 	 * Test des redirections
 	 */
@@ -190,7 +192,7 @@ void	Server::setupRoutes(void)
 const int	Server::start(void)
 {
 	pollfd		fds;
-	const int	timeout = (3 * 1000);
+	const int	timeout = 100;
 
 	struct sockaddr_in	client_addr;
 	socklen_t			len = sizeof(client_addr);
@@ -203,7 +205,7 @@ const int	Server::start(void)
 	 * Elle prend en paramètre le descripteur de fichiers du socket et la taille de la file
 	 * d'attente.
 	 */
-	int	error = listen(this->socket_fd, 32);
+	int	error = listen(this->socket_fd, 1000);
 	if (error == -1)
 	{
 		std::cerr << W_PREFIX"error: an error occured while listening" << std::endl;
@@ -258,6 +260,13 @@ const int	Server::start(void)
 				perror("accept");
 				continue;
 			}
+
+			// if (fcntl(newClient, F_SETFL, O_NONBLOCK) == -1) {
+			// 	perror("fcntl");
+			// 	close(newClient);
+			// 	continue;
+			// }
+
 			client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr);
 			client_addr.sin_port = ntohs(client_addr.sin_port);
 			this->handleRequest(newClient, client_addr);
@@ -322,7 +331,7 @@ void listFilesInDirectory(const std::string &path, t_mapss &fileMap, bool recurs
 
 int		Server::setStaticDir(const std::string &path)
 {
-	listFilesInDirectory(path, this->static_dir);
+	// listFilesInDirectory(path, this->static_dir);
 	for (t_mapss::iterator it = this->static_dir.begin(); it != this->static_dir.end(); it++)
 		std::cout << it->first << " -> " << it->second << std::endl;
 	return (W_NOERR);
@@ -357,6 +366,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	if (valread == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			std::cerr << "Client not ready to read" << std::endl;
+			return ;
 		} else {
 			perror("recv");
 		}
