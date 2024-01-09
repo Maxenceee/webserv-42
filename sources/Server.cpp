@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 11:30:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 17:25:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ Server::~Server(void)
  * toutes les méthodes sont présentes il faudra faire le tri par la suite en
  * fonction de nos besoins.
  * 
- * La methode HEAD est similaire à GET à ceci près qu'elle ne renvoie que l'en-tête
+ * La méthode HEAD est similaire à GET à ceci près qu'elle ne renvoie que l'en-tête
  * de réponse.
  * 
  * Les méthodes PUT et PATCH sont similaires à POST, les différences étant la nature
@@ -71,10 +71,10 @@ const int	Server::init(void)
 	 * la communication réseau. 
 	 * 
 	 * La macro AF_INET permet de spécifier à la fonction quel type de connexion
-	 * nous voulons, dans notre cas une connection IPV4 (Internet Protocol Version 4) (pour se connecter à internet).
-	 * Pour utiliser le protocol IPV6 il faut utiliser la macro AF_INET6. 
+	 * nous voulons, dans notre cas une connexion IPV4 (Internet Protocol Version 4) (pour se connecter à internet).
+	 * Pour utiliser le protocole IPV6 il faut utiliser la macro AF_INET6. 
 	 * 
-	 * La macro SOCK_STREAM décrit le type de flux de donné que nous voulons. Dans
+	 * La macro SOCK_STREAM décrit le type de flux de données que nous voulons. Dans
 	 * notre cas nous voulons utiliser la protocol TCP (Transmission Control Protocol)
 	 * offrant un connexion fiable et sans perte de données. La fonction offre aussi
 	 * la possibilité d'utiliser la protocole UDP (User Datagram Protocol) avec la
@@ -91,7 +91,7 @@ const int	Server::init(void)
 		return (W_SOCKET_ERR);
 	}
 	/**
-	 * La fonction setsockopt() permet de configurer notre socket créé précédement.
+	 * La fonction setsockopt() permet de configurer notre socket créé précédemment.
 	 * 
 	 * Ici nous spécifions grâce à la macro SOL_SOCKET que le paramètre s'applique directement
 	 * au socket.
@@ -121,14 +121,13 @@ const int	Server::init(void)
 	 * sur le réseau. Cela signifie que le socket utilisera cette adresse
 	 * pour communiquer sur le réseau.
 	 * 
-	 * Elle prend un paramètre le descripteur de fichiers du socket conserné et une structure
-	 * de donné de type spéfique en fonction du type de connexion. Dans nôtre cas
+	 * Elle prend un paramètres le descripteur de fichiers du socket conserné et une structure
+	 * de donné d'un type spéfique en fonction du type de connexion. Dans nôtre cas (INET)
 	 * `sockaddr_in` ou `sockaddr_in6` en fonction de la version passé lors de la
-	 * création du socket, dans notre cas nous utilisons INET soit IPV4 donc 
-	 * sockaddr_in.
+	 * création du socket, dans notre cas nous utilisons IPV4 donc sockaddr_in.
 	 * 
-	 * - Le champs sin_family permet de spécifier le type connection, il soit être identique
-	 * à celui passé à la fonction socket() précédement.
+	 * - Le champs sin_family permet de spécifier le type connexion, il doit être identique
+	 * à celui passé à la fonction socket() précédemment.
 	 * - Le champs sin_port permet de spécifier le port auquel on souhaite attacher le socket. Le
 	 * numéro du port doit être passé dans la fonction htons() en raison des différents ordres
 	 * d'octet (endianness) entre le réseau et la machine hôte. Le réseau utilisant un Big-Endian
@@ -202,10 +201,10 @@ const int	Server::start(void)
 	 * La fonction listen() permet de marquer un socket comme étant un socket en
 	 * attente de connexions entrantes.
 	 * 
-	 * Elle prend en paramètre le descripteur de fichiers du socket et la taille de la file
+	 * Elle prend en paramètres le descripteur de fichiers du socket et la taille de la file
 	 * d'attente.
 	 */
-	int	error = listen(this->socket_fd, 1000);
+	int	error = listen(this->socket_fd, 1024);
 	if (error == -1)
 	{
 		std::cerr << W_PREFIX"server error: an error occured while listening" << std::endl;
@@ -232,8 +231,8 @@ const int	Server::start(void)
 		 * La fonction attend que l'un des événements spécifiés se produise pour l'un
 		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire.
 		 * 
-		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est pret
-		 * pour la lecture.
+		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est
+		 * prêt pour la lecture.
 		 */
 		if (poll(&fds, 1, timeout) == -1)
 		{
@@ -249,8 +248,8 @@ const int	Server::start(void)
 		{
 			/**
 			 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
-			 * Elle prend en paramètre le descripteur de fichiers du socket ainsi que le pointeur
-			 * d'une structure `sockaddr` ou seront écrite les information sur le client (adresse IP, port, etc.).
+			 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
+			 * d'une structure `sockaddr` ou seront écrite les informations sur le client (adresse IP, port, etc.).
 			 * 
 			 * La fonction retourne un nouveau descripteur de fichiers vers le client.
 			 */
@@ -302,10 +301,10 @@ void listFilesInDirectory(const std::string &path, t_mapss &fileMap, bool recurs
 	DIR				*dir;
 	struct dirent	*ent;
 
-	if (!isDirectory(path.c_str()))
-	{
-		throw std::invalid_argument(B_RED"server error: Invalid static dir: "+path+RESET);
-	}
+	// if (!isDirectory(path.c_str()))
+	// {
+	// 	throw std::invalid_argument(B_RED"server error: Invalid static dir: "+path+RESET);
+	// }
 
 	if ((dir = opendir(path.c_str())) != NULL)
 	{
@@ -365,8 +364,8 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	char buffer[RECV_SIZE] = {0};
 
 	/**
-	 * La fonction recv() sert à lire le contenu d'un descripteurs de fichiers, ici
-	 * le descripteurs du client. À la difference de read, la fonction recv est
+	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
+	 * le descripteur du client. À la difference de read, la fonction recv est
 	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
 	 * gestion de la lecture dans un contexte de travaille en réseau.
 	 */
@@ -384,8 +383,8 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 		return ;
 	}
 	/**
-	 * Pour chaque requete entrante, on créer une instance des classes Request et Response
-	 * qui se charge de l'interprétation des données de la requête et de la génération
+	 * Pour chaque requête entrante, on créer une instance des classes Request et Response
+	 * qui se chargent de l'interprétation des données de la requête et de la génération
 	 * de la réponse.
 	 */
 	Request	request = Request(*this, std::string(buffer), client, clientAddr);

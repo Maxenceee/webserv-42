@@ -31,6 +31,8 @@ https://www.rfc-editor.org/rfc/rfc2616
 
 https://www.rfc-editor.org/rfc/rfc7230.html
 
+https://www.rfc-editor.org/rfc/rfc7231.html
+
 https://www.rfc-editor.org/rfc/rfc7232.html
 
 https://www.rfc-editor.org/rfc/rfc7233.html

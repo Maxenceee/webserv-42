@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 11:50:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 16:55:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ int	Request::parse(void)
 	 * En-tête de requête
 	 * [Ligne vide]
 	 * Corps de requête
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3)
 	 */
 	if ((this->_status = this->getRequestLine(this->_raw, i)) != 200)
 	{
@@ -49,9 +50,10 @@ int	Request::getRequestLine(const std::string &str, size_t &i)
 	std::string	req_line;
 
 	/**
-	 * Une requête HTTP commmence par une ligne une ligne de commande
+	 * Une requête HTTP commmence par une ligne de commande
 	 * (Commande, URL, Version de protocole), on s'assure qu'elle est correctement
-	 * formée. (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.1)
+	 * formée.
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.1)
 	 */
 	i = str.find_first_of('\n');
 	req_line = str.substr(0, i);
@@ -87,9 +89,10 @@ int	Request::getRequestVersion(const std::string &str)
 	if (str.compare(0, 5, http) == 0)
 	{
 		this->_version.assign(str, 5, 3); // on extrait la version du protocole de la requête
-		// le serveur n'accepte que les version 1.0 et 1.1 du protocole HTTP.
+		// le serveur n'accepte que les versions 1.0 et 1.1 du protocole HTTP.
 		// Ces vieilles versions datent du début des années 2000 et offrent largement moins de
-		// fonctionnalitées que les versions plus récentes (2023, HTTP/3).
+		// fonctionnalitées que les versions plus récentes (2023, HTTP/3) mais sont, de fait,
+		// plus facilement implémentables.
 		if (this->_version != "1.0" && this->_version != "1.1")
 		{
 			std::cerr << B_RED << "request error: unsupported HTTP version" << RESET << std::endl;
@@ -132,10 +135,10 @@ int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
 	std::string	line;
 
 	/**
-	 * Selon la norme RFC les en-têtes doivent suivrent un modèle precis (Nom-Du-Champs: [espace?] valeur [espace?])
-	 * Le nom du en-tête doit être en majuscule, s'il contient plusieurs mots, ils
-	 * doivent aussi avoir une majuscule et être liés par un tiré '-'. Les en-tête sont sensibles à
-	 * la case et chaque type de en-tête a son format spécifique pour ses différentes valeurs.
+	 * Selon la norme RFC les en-têtes doivent suivrent un modèle précis (Nom-Du-Champs: [espace?] valeur [espace?])
+	 * Le nom de l'en-tête doit avoir une majuscule, s'il contient plusieurs mots, ils
+	 * doivent aussi avoir une majuscule et être liés par un tiré '-'. Les en-têtes sont sensibles à
+	 * la case et chaque type d'en-tête a son format spécifique pour ses différentes valeurs.
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2)
 	 */
 	while ((line = nextLine(str, i)) != "\r" && line != "")
@@ -155,15 +158,16 @@ int	Request::getRequestQuery(void)
 	std::string	query = "";
 
 	/**
-	 * Les query string font partie intégrante des URI et respectent
-	 * un format bien particulier. Les URI se décomposent en plusieurs
+	 * Les 'query strings' font parties intégrante des URIs et respectent
+	 * un format bien particulier. Les URIs se décomposent en plusieurs
 	 * partie distinctes.
+	 * 
 	 * - Le schéma d'URI (URI Scheme) est une lettre suivie de n'importe quelle combinaison de lettres,
-	 * de chiffres, du signe plus (+), du point (.) ou d'un tiret (-) et se termine par deux points (:).
+	 * de chiffres, du signe plus (+), du point (.) ou d'un tiret (-) et se termine par deux points (:). Ici 'http:'.
 	 * - On ajoute (//), chaîne de caractères pour les protocoles dont la requête comprend un chemin d'accès.
 	 * - La partie hiérarchique est prévue pour contenir les informations d'identification de la ressource,
 	 * hiérarchique par nature. En général suivi par le domaine puis un chemin optionnel.
-	 * - La requête (Query) est une partie optionnelle séparée par un point d'interrogation qui contient
+	 * - La requête (Query) est une partie optionnelle séparée par un point d'interrogation (?) qui contient
 	 * des informations complémentaires qui ne sont pas de nature hiérarchique, mais est souvent formée
 	 * d'une suite de paires <clef>=<valeur> séparées par des points virgules ou par des esperluettes.
 	 * (https://www.rfc-editor.org/rfc/rfc6920.html#section-3)
@@ -217,7 +221,7 @@ int	Request::getRequestHostname(const std::string &host)
 	 * 
 	 * Sachant qu'une seule machine hôte peut héberger plusieurs serveurs, l'en-tête
 	 * permet au serveur de savoir à quel domaine (nom d'hôte) et port vous souhaitez accéder.
-	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-5.4)""
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-5.4)
 	 */
 	if (!host.size())
 	{

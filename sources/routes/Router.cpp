@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 11:29:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 17:26:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 Router::Router(const Server &server, const std::string path, const bool strict): _server(server), _path(path), _strict(strict), _autoindex(false)
 {
 	/**
-	 * Par défault le router hérite du chemin de son parent. Celui peut être
+	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
 	 * changé en appellant la méthode Router::setRoot ou Router::setAlias.
 	 */
 	this->_root.path = server.getRoot();
@@ -31,7 +31,7 @@ Router::~Router(void)
 void	Router::allowMethod(const std::string method)
 {
 	/**
-	 * allowMethod() indique au router qu'elle méthode HTTP il doit servir. Si aucune méthode
+	 * Router::allowMethod() indique au router qu'elle méthode HTTP il doit servir. Si aucune méthode
 	 * n'est spécifiée le router les accepte toutes.
 	 */
 	if (this->isValidMethod(method))
@@ -60,12 +60,12 @@ void	Router::setRoot(const std::string path)
 	/**
 	 * Cette fonction indique au router son dossier racine, dossier à partir duquel il servira le contenu.
 	 * Par défaut il l'hérite de son parent.
-	 * Pour simplifier la chemin de la requête est ajouté à la fin du chemin de `root` pour former le
+	 * Pour simplifier, le chemin de la requête est ajouté à la fin du chemin de `root` pour former le
 	 * chemin vers la ressource.
 	 * (ex: router = /static, request = /static/chemin/vers, root = ./public, chemin final => ./public/chemin/vers)
 	 * 
-	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `alias` est définie ce
-	 * paramètre sera écrasé.
+	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `alias` est définie cette
+	 * directive sera écrasée.
 	 */
 	if (this->_root.isAlias && this->_root.set) {
 		std::cout << B_YELLOW"router info: Aliasing is already enbaled for this router." << RESET << std::endl;
@@ -88,8 +88,8 @@ void	Router::setAlias(const std::string path)
 	 * (ex: router = /images, request = /images/photo.jpg, alias = ./public/images, chemin final => ./public/images/photo.jpg)
 	 * (dans ce cas root aurait donné: router = /images, request = /images/photo.jpg, root = ./public/images, chemin final => ./public/images/images/photo.jpg)
 	 * 
-	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `root`a été définie
-	 * précédement ce paramètre sera écrasé.
+	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `root` a été définie
+	 * précédemment cette dernière sera écrasée.
 	 */
 	if (!this->_root.isAlias && this->_root.set) {
 		std::cout << B_YELLOW"router info: Alias is already set, abording." << RESET << std::endl;
@@ -133,22 +133,23 @@ void	Router::route(Request &request, Response &response)
 	std::cout << "Root: " << this->_path << "\nUse path: " << request.getPath() << std::endl;
 
 	/**
-	 * Avant de faire quelque logique de ce soit on s'assure que la réponse n'a pas déjà été
+	 * Avant de faire quelque logique que ce soit on s'assure que la réponse n'a pas déjà été
 	 * envoyé pour une quelconque raison.
 	 */
 	if (!response.canSend())
 		return ;
 	/**
 	 * On compare le chemin du router et celui de la requête.
-	 * Pour le moment seul le chemin absoluts sont gérés ainsi que le requête GET.
+	 * Pour le moment toutes les requête sont considéré comme GET.
 	 * TODO:
-	 * Gérer correctement les chemins du router et les différentes méthodes.
+	 * Gérer correctement les chemins du router et les différentes méthodes. Seule la
+	 * directive `root` est géré pour le moment, il manque la gestion de `alias`.
 	 */
 	if ((request.getPath().compare(0, this->_path.size(), this->_path) == 0 && !this->_strict) || (request.getPath() == this->_path))
 	{
 		/**
 		 * Nginx n'est pas très clair quant au priorité entre `root`/`alias` et
-		 * `return`. Nous avons fais le choix de toujours donner la priorité à
+		 * `return`. Nous avons fait le choix de toujours donner la priorité à
 		 * return.
 		 */
 		if (this->_redirection.enabled) {
@@ -157,20 +158,20 @@ void	Router::route(Request &request, Response &response)
 			response.end();
 			return ;
 		}
-		/**
-		 * TODO:
-		 * Seul la directive `root` est géré pour le moment, il manque la gestion de `alias`.
-		 */
 		std::cout << "valid route for " << request.getPath() << std::endl;
 		std::string fullpath = this->_root.path + request.getPath().substr(this->_path.size());
 		std::cout << "full path: " << fullpath << std::endl;
+		/**
+		 * TODO:
+		 * Gérer la directive `index`
+		 */
 		if (isDirectory(fullpath)) {
 			if (isFile(fullpath+"/index.html")) {
 				response.sendFile(fullpath+"/index.html");	
 			} else {
 				std::cerr << "cannot get " << fullpath << std::endl;
 				if (this->_autoindex) {
-					response.setHeader("Content-Type", "text/html");
+					response.setHeader("Content-Type", "text/html; charset=utf-8");
 					response.send(this->getDirList(fullpath, request.getPath()));
 				} else {
 					response.sendNotFound();
