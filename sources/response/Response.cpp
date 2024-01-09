@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 18:10:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 11:32:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ Response::Response(const Server &server, int socket, const Request &req): _serve
 	this->initCodes();
 	this->setHeader("Server", "42-webserv");
 	/**
-	 * On vérifie si la requête la renvoyé aucune erreur de parsing.
+	 * On vérifie si la requête n'a renvoyé aucune erreur de parsing.
 	 */
 	if (this->_status != 200)
 	{
@@ -37,14 +37,26 @@ std::map<int, std::string>	Response::initCodes()
 {
 	std::map<int, std::string>	codes;
 	
+	/**
+	 * Information
+	 */
 	codes[100] = "Continue";
 	codes[101] = "Switching Protocols";
+	/**
+	 * Succès
+	 */
 	codes[200] = "OK";
 	codes[201] = "Created";
 	codes[204] = "No Content";
+	/**
+	 * Redirection
+	 */
 	codes[301] = "Moved Permanently";
 	codes[302] = "Found";
 	codes[310] = "Too many Redirects";
+	/**
+	 * Erreur du client
+	 */
 	codes[400] = "Bad Request";
 	codes[401] = "Unauthorized";
 	codes[403] = "Forbidden";
@@ -52,6 +64,9 @@ std::map<int, std::string>	Response::initCodes()
 	codes[405] = "Method Not Allowed";
 	codes[413] = "Payload Too Large";
 	codes[418] = "I’m a teapot";
+	/**
+	 * Erreur du serveur
+	 */
 	codes[500] = "Internal Server Error";
 	codes[505] = "HTTP Version not supported";
 	return (codes);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 19:06:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 11:30:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ const int	Server::start(void)
 	int	error = listen(this->socket_fd, 1000);
 	if (error == -1)
 	{
-		std::cerr << W_PREFIX"error: an error occured while listening" << std::endl;
+		std::cerr << W_PREFIX"server error: an error occured while listening" << std::endl;
 		perror("listen");
 		return (W_SOCKET_ERR);
 	}
@@ -237,7 +237,7 @@ const int	Server::start(void)
 		 */
 		if (poll(&fds, 1, timeout) == -1)
 		{
-			std::cerr << W_PREFIX"error: an error occured while poll'ing" << std::endl;
+			std::cerr << W_PREFIX"server error: an error occured while poll'ing" << std::endl;
 			perror("poll");
 			return (W_SOCKET_ERR);
 		}
@@ -304,7 +304,7 @@ void listFilesInDirectory(const std::string &path, t_mapss &fileMap, bool recurs
 
 	if (!isDirectory(path.c_str()))
 	{
-		throw std::invalid_argument(B_RED"Server error: Invalid static dir: "+path+RESET);
+		throw std::invalid_argument(B_RED"server error: Invalid static dir: "+path+RESET);
 	}
 
 	if ((dir = opendir(path.c_str())) != NULL)
@@ -350,6 +350,14 @@ const std::vector<std::string>	Server::getMethods(void) const
 const std::string				Server::getRoot(void) const
 {
 	return (this->_root);
+}
+
+void	Server::setErrorPage(const int code, const std::string path)
+{
+	if (this->_error_page.count(code)) {
+		std::cout << B_YELLOW"server info: overriding previous error page for " << code << RESET << std::endl;
+	}
+	this->_error_page[code] = path;
 }
 
 void	Server::handleRequest(const int client, sockaddr_in clientAddr)
@@ -398,7 +406,7 @@ void	Server::handleRoutes(Request &req, Response &res)
 	}
 	/**
 	 * Dans le cas où la route demandée n'a pu être géré par aucun des routers du serveur,
-	 * on renvoie la réponse par defaut. (Error 404, not found)
+	 * on renvoie la réponse par defaut. (Error 404, Not Found)
 	 */
 	if (res.canSend())
 	{

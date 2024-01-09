@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 10:55:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 11:50:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,6 +154,20 @@ int	Request::getRequestQuery(void)
 	size_t		i;
 	std::string	query = "";
 
+	/**
+	 * Les query string font partie intégrante des URI et respectent
+	 * un format bien particulier. Les URI se décomposent en plusieurs
+	 * partie distinctes.
+	 * - Le schéma d'URI (URI Scheme) est une lettre suivie de n'importe quelle combinaison de lettres,
+	 * de chiffres, du signe plus (+), du point (.) ou d'un tiret (-) et se termine par deux points (:).
+	 * - On ajoute (//), chaîne de caractères pour les protocoles dont la requête comprend un chemin d'accès.
+	 * - La partie hiérarchique est prévue pour contenir les informations d'identification de la ressource,
+	 * hiérarchique par nature. En général suivi par le domaine puis un chemin optionnel.
+	 * - La requête (Query) est une partie optionnelle séparée par un point d'interrogation qui contient
+	 * des informations complémentaires qui ne sont pas de nature hiérarchique, mais est souvent formée
+	 * d'une suite de paires <clef>=<valeur> séparées par des points virgules ou par des esperluettes.
+	 * (https://www.rfc-editor.org/rfc/rfc6920.html#section-3)
+	 */
 	i = this->_path.find_first_of('?');
 	if (i != std::string::npos)
 	{
