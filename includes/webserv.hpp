@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 17:49:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 11:02:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <ctime>
 #include <limits>
 #include <cstdio>
+#include <cstdarg>
 #include <filesystem>
 #include <numeric>
 

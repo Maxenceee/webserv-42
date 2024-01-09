@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 01:24:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 11:07:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,18 +22,25 @@ class Router;
 class Request;
 class Response;
 
+// struct s_Server_Error_Pages {
+// 	bool				set;
+// 	std::vector<int>	codes;
+// 	std::string			path;
+// };
+
 class Server
 {
 private:
-	uint16_t				port;
-	int						socket_fd;
-	struct sockaddr_in		socket_addr;
-	fd_set					_fd_set;
-	std::string				_root;
+	uint16_t					port;
+	int							socket_fd;
+	struct sockaddr_in			socket_addr;
+	fd_set						_fd_set;
+	std::string					_root;
+	std::map<int, std::string>	_error_page;
 
-	t_mapss					static_dir; // à potentiellement virer etant donné les Routers
+	t_mapss						static_dir; // à potentiellement virer etant donné les Routers
 
-	std::vector<Router>		_routes;
+	std::vector<Router>			_routes;
 
 	static std::vector<std::string>		methods;
 	static std::vector<std::string>		initMethods();
@@ -47,7 +54,7 @@ public:
 	Server(int port);
 	~Server(void);
 
-	bool	exit;
+	bool		exit;
 
 	const int	init(void);
 	void		setupRoutes(void);
@@ -62,6 +69,8 @@ public:
 	
 	const std::string				getRoot(void) const;
 	const std::vector<std::string>	getMethods(void) const;
+
+	void	setErrorPage(const int code, const std::string path);
 };
 
 void listFilesInDirectory(const std::string &path, t_mapss &fileMap, bool recursive = true);

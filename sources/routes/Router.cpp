@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 18:48:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 11:29:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void	Router::allowMethod(const std::string method)
 	if (this->isValidMethod(method))
 		this->_allowed_methods.push_back(method);
 	else
-		std::cerr << B_RED"Invalid method found. No such `" << method << "`" << RESET << std::endl;
+		std::cerr << B_RED"router error: Invalid method found. No such `" << method << "`" << RESET << std::endl;
 }
 
 void	Router::allowMethod(const std::vector<std::string> method)
@@ -57,10 +57,20 @@ void	setActiveDir(const std::string dirpath)
 
 void	Router::setRoot(const std::string path)
 {
+	/**
+	 * Cette fonction indique au router son dossier racine, dossier à partir duquel il servira le contenu.
+	 * Par défaut il l'hérite de son parent.
+	 * Pour simplifier la chemin de la requête est ajouté à la fin du chemin de `root` pour former le
+	 * chemin vers la ressource.
+	 * (ex: router = /static, request = /static/chemin/vers, root = ./public, chemin final => ./public/chemin/vers)
+	 * 
+	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `alias` est définie ce
+	 * paramètre sera écrasé.
+	 */
 	if (this->_root.isAlias && this->_root.set) {
-		std::cout << "Aliasing is already enbaled for this router." << std::endl;
+		std::cout << B_YELLOW"router info: Aliasing is already enbaled for this router." << RESET << std::endl;
 	} else if (this->_root.set) {
-		std::cout << B_RED"Root is already set, abording." << RESET << std::endl;
+		std::cout << B_YELLOW"router info: Root is already set, abording." << RESET << std::endl;
 	} else if (!isDirectory(path)) {
 		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
 	} else {
@@ -72,13 +82,22 @@ void	Router::setRoot(const std::string path)
 
 void	Router::setAlias(const std::string path)
 {
+	/**
+	 * Permet de définir la directive `alias` pour ce router. Contrairement à `root`,
+	 * la directive `alias` remplace le segment de l'URL correspondant par le chemin spécifié.
+	 * (ex: router = /images, request = /images/photo.jpg, alias = ./public/images, chemin final => ./public/images/photo.jpg)
+	 * (dans ce cas root aurait donné: router = /images, request = /images/photo.jpg, root = ./public/images, chemin final => ./public/images/images/photo.jpg)
+	 * 
+	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `root`a été définie
+	 * précédement ce paramètre sera écrasé.
+	 */
 	if (!this->_root.isAlias && this->_root.set) {
-		std::cout << B_RED"Overriding `root` directive." << RESET << std::endl;
-	} else if (this->_root.set) {
-		std::cout << B_RED"Alias is already set, abording." << RESET << std::endl;
+		std::cout << B_YELLOW"router info: Alias is already set, abording." << RESET << std::endl;
 	} else if (!isDirectory(path)) {
 		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
 	} else {
+		if (this->_root.set)
+			std::cout << B_YELLOW"router info: Overriding `root` directive." << RESET << std::endl;
 		this->_root.path = path;
 		this->_root.isAlias = true;
 	}
@@ -138,6 +157,10 @@ void	Router::route(Request &request, Response &response)
 			response.end();
 			return ;
 		}
+		/**
+		 * TODO:
+		 * Seul la directive `root` est géré pour le moment, il manque la gestion de `alias`.
+		 */
 		std::cout << "valid route for " << request.getPath() << std::endl;
 		std::string fullpath = this->_root.path + request.getPath().substr(this->_path.size());
 		std::cout << "full path: " << fullpath << std::endl;

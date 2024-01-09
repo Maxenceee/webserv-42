@@ -27,6 +27,8 @@ https://www.ibm.com/docs/en/i/7.2?topic=designs-example-nonblocking-io-select
 
 norme & protocol
 
+https://www.rfc-editor.org/rfc/rfc2616
+
 https://www.rfc-editor.org/rfc/rfc7230.html
 
 https://www.rfc-editor.org/rfc/rfc7232.html
@@ -63,5 +65,13 @@ https://fr.wikipedia.org/wiki/Multipurpose_Internet_Mail_Extensions
 ## TODO
 
 Faire une class Cluster qui gere autant de Server que necessaire.
-Ajouter le parser pour le fichier config
-
+Ajouter le parser pour le fichier config :
+- server_name
+- listen
+- allowed_method (method)
+- redirection 
+- root
+- alias
+- index
+- autoindex (on/off)
+- error_page
