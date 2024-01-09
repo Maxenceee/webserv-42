@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 11:32:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/09 17:13:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ Response::~Response(void)
 {
 	/**
 	 * Si la réponse n'a pas été envoyé au client avant qu'elle ne soit
-	 * détruite on l'envoie;
+	 * détruite on l'envoie.
 	 */
 	if (!this->_sent)
 		this->end();
@@ -91,6 +91,11 @@ Response	&Response::status(const int status)
 Response	&Response::send(const std::string data)
 {
 	this->_body = data;
+	/**
+	 * On ajoute l'en-tête 'Content-Length' afin d'indiquer au client la taille de
+	 * de la ressource.
+	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
+	 */
 	this->setHeader("Content-Length", std::to_string(this->_body.size()));
 	return (*this);
 }
@@ -111,11 +116,18 @@ Response	&Response::sendFile(const std::string filepath)
 		buffer << file.rdbuf();
 		file.close();
 		/**
-		 * Lors que l'envoie d'un fichier il est préférable d'envoyer son
-		 * type MIME via l'en-tête 'Content-Type'.
+		 * Lors de l'envoie d'un fichier il est préférable d'envoyer son
+		 * type MIME via l'en-tête 'Content-Type' afin de préciser au client
+		 * à quel type de fichier/données il a à faire.
 		 */
-		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath)));
+		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath))+"; charset=utf-8");
 		this->_body = buffer.str();
+		/**
+		 * On ajoute l'en-tête 'Content-Length' afin d'indiquer au client la taille de
+		 * de la ressource.
+		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
+		 */
+		this->setHeader("Content-Length", std::to_string(this->_body.size()));
 	}
 	else
 	{
@@ -127,7 +139,7 @@ Response	&Response::sendFile(const std::string filepath)
 Response	&Response::sendNotFound(void)
 {
 	this->status(404);
-	this->setHeader("Content-Type", "text/html");
+	this->setHeader("Content-Type", "text/html; charset=utf-8");
 	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Error</title></head><body><pre>Cannot "+this->_method+" "+this->_path+"</pre></body></html>");
 	return (*this);
 }
@@ -141,10 +153,18 @@ Response		&Response::redirect(const std::string &path, bool permanent)
 
 std::string		Response::getTime(void)
 {
+	/**
+	 * Création de l'en-tête `Date` selon la norme. Une valeur de date HTTP
+	 * représente l'heure en tant qu'instance de Coordinated Universal Time (UTC).
+	 * La date indique UTC par l'abréviation de trois lettres pour
+	 * Greenwich Mean Time, "GMT", aun prédécesseur du standard UTC.
+	 * Les valeurs au format asctime sont supposées être en UTC.
+	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-7.1.1.1)
+	 */
 	static const char	*wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 	static const char	*months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	time_t		now = time(0);
-	tm			*gmtm = gmtime(&now);
+	tm			*gmtm = gmtime(&now); // récuperation du temps GMT
 	std::string	date;
 
 	date += wdays[gmtm->tm_wday];
@@ -183,8 +203,8 @@ Response	&Response::end()
 		this->setHeader("Connection", "close");
 		std::string	res = this->prepareResponse();
 		/**
-		 * La fonction send() sert à écrire le contenu d'un descripteurs de fichiers, ici
-		 * le descripteurs du client. À la difference de write, la fonction send est
+		 * La fonction send() sert à écrire le contenu d'un descripteur de fichiers, ici
+		 * le descripteur du client. À la difference de write, la fonction send est
 		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
 		 * gestion de la l'écriture dans un contexte de travaille en réseau.
 		 */
