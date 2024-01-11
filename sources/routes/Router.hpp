@@ -6,14 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 18:30:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/11 19:55:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "webserv.hpp"
-#include "Server.hpp"
+#include "server/Server.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
 
