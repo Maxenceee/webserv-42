@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 17:25:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/11 15:35:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,26 +26,26 @@ Server::~Server(void)
 {
 }
 
-/**
- * Seules les méthodes GET, POST et DELETE sont obligatoires, pour le moment
- * toutes les méthodes sont présentes il faudra faire le tri par la suite en
- * fonction de nos besoins.
- * 
- * La méthode HEAD est similaire à GET à ceci près qu'elle ne renvoie que l'en-tête
- * de réponse.
- * 
- * Les méthodes PUT et PATCH sont similaires à POST, les différences étant la nature
- * des modifications apportées. POST permet la création/ajout d'une ressource sur le serveur,
- * PUT et PATCH permettent la modification de ladite ressource à la différence que PATCH
- * a pour but de ne faire qu'une modification partielle.
- * 
- * La méthode TRACE est aussi assez simple, elle consiste à simplement retourner le contenu
- * de la requête au client afin que celui-ci puisse évaluer la qualité de la connexion.
- * 
- * OPTION et CONNECT sont inutiles dans notre cas.
- */
 std::vector<std::string>	Server::initMethods()
 {
+	/**
+	 * Seules les méthodes GET, POST et DELETE sont obligatoires, pour le moment
+	 * toutes les méthodes sont présentes il faudra faire le tri par la suite en
+	 * fonction de nos besoins.
+	 * 
+	 * La méthode HEAD est similaire à GET à ceci près qu'elle ne renvoie que l'en-tête
+	 * de réponse.
+	 * 
+	 * Les méthodes PUT et PATCH sont similaires à POST, les différences étant la nature
+	 * des modifications apportées. POST permet la création/ajout d'une ressource sur le serveur,
+	 * PUT et PATCH permettent la modification de ladite ressource à la différence que PATCH
+	 * a pour but de ne faire qu'une modification partielle.
+	 * 
+	 * La méthode TRACE est aussi assez simple, elle consiste à simplement retourner le contenu
+	 * de la requête au client afin que celui-ci puisse évaluer la qualité de la connexion.
+	 * 
+	 * OPTION et CONNECT sont inutiles dans notre cas.
+	 */
 	std::vector<std::string>	methods;
 
 	methods.push_back("GET");
@@ -106,6 +106,10 @@ const int	Server::init(void)
 		return (W_SOCKET_ERR);
 	}
 
+	/**
+	 * Lorsque je le met plus rien de fonctionne, et lorsque j'accepte les requêtes recv()
+	 * renvoie que le descripteur n'est pas prêt.
+	 */
 	// if (fcntl(this->socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
 	// 	perror("fcntl");
 	// 	return (W_SOCKET_ERR);
@@ -260,6 +264,9 @@ const int	Server::start(void)
 				continue;
 			}
 
+			/**
+			 * Ça casse aussi tout.
+			 */
 			// if (fcntl(newClient, F_SETFL, O_NONBLOCK) == -1) {
 			// 	perror("fcntl");
 			// 	close(newClient);
@@ -296,50 +303,18 @@ void	Server::setPort(const uint16_t port)
 	this->port = port;
 }
 
-void listFilesInDirectory(const std::string &path, t_mapss &fileMap, bool recursive)
-{
-	DIR				*dir;
-	struct dirent	*ent;
+// int		Server::setStaticDir(const std::string &path)
+// {
+// 	// listFilesInDirectory(path, this->static_dir);
+// 	for (t_mapss::iterator it = this->static_dir.begin(); it != this->static_dir.end(); it++)
+// 		std::cout << it->first << " -> " << it->second << std::endl;
+// 	return (W_NOERR);
+// }
 
-	// if (!isDirectory(path.c_str()))
-	// {
-	// 	throw std::invalid_argument(B_RED"server error: Invalid static dir: "+path+RESET);
-	// }
-
-	if ((dir = opendir(path.c_str())) != NULL)
-	{
-		while ((ent = readdir(dir)) != NULL)
-		{
-			if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
-			{
-				char fullPath[PATH_MAX];
-				snprintf(fullPath, sizeof(fullPath), "%s/%s", path.c_str(), ent->d_name);
-
-				if (isDirectory(fullPath) && recursive) {
-					listFilesInDirectory(fullPath, fileMap, recursive);
-				} else {
-					fileMap[ent->d_name] = fullPath;
-				}
-			}
-		}
-		closedir(dir);
-	} else {
-		perror("opendir");
-	}
-}
-
-int		Server::setStaticDir(const std::string &path)
-{
-	// listFilesInDirectory(path, this->static_dir);
-	for (t_mapss::iterator it = this->static_dir.begin(); it != this->static_dir.end(); it++)
-		std::cout << it->first << " -> " << it->second << std::endl;
-	return (W_NOERR);
-}
-
-const t_mapss		Server::getStaticDir(void) const
-{
-	return (this->static_dir);
-}
+// const t_mapss		Server::getStaticDir(void) const
+// {
+// 	return (this->static_dir);
+// }
 
 const std::vector<std::string>	Server::getMethods(void) const
 {

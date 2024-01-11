@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 19:25:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/11 11:02:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,4 +52,45 @@ bool	isDirectory(const std::string &path)
         return (false);
     }
     return S_ISDIR(pathStat.st_mode);
+}
+
+void listFilesInDirectory(const std::string &path, std::map<std::string, std::string> &fileMap, bool recursive)
+{
+	DIR				*dir;
+	struct dirent	*ent;
+
+	// if (!isDirectory(path.c_str()))
+	// {
+	// 	throw std::invalid_argument(B_RED"server error: Invalid static dir: "+path+RESET);
+	// }
+
+	if ((dir = opendir(path.c_str())) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
+			{
+				char fullPath[PATH_MAX];
+				snprintf(fullPath, sizeof(fullPath), "%s/%s", path.c_str(), ent->d_name);
+
+				if (isDirectory(fullPath) && recursive) {
+					listFilesInDirectory(fullPath, fileMap, recursive);
+				} else {
+					fileMap[ent->d_name] = fullPath;
+				}
+			}
+		}
+		closedir(dir);
+	} else {
+		perror("opendir");
+	}
+}
+
+void	listDirContent(const std::string dirpath)
+{
+	std::map<std::string, std::string>	active_dir_files; // temp
+
+	listFilesInDirectory(dirpath, active_dir_files);
+	for (std::map<std::string, std::string>::iterator it = active_dir_files.begin(); it != active_dir_files.end(); it++)
+		std::cout << it->first << " -> " << it->second << std::endl;
 }

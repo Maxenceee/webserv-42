@@ -6,14 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 11:07:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/11 10:57:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "webserv.hpp"
-#include "readsocket/readsocket.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
 #include "routes/Router.hpp"
@@ -38,7 +37,7 @@ private:
 	std::string					_root;
 	std::map<int, std::string>	_error_page;
 
-	t_mapss						static_dir; // à potentiellement virer etant donné les Routers
+	// t_mapss						static_dir; // à potentiellement virer etant donné les Routers
 
 	std::vector<Router>			_routes;
 
@@ -64,13 +63,11 @@ public:
 	void			setPort(const uint16_t port);
 	const uint16_t	getPort(void) const;
 
-	int				setStaticDir(const std::string &path);
-	const t_mapss	getStaticDir(void) const;
+	// int				setStaticDir(const std::string &path);
+	// const t_mapss	getStaticDir(void) const;
 	
 	const std::string				getRoot(void) const;
 	const std::vector<std::string>	getMethods(void) const;
 
 	void	setErrorPage(const int code, const std::string path);
 };
-
-void listFilesInDirectory(const std::string &path, t_mapss &fileMap, bool recursive = true);
