@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 10:57:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/11 19:11:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,6 @@
 class Router;
 class Request;
 class Response;
-
-// struct s_Server_Error_Pages {
-// 	bool				set;
-// 	std::vector<int>	codes;
-// 	std::string			path;
-// };
 
 class Server
 {
