@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 11:12:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/12 17:58:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,6 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 		*it = "<a href=\""+temp+"\">"+*it+"</a>";
 	}
 	std::string dirhierachy = join(list, " / ");
-	// std::cout << B_RED"dir: " << dirhierachy << std::endl;
 	replace(res, "<%= dir_tree %>", dirhierachy);
 	temp = "";
 	std::string icon;
