@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 12:09:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/12 14:38:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ std::map<int, std::string>	Response::initCodes()
 	codes[404] = "Not Found";
 	codes[405] = "Method Not Allowed";
 	codes[413] = "Payload Too Large";
-	codes[418] = "I’m a teapot";
+	codes[418] = "I'm a teapot";
 	/**
 	 * Erreur du serveur
 	 */

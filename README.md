@@ -8,7 +8,7 @@ utilisation :
 
 pour tester 
 ``` sh
-curl http://localhost:4242 -i
+curl -i http://localhost:4242
 ```
 
 `./config` ne sert a rien pour le moment, la gestion du fichier de config n'est pas encore implmenté
