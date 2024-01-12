@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 11:02:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/12 12:09:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@
 
 /* config */
 
-#define W_DEFAULT_PORT	4242
+#define W_DEFAULT_PORT	3000
 
 #define RECV_SIZE		65536
 

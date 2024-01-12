@@ -6,12 +6,22 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 19:46:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/12 12:03:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "utils.hpp"
+#include <numeric>
+#include <iterator>
+
+template <typename T>
+std::string toString(T val)
+{
+    std::stringstream stream;
+    stream << val;
+    return stream.str();
+}
 
 std::string		&pop(std::string& str)
 {
@@ -41,13 +51,15 @@ struct StringConcatenator {
 	}
 };
 
-std::string					join(const std::vector<std::string> &list, const std::string &c)
+std::string					join(std::vector<std::string> &list, const std::string &c)
 {
 	if (list.empty()) {
         return ("");
     }
+	std::vector<std::string>::iterator nextElement = list.begin();
+    std::advance(nextElement, 1);
 	return (std::accumulate(
-		std::next(list.begin()),
+		nextElement,
 		list.end(),
 		list[0],
 		StringConcatenator(c)
@@ -130,13 +142,13 @@ std::string	getIPAddress(int addr)
 {
 	std::string	res;
 
-	res += std::to_string((addr & 0xFF000000) >> 24);
+	res += toString((addr & 0xFF000000) >> 24);
 	res += ".";
-	res += std::to_string((addr & 0xFF0000) >> 16);
+	res += toString((addr & 0xFF0000) >> 16);
 	res += ".";
-	res += std::to_string((addr & 0xFF00) >> 8);
+	res += toString((addr & 0xFF00) >> 8);
 	res += ".";
-	res += std::to_string(addr & 0xFF);
+	res += toString(addr & 0xFF);
 	return (res);
 }
 

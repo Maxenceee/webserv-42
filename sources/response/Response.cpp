@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/09 17:13:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/12 12:09:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ Response	&Response::send(const std::string data)
 	 * de la ressource.
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
 	 */
-	this->setHeader("Content-Length", std::to_string(this->_body.size()));
+	this->setHeader("Content-Length", toString<int>(this->_body.size()));
 	return (*this);
 }
 
@@ -127,7 +127,7 @@ Response	&Response::sendFile(const std::string filepath)
 		 * de la ressource.
 		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
 		 */
-		this->setHeader("Content-Length", std::to_string(this->_body.size()));
+		this->setHeader("Content-Length", toString<int>(this->_body.size()));
 	}
 	else
 	{
@@ -169,13 +169,13 @@ std::string		Response::getTime(void)
 
 	date += wdays[gmtm->tm_wday];
 	date += ", ";
-    date += (gmtm->tm_mday < 10 ? "0" : "") + std::to_string(gmtm->tm_mday);
+    date += (gmtm->tm_mday < 10 ? "0" : "") + toString(gmtm->tm_mday);
 	date += " ";
     date += months[gmtm->tm_mon];
 	date += " ";
-	date += std::to_string(1900 + gmtm->tm_year);
+	date += toString(1900 + gmtm->tm_year);
 	date += " ";
-    date += std::to_string(gmtm->tm_hour) + ":" + std::to_string(gmtm->tm_min) + ":" + std::to_string(gmtm->tm_sec);
+    date += toString(gmtm->tm_hour) + ":" + toString(gmtm->tm_min) + ":" + toString(gmtm->tm_sec);
 	date += " GMT";
 	return (date);
 }
@@ -231,7 +231,7 @@ const std::string	Response::prepareResponse(void)
 	 * Corps de réponse
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
 	 */
-	res = "HTTP/" + this->_version + " " + std::to_string(this->_status) + " " + this->getSatusName() + "\n";
+	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + "\n";
 	for (t_mapss::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
 		res += it->first + ": " + it->second + "\n";
 	}
@@ -260,7 +260,7 @@ Response	&Response::setCookie(const std::string name, const std::string value, c
 	}
 
 	if (options.maxAge >= 0) {
-		cookieStr += "; Max-Age=" + std::to_string(options.maxAge);
+		cookieStr += "; Max-Age=" + toString(options.maxAge);
 	}
 
 	if (options.secure) {
