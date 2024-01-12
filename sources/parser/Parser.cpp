@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 20:02:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/12 12:05:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Parser::~Parser(void)
 {
 }
 
-int		Parser::open_and_read_file(std::string file_name)
+int		Parser::open_and_read_file(const char *file_name)
 {
 	std::string		line;
 	
@@ -38,7 +38,7 @@ int		Parser::open_and_read_file(std::string file_name)
 	return (EXIT_SUCCESS);
 }
 
-void	Parser::parse(const std::string configPath)
+void	Parser::parse(const char *configPath)
 {
 	if (!isFile(configPath))
 		throw std::invalid_argument(PARSER_ERR);
