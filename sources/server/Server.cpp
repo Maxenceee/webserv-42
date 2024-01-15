@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 14:44:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/15 18:48:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,7 @@ const int	Server::init(void)
 	/**
 	 * Lorsque je le met plus rien de fonctionne, et lorsque j'accepte les requêtes recv()
 	 * renvoie que le descripteur n'est pas prêt.
+	 * Les decriprteurs non bloquants sont uniquement necessaire pour MacOS
 	 */
 	// if (fcntl(this->socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
 	// 	perror("fcntl");
