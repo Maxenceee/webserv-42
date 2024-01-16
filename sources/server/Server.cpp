@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/15 18:48:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/16 11:53:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,9 +181,13 @@ void	Server::setupRoutes(void)
 	 * La méthode Server::use() permet d'ajouter un router au serveur.
 	 */
 	this->use(router1);
-	// Router router2 = Router(*this, "/static/", true);
-	// router2.setRoot("./public/router_2");
-	// this->use(router2);
+	/**
+	 * Test auto index
+	 */
+	Router router2 = Router(*this, "/test");
+	router2.setRoot("./public/router_1/test");
+	router2.setAutoIndex(true);
+	this->use(router2);
 	/**
 	 * Test des redirections
 	 */
