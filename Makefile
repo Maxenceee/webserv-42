@@ -26,6 +26,7 @@ $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp $(HEADERS) Makefile
 	@mkdir -p $(@D)
 	@echo "$(YELLOW)Compiling [$<]$(DEFAULT)"
 	@$(CC) $(CFLAGS) -c $< -o $@
+	@printf ${UP}${CUT}
 
 $(NAME): $(OBJS)
 	@$(CC) $(OBJS) -o $(NAME)

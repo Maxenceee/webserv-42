@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 19:22:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/16 15:03:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,11 @@ void	Parser::parse(const char *configPath)
 		throw std::invalid_argument(PARSER_ERR);
 	this->open_and_read_file(configPath);
 
-	std::vector<std::string>	line_split;
-
 	for (std::vector<std::string>::iterator it = this->buffer.begin(); it != this->buffer.end(); it++)
 	{
 		std::cout << *it << std::endl;
-		line_split = split(*it, ' ');
+		std::string line = *it.replace(it->find('\t'), it->length(), "").trim();
+		if (line.empty() || line[0] == '#')
+			continue;
 	}
 }
