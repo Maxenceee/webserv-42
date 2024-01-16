@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/16 15:03:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/16 18:09:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,8 @@ void	Parser::parse(const char *configPath)
 	for (std::vector<std::string>::iterator it = this->buffer.begin(); it != this->buffer.end(); it++)
 	{
 		std::cout << *it << std::endl;
-		std::string line = *it.replace(it->find('\t'), it->length(), "").trim();
+		std::string line = it->replace(it->find('\t'), it->length(), "");
+		line = trim(line, ' ');
 		if (line.empty() || line[0] == '#')
 			continue;
 	}
