@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:08:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:44:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ void	Parser::extract(const std::string &conf)
 	}
 }
 
-void	throwError(const std::string key, const std::string val)
+void	Parser::throwError(const std::string key, const std::string val)
 {
 	std::string	tmp(B_RED"parser error: invalid directive found: ");
 	tmp += key + " " + val;
@@ -220,7 +220,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 */
 	if (key == "index") {
 		std::string index = split(val, ' ')[0];
-		this->tmp_router->setRoot(index);
+		this->tmp_router->setIndex(index);
 		return ;
 	}
 

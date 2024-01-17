@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 19:55:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:27:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef REQUEST_HPP
+#define REQUEST_HPP
 
 #include "webserv.hpp"
 #include "server/Server.hpp"
@@ -70,3 +71,5 @@ public:
 };
 
 std::ostream	&operator<<(std::ostream &os, const Request &req);
+
+#endif /* REQUEST_HPP */

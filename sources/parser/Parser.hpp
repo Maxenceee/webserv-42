@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 12:05:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:28:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef PARSER_HPP
+#define PARSER_HPP
 
 #include "webserv.hpp"
 #include "cluster/Cluster.hpp"
@@ -18,6 +19,7 @@
 #include "routes/Router.hpp"
 
 class Cluster;
+class Router;
 
 class Parser
 {
@@ -46,3 +48,5 @@ public:
 
 	void	parse(const char *configPath);
 };
+
+#endif /* PARSER_HPP */

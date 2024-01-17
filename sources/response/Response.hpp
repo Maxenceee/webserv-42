@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 19:55:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:28:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef RESPONSE_HPP
+#define RESPONSE_HPP
 
 #include "webserv.hpp"
 #include "server/Server.hpp"
@@ -78,3 +79,5 @@ public:
 };
 
 std::ostream	&operator<<(std::ostream &os, const Response &req);
+
+#endif /* RESPONSE_HPP */

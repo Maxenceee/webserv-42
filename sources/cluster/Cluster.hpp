@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 19:59:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:27:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef CLUSTER_HPP
+#define CLUSTER_HPP
 
 #include "webserv.hpp"
 #include "parser/Parser.hpp"
@@ -30,3 +31,5 @@ public:
 
 	Server	*newServer(void);
 };
+
+#endif /* CLUSTER_HPP */

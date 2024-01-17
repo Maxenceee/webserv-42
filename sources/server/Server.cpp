@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/17 20:23:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:44:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 std::vector<std::string>	Server::methods = Server::initMethods();
 
 Server::Server(uint16_t port): port(port), _default(*this, "/")
+
 {
 	this->exit = false;
 	this->_init = false;
@@ -24,6 +25,7 @@ Server::Server(uint16_t port): port(port), _default(*this, "/")
 
 Server::~Server(void)
 {
+	// delete this->_default;
 }
 
 std::vector<std::string>	Server::initMethods()
