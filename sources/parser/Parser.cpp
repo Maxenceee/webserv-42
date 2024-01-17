@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/17 23:50:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:08:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,5 +221,62 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "index") {
 		std::string index = split(val, ' ')[0];
 		this->tmp_router->setRoot(index);
+		return ;
 	}
+
+	/**
+	 * Directive autoindex
+	 */
+	if (key == "autoindex") {
+		if (val == "on")
+			this->tmp_router->setAutoIndex(true);
+		return ;
+	}
+
+	/**
+	 * Directive redirection
+	 */
+	if (key == "redirection") {
+		int status = 302;
+		std::string loc = val;
+		/*
+		 * TODO:
+		 * verifier si val contient une espace avant de split pour eviter 
+		 * de split pour rien
+		 */
+		std::vector<std::string> tokens = split(val, ' ');
+		if (tokens.size() == 2) {
+			status = std::atoi(tokens[0].c_str());
+			loc = tokens[1];
+		}
+		else if (tokens.size() > 2)
+			this->throwError(key, val);
+		this->tmp_router->setRedirection(loc, status);
+		return ;
+	}
+
+	/**
+	 * Directive allowed_method
+	 */
+	if (key == "allowed_method") {
+		/*
+		 * TODO:
+		 */
+		return ;
+	}
+
+	/**
+	 * Directive error_page
+	 */
+	if (key == "error_page") {
+		/*
+		 * TODO:
+		 */
+		return ;
+	}
+
+	/**
+	 * Default
+	 */
+	this->throwError(key, val);
 }

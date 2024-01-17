@@ -144,9 +144,9 @@ Response	&Response::sendNotFound(const int code)
 	return (*this);
 }
 
-Response		&Response::redirect(const std::string &path, bool permanent)
+Response		&Response::redirect(const std::string &path, int status)
 {
-	this->status(301 + !permanent);
+	this->status(status);
 	this->setHeader("Location", path);
 	return (*this);
 }

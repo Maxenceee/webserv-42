@@ -105,7 +105,7 @@ const std::string	Router::getRoot(void) const
 	return (this->_root.path);
 }
 
-void	Router::setRedirection(const std::string to, bool permanent)
+void	Router::setRedirection(const std::string to, int status)
 {
 	/**
 	 * Définit le chemin de redirection du router, le booléen `permanent`
@@ -113,7 +113,7 @@ void	Router::setRedirection(const std::string to, bool permanent)
 	 * celui-ci affectant le code de réponse (respectivement 301 et 302).
 	 */
 	this->_redirection.path = to;
-	this->_redirection.permanent = permanent;
+	this->_redirection.status = status;
 	this->_redirection.enabled = true;
 }
 
@@ -164,7 +164,7 @@ void	Router::route(Request &request, Response &response)
 		 */
 		if (this->_redirection.enabled) {
 			std::cout << "redirect to: " << this->_redirection.path << std::endl;
-			response.redirect(this->_redirection.path, this->_redirection.permanent);
+			response.redirect(this->_redirection.path, this->_redirection.status);
 			response.end();
 			return ;
 		}
