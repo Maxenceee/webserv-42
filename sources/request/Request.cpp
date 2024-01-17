@@ -78,7 +78,7 @@ int	Request::getRequestPath(const std::string &str)
 		std::cerr << B_RED << "RFC error: missing PATH or HTTP version" << RESET << std::endl;
 		return (400);
 	}
-	this->_path = req_tokens[1]; // on extrait le chemin de la requête
+	this->_path = decodeURIComponent(req_tokens[1]); // on extrait le chemin de la requête
 	return (this->getRequestVersion(req_tokens[2]));
 }
 

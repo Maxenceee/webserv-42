@@ -12,13 +12,18 @@
 
 #include "Router.hpp"
 
-Router::Router(const Server &server, const std::string path, const bool strict): _server(server), _path(path), _strict(strict), _autoindex(false)
+/**
+ * TODO:
+ * Gerer les pages d'erreurs (error_page) envoyer la page si necessaire pour envoyer celle du serveur
+ */
+
+Router::Router(Server &server, const std::string path, const bool strict): _server(server), _path(path), _strict(strict), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
 	 * changé en appellant la méthode Router::setRoot ou Router::setAlias.
 	 */
-	this->_root.path = server.getRoot();
+	this->_root.path = server.getDefaultHandler().getRoot();
 	this->_root.isAlias = false;
 	this->_root.set = false;
 	checkLeadingTrailingSlash(this->_path);
@@ -95,6 +100,11 @@ void	Router::setAlias(const std::string path)
 	listDirContent(path);
 }
 
+const std::string	Router::getRoot(void) const
+{
+	return (this->_root.path);
+}
+
 void	Router::setRedirection(const std::string to, bool permanent)
 {
 	/**
@@ -111,6 +121,15 @@ void	Router::setAutoIndex(const bool autoindex)
 {
 	this->_autoindex = autoindex;
 }
+
+void	Router::setErrorPage(const int code, const std::string path)
+{
+	if (this->_error_page.count(code)) {
+		std::cout << B_YELLOW"router info: overriding previous error page for " << code << RESET << std::endl;
+	}
+	this->_error_page[code] = path;
+}
+
 
 void	Router::route(Request &request, Response &response)
 {

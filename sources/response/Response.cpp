@@ -136,9 +136,9 @@ Response	&Response::sendFile(const std::string filepath)
 	return (*this);
 }
 
-Response	&Response::sendNotFound(void)
+Response	&Response::sendNotFound(const int code)
 {
-	this->status(404);
+	this->status(code);
 	this->setHeader("Content-Type", "text/html; charset=utf-8");
 	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Error</title></head><body><pre>Cannot "+this->_method+" "+this->_path+"</pre></body></html>");
 	return (*this);

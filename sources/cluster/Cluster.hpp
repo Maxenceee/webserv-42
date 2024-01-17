@@ -16,14 +16,17 @@
 #include "parser/Parser.hpp"
 #include "server/Server.hpp"
 
+class Parser;
+
 class Cluster
 {
 private:
-	Parser					parser;
-	std::vector<Server>		_servers;
+	Parser					*parser;
+	std::vector<Server*>	_servers;
 
 public:
 	Cluster(const char *configPath);
 	~Cluster();
-};
 
+	Server	*newServer(void);
+};
