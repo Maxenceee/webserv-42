@@ -15,3 +15,22 @@ bool	contains(const T &container, const std::string &test)
 {
 	return std::find(container.begin(), container.end(), test) != container.end();
 }
+
+template <typename T>
+T	&pop(T &container)
+{
+	if (!container.empty())
+		container.pop_back();
+	return (container);
+}
+
+template <typename T>
+T	&shift(T &container)
+{
+	if (!container.empty())
+	{
+		typename T::iterator it = container.begin();
+		container.erase(it);
+	}
+	return (container);
+}

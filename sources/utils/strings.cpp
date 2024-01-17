@@ -23,11 +23,18 @@ std::string toString(T val)
     return stream.str();
 }
 
-std::string		&pop(std::string& str)
+std::string		&pop(std::string &str)
 {
 	if (str.size())
 		str.resize(str.size() - 1);
 	return (str);
+}
+
+std::string		&shift(std::string &str)
+{
+    if (!str.empty())
+        str.erase(str.begin());
+    return str;
 }
 
 std::vector<std::string>		split(const std::string &str, char c)

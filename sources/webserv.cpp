@@ -12,6 +12,7 @@
 
 #include "webserv.hpp"
 #include "cluster/Cluster.hpp"
+#include "parser/Parser.hpp"
 
 void	print_name(void)
 {
@@ -43,11 +44,11 @@ int	main(int argc, char const **argv)
 		std::cout << W_PREFIX"usage: [configuration file]" << std::endl;
 		return (EXIT_FAILURE);
 	}
-	// Cluster	cluster(argv[1]);
-	Server	server(W_DEFAULT_PORT);
-	if (server.init())
-		return (EXIT_FAILURE);
-	if (server.start())
-		return (EXIT_FAILURE);
+	Cluster	cluster(argv[1]);
+	// Server	server(W_DEFAULT_PORT);
+	// if (server.init())
+	// 	return (EXIT_FAILURE);
+	// if (server.start())
+	// 	return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }

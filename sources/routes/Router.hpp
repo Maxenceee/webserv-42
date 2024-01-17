@@ -36,7 +36,7 @@ struct s_Router_Redirection {
 class Router
 {
 private:
-	const Server					&_server;
+	Server							&_server;
 	bool							_strict;
 	bool							_autoindex;
 	std::string						_path;
@@ -45,13 +45,14 @@ private:
 	std::vector<std::string>		_allowed_methods;
 	std::string						_active_dir;
 	std::string						_index;
+	std::map<int, std::string>		_error_page;
 
 	void	checkLeadingTrailingSlash(std::string &str);
 	
 	const std::string		getDirList(const std::string dirpath, std::string reqPath);
 
 public:
-	Router(const Server &server, const std::string path, const bool strict = false);
+	Router(Server &server, const std::string path, const bool strict = false);
 	~Router(void);
 
 	void	route(Request &request, Response &response);
@@ -63,8 +64,12 @@ public:
 	void	setRoot(const std::string path);
 	void	setAlias(const std::string path);
 
+	const std::string	getRoot(void) const;
+
 	void	setRedirection(const std::string to, bool permanent = false);
 	void	setAutoIndex(const bool autoindex);
+
+	void	setErrorPage(const int code, const std::string path);
 
 	bool	isValidMethod(const std::string method) const;
 };

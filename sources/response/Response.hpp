@@ -59,7 +59,7 @@ public:
 	Response		&status(const int code);
 	Response		&send(const std::string data);
 	Response		&sendFile(const std::string filepath);
-	Response		&sendNotFound(void);
+	Response		&sendNotFound(const int code = 404);
 	// Response		&render(const std::string filename);
 	Response		&redirect(const std::string &path, bool permanent = false);
 	Response		&end();
