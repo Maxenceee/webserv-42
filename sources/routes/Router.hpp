@@ -29,7 +29,7 @@ struct s_Router_Root {
 
 struct s_Router_Redirection {
 	bool			enabled;
-	bool			permanent;
+	int				status;
 	std::string		path;
 };
 
@@ -66,7 +66,7 @@ public:
 
 	const std::string	getRoot(void) const;
 
-	void	setRedirection(const std::string to, bool permanent = false);
+	void	setRedirection(const std::string to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
 
 	void	setErrorPage(const int code, const std::string path);

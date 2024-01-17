@@ -61,7 +61,7 @@ public:
 	Response		&sendFile(const std::string filepath);
 	Response		&sendNotFound(const int code = 404);
 	// Response		&render(const std::string filename);
-	Response		&redirect(const std::string &path, bool permanent = false);
+	Response		&redirect(const std::string &path, int status = 302);
 	Response		&end();
 
 	Response		&setHeader(const std::string header, const std::string value);
