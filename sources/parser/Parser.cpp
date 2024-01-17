@@ -178,7 +178,7 @@ void	Parser::createNewRouter(const std::string key, const std::string val)
 	else if (tokens.size() == 2)
 		this->throwError(key, val);
 	std::string	path = tokens[tokens.size() - 1];
-	this->tmp_router = new Router(this->new_server, path, strict);
+	this->tmp_router = new Router(*this->new_server, path, strict);
 }
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent)
@@ -189,7 +189,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "listen" && parent != "server")
 		this->throwError(key, val);
 	else if (key == "listen") {
-		this->new_server->setPort(std::atoi(val));
+		this->new_server->setPort(std::atoi(val.c_str()));
 		return ;
 	}
 
