@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/17 22:54:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:37:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #include "webserv.hpp"
 #include "request/Request.hpp"
@@ -74,3 +75,5 @@ public:
 		virtual const char* what() const throw();
 	};
 };
+
+#endif /* SERVER_HPP */

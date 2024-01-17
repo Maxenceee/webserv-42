@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/15 18:44:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:41:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,6 +120,11 @@ void	Router::setRedirection(const std::string to, int status)
 void	Router::setAutoIndex(const bool autoindex)
 {
 	this->_autoindex = autoindex;
+}
+
+void	Router::setIndex(const std::string index)
+{
+	this->_index = index;
 }
 
 void	Router::setErrorPage(const int code, const std::string path)

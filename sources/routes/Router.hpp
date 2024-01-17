@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 19:34:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 00:41:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef ROUTER_HPP
+#define ROUTER_HPP
 
 #include "webserv.hpp"
 #include "server/Server.hpp"
@@ -69,7 +70,10 @@ public:
 	void	setRedirection(const std::string to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
 
+	void	setIndex(const std::string index);
 	void	setErrorPage(const int code, const std::string path);
 
 	bool	isValidMethod(const std::string method) const;
 };
+
+#endif /* ROUTER_HPP */
