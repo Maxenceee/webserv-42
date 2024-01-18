@@ -12,6 +12,12 @@
 
 #include "Cluster.hpp"
 
+/**
+ * TODO:
+ * faire en sorte de la classe cluster start() les serveurs et gere la boucle principale avec poll()
+ * 
+ */
+
 Cluster::Cluster(const char *configPath)
 {
 	this->parser = new Parser(*this);
