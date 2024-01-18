@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:44:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 01:41:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 			} else {
 				parent = key;
 			}
-			std::cout << B_YELLOW << key << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
+			// std::cout << B_YELLOW << key << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
 			this->switchConfigDirectives(key, val, parent);
 		}
 		// Standard property line
@@ -92,7 +92,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 				pop(key);
 			}
 			pop(val);
-			std::cout << B_RED << key << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
+			// std::cout << B_RED << key << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
 			this->switchConfigDirectives(key, val, parent);
 		}
 		// Object closing line
@@ -178,11 +178,13 @@ void	Parser::createNewRouter(const std::string key, const std::string val)
 	else if (tokens.size() == 2)
 		this->throwError(key, val);
 	std::string	path = tokens[tokens.size() - 1];
-	this->tmp_router = new Router(*this->new_server, path, strict);
+	this->tmp_router = new Router(*this->new_server, path, this->new_server->getDefaultHandler().getRoot(), strict);
+	this->new_server->use(this->tmp_router);
 }
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent)
 {
+	// std::cout << "allow_method " << key << " " << val << std::endl;
 	/**
 	 * Directive Listen
 	 */
@@ -256,12 +258,13 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	}
 
 	/**
-	 * Directive allowed_method
+	 * Directive allow_method
 	 */
-	if (key == "allowed_method") {
-		/*
-		 * TODO:
-		 */
+	if (key == "allow_method") {
+		std::vector<std::string> tokens = split(val, ' ');
+		for (size_t i = 0; i < tokens.size(); i++) {
+			this->tmp_router->allowMethod(tokens[i]);
+		}
 		return ;
 	}
 
@@ -269,9 +272,12 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Directive error_page
 	 */
 	if (key == "error_page") {
-		/*
-		 * TODO:
-		 */
+		std::vector<std::string> tokens = split(val, ' ');
+		if (tokens.size() < 2)
+			this->throwError(key, val);
+		for (size_t i = 0; i < tokens.size() - 1; i++) {
+			this->tmp_router->setErrorPage(std::atoi(tokens[i].c_str()), tokens[tokens.size() - 1]);
+		}
 		return ;
 	}
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:37:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 01:13:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,8 @@ private:
 	fd_set						_fd_set;
 
 	// les comportements par default du serveur sont stocké dans un router spécifique
-	Router						_default;
-	std::vector<Router>			_routes;
+	Router						*_default;
+	std::vector<Router*>		_routes;
 
 	static std::vector<std::string>		methods;
 	static std::vector<std::string>		initMethods();
@@ -62,7 +62,9 @@ public:
 	const std::vector<std::string>	getMethods(void) const;
 	Router							&getDefaultHandler(void);
 	
-	void	use(const Router &router);
+	void	use(Router *router);
+	
+	void	print(std::ostream &os) const;
 
 	class ServerInvalidPort : public std::exception
 	{
@@ -75,5 +77,7 @@ public:
 		virtual const char* what() const throw();
 	};
 };
+
+std::ostream	&operator<<(std::ostream &os, const Server &server);
 
 #endif /* SERVER_HPP */

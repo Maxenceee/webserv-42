@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:41:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 01:12:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ private:
 	struct s_Router_Root			_root;
 	struct s_Router_Redirection		_redirection;
 	std::vector<std::string>		_allowed_methods;
-	std::string						_active_dir;
 	std::string						_index;
 	std::map<int, std::string>		_error_page;
 
@@ -53,7 +52,7 @@ private:
 	const std::string		getDirList(const std::string dirpath, std::string reqPath);
 
 public:
-	Router(Server &server, const std::string path, const bool strict = false);
+	Router(Server &server, const std::string path, const std::string parent_root = "/", const bool strict = false);
 	~Router(void);
 
 	void	route(Request &request, Response &response);
@@ -74,6 +73,10 @@ public:
 	void	setErrorPage(const int code, const std::string path);
 
 	bool	isValidMethod(const std::string method) const;
+
+	void	print(std::ostream &os) const;
 };
+
+std::ostream	&operator<<(std::ostream &os, const Router &res);
 
 #endif /* ROUTER_HPP */
