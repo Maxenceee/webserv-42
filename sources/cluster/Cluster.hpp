@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:27:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 14:11:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include "server/Server.hpp"
 
 class Parser;
+
+typedef std::vector<Server*>	t_vservers;
 
 class Cluster
 {
