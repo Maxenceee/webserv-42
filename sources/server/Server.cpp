@@ -6,18 +6,25 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:44:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 01:32:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Server.hpp"
 
+std::ostream	&operator<<(std::ostream &os, const Server &server)
+{
+	server.print(os);
+	os << std::endl;
+	return os;
+}
+
 std::vector<std::string>	Server::methods = Server::initMethods();
 
-Server::Server(uint16_t port): port(port), _default(*this, "/")
-
+Server::Server(uint16_t port): port(port)
 {
+	this->_default = new Router(*this, "/");
 	this->exit = false;
 	this->_init = false;
 	this->_started = false;
@@ -25,7 +32,7 @@ Server::Server(uint16_t port): port(port), _default(*this, "/")
 
 Server::~Server(void)
 {
-	// delete this->_default;
+	delete this->_default;
 }
 
 std::vector<std::string>	Server::initMethods()
@@ -155,53 +162,53 @@ const int	Server::init(void)
 		perror("bind");
 		return (W_SOCKET_ERR);
 	}
-	this->setupRoutes(); // for demo to remove
+	// this->setupRoutes(); // for demo to remove
 	this->_init = true;
 	return (W_NOERR);
 }
 
 void	Server::setupRoutes(void)
 {
-	/**
-	 * DEMO:
-	 */
-	/**
-	 * En fonction de la configuration passé par l'utilisateur, nous créons des instances
-	 * de la classe Router pour chaque `Location` spécifié.
-	 */
-	Router router1 = Router(*this, "/static");
-	/**
-	 * allowMethod() indique au router qu'elle méthode HTTP il peut servir. Si aucune méthode
-	 * n'est spécifiée le router les accepte toutes.
-	 */
-	router1.allowMethod("GET");
-	/**
-	 * setRoot() indique au router son dossier `root`. Si root n'est pas spécifié le router hérite
-	 * du serveur.
-	 */
-	router1.setRoot("./public/router_1");
-	/**
-	 * setAutoIndex() permet d'activer le listage des dossiers si aucun fichier d'index n'est trouvé
-	 */
-	router1.setAutoIndex(true);
-	/**
-	 * La méthode Server::use() permet d'ajouter un router au serveur.
-	 */
-	this->use(router1);
-	/**
-	 * Test auto index
-	 */
-	Router router2 = Router(*this, "/test");
-	router2.setRoot("./public/router_1/test");
-	router2.setAutoIndex(true);
-	this->use(router2);
-	/**
-	 * Test des redirections
-	 */
-	Router router3 = Router(*this, "/redir");
-	router3.allowMethod("GET");
-	router3.setRedirection("/static", true);
-	this->use(router3);
+	// /**
+	//  * DEMO:
+	//  */
+	// /**
+	//  * En fonction de la configuration passé par l'utilisateur, nous créons des instances
+	//  * de la classe Router pour chaque `Location` spécifié.
+	//  */
+	// Router *router1 = new Router(*this, "/static");
+	// /**
+	//  * allowMethod() indique au router qu'elle méthode HTTP il peut servir. Si aucune méthode
+	//  * n'est spécifiée le router les accepte toutes.
+	//  */
+	// router1->allowMethod("GET");
+	// /**
+	//  * setRoot() indique au router son dossier `root`. Si root n'est pas spécifié le router hérite
+	//  * du serveur.
+	//  */
+	// router1->setRoot("./public/router_1");
+	// /**
+	//  * setAutoIndex() permet d'activer le listage des dossiers si aucun fichier d'index n'est trouvé
+	//  */
+	// router1->setAutoIndex(true);
+	// /**
+	//  * La méthode Server::use() permet d'ajouter un router au serveur.
+	//  */
+	// this->use(router1);
+	// /**
+	//  * Test auto index
+	//  */
+	// Router *router2 = new Router(*this, "/test");
+	// router2->setRoot("./public/router_1/test");
+	// router2->setAutoIndex(true);
+	// this->use(router2);
+	// /**
+	//  * Test des redirections
+	//  */
+	// Router *router3 = new Router(*this, "/redir");
+	// router3->allowMethod("GET");
+	// router3->setRedirection("/static", true);
+	// this->use(router3);
 }
 
 const int	Server::start(void)
@@ -306,7 +313,7 @@ void	Server::kill(void)
 	close(this->socket_fd);
 }
 
-void	Server::use(const Router &router)
+void	Server::use(Router *router)
 {
 	this->_routes.push_back(router);
 }
@@ -336,7 +343,7 @@ const std::vector<std::string>	Server::getMethods(void) const
 
 Router	&Server::getDefaultHandler(void)
 {
-	return (this->_default);
+	return (*this->_default);
 }
 
 void	Server::handleRequest(const int client, sockaddr_in clientAddr)
@@ -378,8 +385,8 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 
 void	Server::handleRoutes(Request &req, Response &res)
 {
-	for (std::vector<Router>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
-		it->route(req, res);
+	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+		(*it)->route(req, res);
 		if (!res.canSend())
 			break;
 	}
@@ -401,4 +408,17 @@ const char	*Server::ServerInvalidPort::what() const throw()
 const char	*Server::ServerNotInit::what() const throw()
 {
 	return (B_RED"server error: could not start server: the server has not been properly initialized"RESET);
+}
+
+void	Server::print(std::ostream &os) const
+{
+	os << B_BLUE << "Server:" << RESET << "\n";
+	os << B_CYAN << "Name: " << RESET << this->_server_name << "\n";
+	os << B_CYAN << "Port: " << RESET << this->port << "\n";
+	os << B_ORANGE << "Default router: " << RESET << "\n";
+	os << *this->_default;
+	os << B_ORANGE << "Routers: " << RESET << "\n";
+	for (std::vector<Router *>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+		os << **it;
+	}
 }

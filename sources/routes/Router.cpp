@@ -6,24 +6,30 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:41:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/18 01:41:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Router.hpp"
 
+std::ostream	&operator<<(std::ostream &os, const Router &router)
+{
+	router.print(os);
+	os << std::endl;
+	return os;
+}
+
 /**
  * TODO:
  * Gerer les pages d'erreurs (error_page) envoyer la page si necessaire pour envoyer celle du serveur
  */
-
-Router::Router(Server &server, const std::string path, const bool strict): _server(server), _path(path), _strict(strict), _autoindex(false)
+Router::Router(Server &server, const std::string path, const std::string parent_root, const bool strict): _server(server), _path(path), _strict(strict), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
 	 * changé en appellant la méthode Router::setRoot ou Router::setAlias.
 	 */
-	this->_root.path = server.getDefaultHandler().getRoot();
+	this->_root.path = parent_root;
 	this->_root.isAlias = false;
 	this->_root.set = false;
 	checkLeadingTrailingSlash(this->_path);
@@ -209,6 +215,18 @@ bool	Router::isValidMethod(const std::string method) const
 void	Router::checkLeadingTrailingSlash(std::string &str)
 {
 	/**
+	 * Si le chemin du router est '/' on ne fait rien.
+	 */
+	if (str == "/")
+		return ;
+	/**
+	 * Si le chemin du router est vide on le remplace par '/'.
+	 */
+	if (str.size() == 0) {
+		str = "/";
+		return ;
+	}
+	/**
 	 * Nginx n'a pas de comportement spécifique dépendant de la présence ou
 	 * non du '/' au début du chemin du router. Le chemins 'chemin' et '/chemin'
 	 * ont le même comportement.
@@ -260,4 +278,23 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 	}
 	replace(res, "<%= dir_content %>", temp);
 	return (res);
+}
+
+void	Router::print(std::ostream &os) const
+{
+	os << "\t" << B_GREEN"Router: \n";
+	os << "\t" << B_CYAN"Path: " << RESET << this->_path << (this->_strict ? " (strict)" : " (not strict)") << "\n";
+	os << "\t" << B_CYAN"Methods:" << RESET;
+	if (this->_allowed_methods.size() == 0)
+		os << " all";
+	for (std::vector<std::string>::const_iterator it = this->_allowed_methods.begin(); it != this->_allowed_methods.end(); it++)
+		os << " " << *it;
+	os << "\n";
+	os << "\t" << B_CYAN"Root: " << RESET << this->_root.path << (this->_root.isAlias ? " (alias)" : "") << "\n";
+	os << "\t" << B_CYAN"Redirection: " << RESET << (this->_redirection.enabled ? this->_redirection.path + " status: " + toString(this->_redirection.status) : "none") << "\n";
+	os << "\t" << B_CYAN"Autoindex: " << RESET << (this->_autoindex ? "enabled" : "disabled") << "\n";
+	os << "\t" << B_CYAN"Index: " << RESET << this->_index << "\n";
+	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
+	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
+		os << "\t" << it->first << " => " << it->second << "\n";
 }
