@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 01:13:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 16:38:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,9 @@ class Response;
 class Server
 {
 private:
+	int							_id;
 	bool						_init;
-	bool						_started;
+	// bool						_started;
 	uint16_t					port;
 	std::string					_server_name;
 	int							socket_fd;
@@ -40,31 +41,34 @@ private:
 	static std::vector<std::string>		methods;
 	static std::vector<std::string>		initMethods();
 
-	void		handleRequest(const int client, sockaddr_in clientAddr);
 	void		handleRoutes(Request &req, Response &res);
 
 public:
-	Server(uint16_t port = 0);
+	Server(int id, uint16_t port = 0);
 	~Server(void);
-
-	bool		exit;
 
 	const int	init(void);
 	void		setupRoutes(void);
-	const int	start(void);
+	// const int	start(void);
 	void		kill(void);
+
+	const bool		isInit(void) const;
+	const int		getSocketFD(void) const;
 
 	void			setPort(const uint16_t port);
 	const uint16_t	getPort(void) const;
 
-	void			setName(const std::string name);
+	void				setName(const std::string name);
+	const std::string	getName(void) const;
 	
 	const std::vector<std::string>	getMethods(void) const;
 	Router							&getDefaultHandler(void);
 	
-	void	use(Router *router);
+	void		use(Router *router);
+
+	void		handleRequest(const int client, sockaddr_in clientAddr);
 	
-	void	print(std::ostream &os) const;
+	void		print(std::ostream &os) const;
 
 	class ServerInvalidPort : public std::exception
 	{

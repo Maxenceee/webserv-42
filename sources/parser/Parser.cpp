@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 12:20:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 18:24:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,9 +236,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	}
 
 	/**
-	 * Directive redirection
+	 * Directive return
 	 */
-	if (key == "redirection") {
+	if (key == "return") {
 		int status = 302;
 		std::string loc = val;
 		/*
@@ -246,6 +246,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		 * verifier si val contient une espace avant de split pour eviter 
 		 * de split pour rien
 		 */
+		std::cout << "return " << key << " " << val << std::endl;
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() == 2) {
 			status = std::atoi(tokens[0].c_str());

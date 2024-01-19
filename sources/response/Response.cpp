@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 14:38:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 13:50:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Response::Response(const Server &server, int socket, const Request &req): _serve
 	this->_status = req.getSatus();
 	this->_path = req.getPath();
 	this->initCodes();
-	this->setHeader("Server", "42-webserv");
+	this->setHeader("Server", server.getName());
 	/**
 	 * On vérifie si la requête n'a renvoyé aucune erreur de parsing.
 	 */
