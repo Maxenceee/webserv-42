@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 01:41:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 18:05:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ Router::Router(Server &server, const std::string path, const std::string parent_
 	this->_root.path = parent_root;
 	this->_root.isAlias = false;
 	this->_root.set = false;
+	memset(&this->_redirection, 0, sizeof(this->_redirection));
 	checkLeadingTrailingSlash(this->_path);
 }
 
@@ -79,7 +80,7 @@ void	Router::setRoot(const std::string path)
 		this->_root.path = path;
 		this->_root.isAlias = false;
 	}
-	listDirContent(path);
+	// listDirContent(path);
 }
 
 void	Router::setAlias(const std::string path)
@@ -103,7 +104,7 @@ void	Router::setAlias(const std::string path)
 		this->_root.path = path;
 		this->_root.isAlias = true;
 	}
-	listDirContent(path);
+	// listDirContent(path);
 }
 
 const std::string	Router::getRoot(void) const
@@ -180,7 +181,8 @@ void	Router::route(Request &request, Response &response)
 			return ;
 		}
 		std::cout << "valid route for " << request.getPath() << std::endl;
-		std::string fullpath = this->_root.path + request.getPath().substr(this->_path.size());
+		std::string truncpath = request.getPath().substr(this->_path.size());
+		std::string fullpath = this->_root.path + this->checkLeadingTrailingSlash(truncpath);
 		std::cout << "full path: " << fullpath << std::endl;
 		/**
 		 * TODO:
@@ -212,19 +214,19 @@ bool	Router::isValidMethod(const std::string method) const
 	return (std::find(this->_server.getMethods().begin(), this->_server.getMethods().end(), method) != this->_server.getMethods().end());
 }
 
-void	Router::checkLeadingTrailingSlash(std::string &str)
+std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 {
 	/**
 	 * Si le chemin du router est '/' on ne fait rien.
 	 */
 	if (str == "/")
-		return ;
+		return (str);
 	/**
 	 * Si le chemin du router est vide on le remplace par '/'.
 	 */
 	if (str.size() == 0) {
 		str = "/";
-		return ;
+		return (str);
 	}
 	/**
 	 * Nginx n'a pas de comportement spécifique dépendant de la présence ou
@@ -245,6 +247,7 @@ void	Router::checkLeadingTrailingSlash(std::string &str)
 	if (str[str.size() - 1] == '/' && !this->_strict) {
 		str.resize(str.size() - 1);
 	}
+	return (str);
 }
 
 const std::string	Router::getDirList(const std::string dirpath, std::string reqPath)

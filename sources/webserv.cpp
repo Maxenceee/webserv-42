@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/15 14:28:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 16:47:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,5 @@ int	main(int argc, char const **argv)
 		return (EXIT_FAILURE);
 	}
 	Cluster	cluster(argv[1]);
-	// Server	server(W_DEFAULT_PORT);
-	// if (server.init())
-	// 	return (EXIT_FAILURE);
-	// if (server.start())
-	// 	return (EXIT_FAILURE);
-	return (EXIT_SUCCESS);
+	return (cluster.start());
 }

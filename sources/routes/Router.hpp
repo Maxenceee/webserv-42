@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 01:12:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 18:04:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ private:
 	std::string						_index;
 	std::map<int, std::string>		_error_page;
 
-	void	checkLeadingTrailingSlash(std::string &str);
+	std::string	&checkLeadingTrailingSlash(std::string &str);
 	
 	const std::string		getDirList(const std::string dirpath, std::string reqPath);
 

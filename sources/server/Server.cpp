@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 01:32:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 18:15:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,11 @@ std::ostream	&operator<<(std::ostream &os, const Server &server)
 
 std::vector<std::string>	Server::methods = Server::initMethods();
 
-Server::Server(uint16_t port): port(port)
+Server::Server(int id, uint16_t port): _id(id), port(port)
 {
 	this->_default = new Router(*this, "/");
-	this->exit = false;
 	this->_init = false;
-	this->_started = false;
+	// this->_started = false;
 }
 
 Server::~Server(void)
@@ -78,7 +77,7 @@ const int	Server::init(void)
 		throw Server::ServerInvalidPort();
 
 	FD_ZERO(&this->_fd_set); // reset la liste de fildes
-	std::cout << B_BLUE"Starting server" << RESET << std::endl;
+	std::cout << B_GREEN"Initiating server " << this->_id << RESET << std::endl;
 	/**
 	 * La fonction socket() permet de créer un point de terminaison (end-point) pour
 	 * la communication réseau. 
@@ -167,6 +166,16 @@ const int	Server::init(void)
 	return (W_NOERR);
 }
 
+const bool		Server::isInit(void) const
+{
+	return (this->_init);
+}
+
+const int		Server::getSocketFD(void) const
+{
+	return (this->socket_fd);
+}
+
 void	Server::setupRoutes(void)
 {
 	// /**
@@ -211,105 +220,104 @@ void	Server::setupRoutes(void)
 	// this->use(router3);
 }
 
-const int	Server::start(void)
-{
-	pollfd		fds;
-	const int	timeout = 100;
+// const int	Server::start(void)
+// {
+// 	pollfd		fds;
+// 	const int	timeout = 100;
 
-	struct sockaddr_in	client_addr;
-	socklen_t			len = sizeof(client_addr);
+// 	struct sockaddr_in	client_addr;
+// 	socklen_t			len = sizeof(client_addr);
 
-	// on verifie si le serveur a été initialisé avant de le démarer
-	if (!this->_init)
-		throw Server::ServerNotInit();
+// 	// on verifie si le serveur a été initialisé avant de le démarer
+// 	if (!this->_init)
+// 		throw Server::ServerNotInit();
 
-	std::cout << B_GREEN"Listening on port " << this->port << RESET << std::endl;
-	/**
-	 * La fonction listen() permet de marquer un socket comme étant un socket en
-	 * attente de connexions entrantes.
-	 * 
-	 * Elle prend en paramètres le descripteur de fichiers du socket et la taille de la file
-	 * d'attente.
-	 */
-	int	error = listen(this->socket_fd, 1024);
-	if (error == -1)
-	{
-		std::cerr << "server error: an error occured while listening" << std::endl;
-		perror("listen");
-		return (W_SOCKET_ERR);
-	}
+// 	std::cout << B_GREEN"Listening on port " << this->port << RESET << std::endl;
+// 	/**
+// 	 * La fonction listen() permet de marquer un socket comme étant un socket en
+// 	 * attente de connexions entrantes.
+// 	 * 
+// 	 * Elle prend en paramètres le descripteur de fichiers du socket et la taille de la file
+// 	 * d'attente.
+// 	 */
+// 	int	error = listen(this->socket_fd, 1024);
+// 	if (error == -1)
+// 	{
+// 		std::cerr << "server error: an error occured while listening" << std::endl;
+// 		perror("listen");
+// 		return (W_SOCKET_ERR);
+// 	}
 
-	this->_started = true;
+// 	this->_started = true;
 
-	/**
-	 * Boucle principale du serveur.
-	 */
-	fds.fd = this->socket_fd;
-	fds.events = POLLIN;
-	do
-	{
-		/**
-		 * La fonction poll() est utilisée pour surveiller plusieurs descripteurs de
-		 * fichiers en même temps, notamment des sockets, des fichiers, ou d'autres
-		 * types de descripteurs, afin de déterminer s'ils sont prêts pour une lecture,
-		 * une écriture (I/O) ou s'ils ont généré une exception.
-		 * 
-		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
-		 * pour chaque élément, le descripteur de fichiers et l'événements à surveiller.
-		 * 
-		 * La fonction attend que l'un des événements spécifiés se produise pour l'un
-		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire.
-		 * 
-		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est
-		 * prêt pour la lecture.
-		 */
-		if (poll(&fds, 1, timeout) == -1)
-		{
-			std::cerr << "server error: an error occured while poll'ing" << std::endl;
-			perror("poll");
-			return (W_SOCKET_ERR);
-		}
-		/**
-		 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
-		 * les faux positifs lorsque timeout expire ou lorsqu'il y a une exception.
-		 */
-		if (fds.revents & POLLIN)
-		{
-			/**
-			 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
-			 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
-			 * d'une structure `sockaddr` ou seront écrite les informations sur le client (adresse IP, port, etc.).
-			 * 
-			 * La fonction retourne un nouveau descripteur de fichiers vers le client.
-			 */
-			int newClient = accept(this->socket_fd, (sockaddr *)&client_addr, &len);
-			if (newClient == -1)
-			{
-				perror("accept");
-				continue;
-			}
+// 	/**
+// 	 * Boucle principale du serveur.
+// 	 */
+// 	fds.fd = this->socket_fd;
+// 	fds.events = POLLIN;
+// 	do
+// 	{
+// 		/**
+// 		 * La fonction poll() est utilisée pour surveiller plusieurs descripteurs de
+// 		 * fichiers en même temps, notamment des sockets, des fichiers, ou d'autres
+// 		 * types de descripteurs, afin de déterminer s'ils sont prêts pour une lecture,
+// 		 * une écriture (I/O) ou s'ils ont généré une exception.
+// 		 * 
+// 		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
+// 		 * pour chaque élément, le descripteur de fichiers et l'événements à surveiller.
+// 		 * 
+// 		 * La fonction attend que l'un des événements spécifiés se produise pour l'un
+// 		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire.
+// 		 * 
+// 		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est
+// 		 * prêt pour la lecture.
+// 		 */
+// 		if (poll(&fds, 1, timeout) == -1)
+// 		{
+// 			std::cerr << "server error: an error occured while poll'ing" << std::endl;
+// 			perror("poll");
+// 			return (W_SOCKET_ERR);
+// 		}
+// 		/**
+// 		 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
+// 		 * les faux positifs lorsque timeout expire ou lorsqu'il y a une exception.
+// 		 */
+// 		if (fds.revents & POLLIN)
+// 		{
+// 			/**
+// 			 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
+// 			 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
+// 			 * d'une structure `sockaddr` ou seront écrite les informations sur le client (adresse IP, port, etc.).
+// 			 * 
+// 			 * La fonction retourne un nouveau descripteur de fichiers vers le client.
+// 			 */
+// 			int newClient = accept(this->socket_fd, (sockaddr *)&client_addr, &len);
+// 			if (newClient == -1)
+// 			{
+// 				perror("accept");
+// 				continue;
+// 			}
 
-			/**
-			 * Ça casse aussi tout.
-			 */
-			// if (fcntl(newClient, F_SETFL, O_NONBLOCK) == -1) {
-			// 	perror("fcntl");
-			// 	close(newClient);
-			// 	continue;
-			// }
+// 			/**
+// 			 * Ça casse aussi tout.
+// 			 */
+// 			// if (fcntl(newClient, F_SETFL, O_NONBLOCK) == -1) {
+// 			// 	perror("fcntl");
+// 			// 	close(newClient);
+// 			// 	continue;
+// 			// }
 
-			client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr);
-			client_addr.sin_port = ntohs(client_addr.sin_port);
-			this->handleRequest(newClient, client_addr);
-		}
-	} while (!this->exit);
-	close(this->socket_fd);
-	return (W_NOERR);
-}
+// 			client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr);
+// 			client_addr.sin_port = ntohs(client_addr.sin_port);
+// 			this->handleRequest(newClient, client_addr);
+// 		}
+// 	} while (!this->exit);
+// 	close(this->socket_fd);
+// 	return (W_NOERR);
+// }
 
 void	Server::kill(void)
 {
-	this->exit = true;
 	close(this->socket_fd);
 }
 
@@ -325,7 +333,7 @@ const uint16_t	Server::getPort(void) const
 
 void	Server::setPort(const uint16_t port)
 {
-	if (!this->_started)
+	if (!this->_init)
 		this->port = port;
 	else
 		std::cerr << B_RED << "server error: could not set port after server startup" << RESET << std::endl;
@@ -334,6 +342,11 @@ void	Server::setPort(const uint16_t port)
 void	Server::setName(const std::string name)
 {
 	this->_server_name = name;
+}
+
+const std::string	Server::getName(void) const
+{
+	return (this->_server_name);
 }
 
 const std::vector<std::string>	Server::getMethods(void) const
@@ -412,7 +425,8 @@ const char	*Server::ServerNotInit::what() const throw()
 
 void	Server::print(std::ostream &os) const
 {
-	os << B_BLUE << "Server:" << RESET << "\n";
+	os << B_BLUE << "<--- Server " << this->_id << " --->" << RESET << "\n";
+	os << B_CYAN << "Initiated: " << RESET << (this->_init ? "true" : "false") << "\n";
 	os << B_CYAN << "Name: " << RESET << this->_server_name << "\n";
 	os << B_CYAN << "Port: " << RESET << this->port << "\n";
 	os << B_ORANGE << "Default router: " << RESET << "\n";
