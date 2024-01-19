@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 01:41:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 12:20:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ void	Parser::parse(const char *configPath)
 	this->extract(this->buffer);
 }
 
-void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedLine, std::string &parent, int &countOfParentsThatAreArrays)
+void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedLine, std::string &parent, int &countOfParents)
 {
 	std::vector<std::string> innerLines = split(lineRaw, '\n');
 
@@ -99,9 +99,9 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 		else if (line[line.length() - 1] == '}') {
 			chunkedLine = "";
 			std::vector<std::string> parentTokens = split(parent, '.');
-			if (countOfParentsThatAreArrays > 0 && isdigit(parentTokens.back()[0])) {
+			if (countOfParents > 0 && isdigit(parentTokens.back()[0])) {
 				parentTokens.pop_back();
-				countOfParentsThatAreArrays -= 1;
+				countOfParents -= 1;
 			}
 			parentTokens.pop_back();
 			parent = join(parentTokens, ".");
@@ -118,7 +118,7 @@ void	Parser::extract(const std::string &conf)
 	std::vector<std::string> lines = split(conf, '\n');
 	std::string parent = "";
 	std::string chunkedLine = "";
-	int countOfParentsThatAreArrays = 0;
+	int countOfParents = 0;
 
 	for (std::vector<std::string>::iterator lineIt = lines.begin(); lineIt != lines.end(); ++lineIt) {
 		std::string lineRaw = *lineIt;
@@ -136,7 +136,7 @@ void	Parser::extract(const std::string &conf)
 		for (std::vector<std::string>::iterator innerIt = innerLines.begin(); innerIt != innerLines.end(); ++innerIt) {
 			std::string line = *innerIt;
 			trim(line);
-			this->processInnerLines(line, chunkedLine, parent, countOfParentsThatAreArrays);
+			this->processInnerLines(line, chunkedLine, parent, countOfParents);
 		}
 	}
 }

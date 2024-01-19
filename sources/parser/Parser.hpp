@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:28:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 12:20:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ private:
 	int		open_and_read_file(const char *file_name);
 
 	void	extract(const std::string &conf);
-	void	processInnerLines(const std::string &lineRaw, std::string &chunkedLine, std::string &parent, int &countOfParentsThatAreArrays);
+	void	processInnerLines(const std::string &lineRaw, std::string &chunkedLine, std::string &parent, int &countOfParents);
 
 	void	switchConfigDirectives(const std::string key, const std::string val, const std::string parent);
 	void	createNewRouter(const std::string key, const std::string val);
