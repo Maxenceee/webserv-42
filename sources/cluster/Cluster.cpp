@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 18:24:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/19 18:35:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ const int Cluster::start(void)
         //     perror("fcntl");
         //     return (W_SOCKET_ERR);
         // }
-		poll_fds.push_back((pollfd){serverSocket, POLLIN | POLLRDHUP, 0});
+		poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
 	}
 
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
