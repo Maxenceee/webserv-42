@@ -11,8 +11,6 @@ pour tester
 curl -i http://localhost:4242
 ```
 
-`./config` ne sert a rien pour le moment, la gestion du fichier de config n'est pas encore implmenté
-
 ### ressources utiles
 
 article à lire pour comprendre le principe
