@@ -3,7 +3,7 @@
 utilisation :
 
 ``` sh
-./webserv ./config
+./webserv ./config.conf
 ```
 
 pour tester 
