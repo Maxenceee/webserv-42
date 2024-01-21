@@ -3,15 +3,13 @@
 utilisation :
 
 ``` sh
-./webserv ./config
+./webserv ./config.conf
 ```
 
 pour tester 
 ``` sh
 curl -i http://localhost:4242
 ```
-
-`./config` ne sert a rien pour le moment, la gestion du fichier de config n'est pas encore implmenté
 
 ### ressources utiles
 
