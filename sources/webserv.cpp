@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 16:47:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/26 17:47:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int	main(int argc, char const **argv)
 	if (argc != 2)
 	{
 		std::cerr << W_PREFIX"Invalid usage" << std::endl;
-		std::cout << W_PREFIX"usage: [configuration file]" << std::endl;
+		std::cout << W_PREFIX"usage: [configuration file]" << RESET << std::endl;
 		return (EXIT_FAILURE);
 	}
 	Cluster	cluster(argv[1]);
