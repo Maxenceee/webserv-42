@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 18:24:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/01/30 14:11:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 			} else {
 				parent = key;
 			}
-			// std::cout << B_YELLOW << key << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
+			// std::cout << B_YELLOW << k ey << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
 			this->switchConfigDirectives(key, val, parent);
 		}
 		// Standard property line
