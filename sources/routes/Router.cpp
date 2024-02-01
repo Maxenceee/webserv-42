@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 18:05:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/01 14:17:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,33 +180,48 @@ void	Router::route(Request &request, Response &response)
 			response.end();
 			return ;
 		}
-		std::cout << "valid route for " << request.getPath() << std::endl;
-		std::string truncpath = request.getPath().substr(this->_path.size());
-		std::string fullpath = this->_root.path + this->checkLeadingTrailingSlash(truncpath);
-		std::cout << "full path: " << fullpath << std::endl;
-		/**
-		 * TODO:
-		 * Gérer la directive `index`
-		 */
-		if (isDirectory(fullpath)) {
-			if (isFile(fullpath+"/index.html")) {
-				response.sendFile(fullpath+"/index.html");	
-			} else {
-				std::cerr << "cannot get " << fullpath << std::endl;
-				if (this->_autoindex) {
-					response.setHeader("Content-Type", "text/html; charset=utf-8");
-					response.send(this->getDirList(fullpath, request.getPath()));
-				} else {
-					response.sendNotFound();
-				}
-			}
-		} else if (isFile(fullpath)) {
-			response.sendFile(fullpath);
-		} else {
-			response.sendNotFound();
-		}
+		if (request.getMethod() == "GET")
+			this->handleGETMethod(request, response);
+		else if (request.getMethod() == "POST")
+			this->handlePOSTMethod(request, response);
+		else
+			response.status(400);
 		response.end();
 	}
+}
+
+void	Router::handleGETMethod(Request &request, Response &response)
+{
+	/**
+	 * TODO:
+	 * Gérer la directive `index`
+	 */
+	std::cout << "valid route for " << request.getPath() << std::endl;
+	std::string truncpath = request.getPath().substr(this->_path.size());
+	std::string fullpath = this->_root.path + this->checkLeadingTrailingSlash(truncpath);
+	std::cout << "full path: " << fullpath << std::endl;
+	if (isDirectory(fullpath)) {
+		if (isFile(fullpath+"/index.html")) {
+			response.sendFile(fullpath+"/index.html");	
+		} else {
+			std::cerr << "cannot get " << fullpath << std::endl;
+			if (this->_autoindex) {
+				response.setHeader("Content-Type", "text/html; charset=utf-8");
+				response.send(this->getDirList(fullpath, request.getPath()));
+			} else {
+				response.sendNotFound();
+			}
+		}
+	} else if (isFile(fullpath)) {
+		response.sendFile(fullpath);
+	} else {
+		response.sendNotFound();
+	}
+}
+
+void	Router::handlePOSTMethod(Request &request, Response &response)
+{
+	std::cout << "post request: " << request.getBody() << std::endl;
 }
 
 bool	Router::isValidMethod(const std::string method) const
