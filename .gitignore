@@ -4,3 +4,6 @@
 webserv
 express_test/node_modules
 express_test/package-lock.json
+
+out
+static
