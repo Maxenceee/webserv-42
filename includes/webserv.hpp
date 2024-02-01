@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 12:09:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/01 16:32:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@
 
 #define W_DEFAULT_PORT	3000
 
-#define RECV_SIZE		65536
+#define RECV_SIZE		2 << 19
 
 /* typedef */
 typedef std::map<std::string, std::string> t_mapss;

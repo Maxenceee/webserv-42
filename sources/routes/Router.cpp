@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/01 14:17:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/01 17:34:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,6 +192,7 @@ void	Router::route(Request &request, Response &response)
 
 void	Router::handleGETMethod(Request &request, Response &response)
 {
+	std::cout << "<------------" << B_BLUE << "GET" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
 	/**
 	 * TODO:
 	 * Gérer la directive `index`
@@ -221,7 +222,9 @@ void	Router::handleGETMethod(Request &request, Response &response)
 
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
+	std::cout << "<------------" << B_BLUE << "POST" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
 	std::cout << "post request: " << request.getBody() << std::endl;
+	response.status(204).end();
 }
 
 bool	Router::isValidMethod(const std::string method) const

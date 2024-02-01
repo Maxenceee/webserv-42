@@ -39,6 +39,8 @@ https://www.rfc-editor.org/rfc/rfc7234.html
 
 https://www.rfc-editor.org/rfc/rfc7235.html
 
+https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+
 syntax 
 
 https://en.wikipedia.org/wiki/HTTP#Request_methods

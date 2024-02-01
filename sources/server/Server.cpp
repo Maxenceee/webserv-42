@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 18:15:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/01 17:32:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -359,10 +359,65 @@ Router	&Server::getDefaultHandler(void)
 	return (*this->_default);
 }
 
+// std::stringstream &readMultipart(const int client, std::stringstream &stream)
+// {
+//     // Read the initial part of the request to find the boundary
+//     // (You need to extract the boundary from the Content-Type header)
+//     // For simplicity, let's assume the boundary is hardcoded here
+//     std::string boundary = "--BOUNDARY_STRING";
+
+//     // Temporary buffer for reading data
+//     std::vector<char> buff(RECV_SIZE);
+
+//     while (true)
+//     {
+//         int bytes_received = recv(client, &buff[0], buff.size(), 0);
+
+//         if (bytes_received < 0)
+//         {
+//             // Handle error
+//             break;
+//         }
+
+//         if (bytes_received == 0)
+//         {
+//             // Connection closed
+//             break;
+//         }
+
+//         // Process the received data
+//         // (You need to implement logic to identify the boundary and extract each part)
+//         // For simplicity, let's assume the boundary is not split across two chunks
+
+//         std::string received_data(&buff[0], bytes_received);
+
+//         // Find the boundary in the received data
+//         size_t boundary_pos = received_data.find(boundary);
+
+//         if (boundary_pos != std::string::npos)
+//         {
+//             // Process the part before the boundary
+//             stream.write(received_data.c_str(), boundary_pos);
+
+//             // Handle end of multipart request
+//             break;
+//         }
+
+//         // Process the entire received data as no boundary was found
+//         stream.write(received_data.c_str(), received_data.size());
+//     }
+
+//     return stream;
+// }
+
 void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 {
 	char buffer[RECV_SIZE] = {0};
 
+	// std::stringstream stringstream;
+	
+	// std::string buffer = readBinaryfile(client, stringstream).str();
+	// std::cout << B_RED << buffer << RESET << std::endl;
 	/**
 	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
 	 * le descripteur du client. À la difference de read, la fonction recv est
@@ -388,9 +443,11 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	 * de la réponse.
 	 */
 	Request	request = Request(*this, std::string(buffer), client, clientAddr);
+	// Request	request = Request(*this, buffer, client, clientAddr);
 	std::cout << request << std::endl;
 	Response response = Response(*this, request.getClientSocket(), request);
 	this->handleRoutes(request, response);
+	response.status(100).end();
 	std::cout << response << std::endl;
 	printf(B_YELLOW"------------------Client closed-------------------%s\n\n", RESET);
 	close(client);

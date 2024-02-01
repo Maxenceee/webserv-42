@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 13:50:55 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/01 17:34:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,9 @@ std::map<int, std::string>	Response::initCodes()
 	 */
 	codes[301] = "Moved Permanently";
 	codes[302] = "Found";
+	codes[303] = "See Other";
+	codes[307] = "Temporary Redirect";
+	codes[308] = "Permanent Redirect";
 	codes[310] = "Too many Redirects";
 	/**
 	 * Erreur du client
@@ -200,7 +203,7 @@ Response	&Response::end()
 	if (!this->_sent)
 	{
 		this->setHeader("Date", this->getTime());
-		this->setHeader("Connection", "close");
+		// this->setHeader("Connection", "close");
 		std::string	res = this->prepareResponse();
 		/**
 		 * La fonction send() sert à écrire le contenu d'un descripteur de fichiers, ici
@@ -211,10 +214,6 @@ Response	&Response::end()
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
 		this->_sent = true;
 		printf(B_YELLOW"------------------Response sent-------------------%s\n\n", RESET);
-	}
-	else
-	{
-		std::cerr << "Response error: cannot set header it was sent" << std::endl;
 	}
 	return (*this);
 }
@@ -245,16 +244,24 @@ const std::string	Response::prepareResponse(void)
 
 Response	&Response::setHeader(const std::string header, const std::string value)
 {
-	this->_headers[header] = value;
+	if (!this->_sent)
+		this->_headers[header] = value;
+	else
+		std::cerr << "Response error: cannot set header after it was sent" << std::endl;
 	return (*this);
 }
 
 Response	&Response::setCookie(const std::string name, const std::string value, const CookieOptions &options)
 {
+	if (this->_sent)
+	{
+		std::cerr << "Response error: cannot set header after it was sent" << std::endl;
+		return (*this);
+	}
+
 	std::string cookieStr = name + "=" + value;
 
 	cookieStr += "; path=" + (!options.path.empty() ? options.path : "/");
-
 	if (!options.domain.empty()) {
 		cookieStr += "; domain=" + options.domain;
 	}
