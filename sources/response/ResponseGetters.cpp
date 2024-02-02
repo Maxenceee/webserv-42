@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 18:19:44 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/07 17:52:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 14:23:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,4 +66,9 @@ const t_mapss	Response::getCookies(void) const
 const std::string	Response::getBody(void) const
 {
 	return (this->_body);
+}
+
+std::string	Response::formatMethods(std::vector<std::string> methods)
+{
+	return (join(methods, ", "));
 }

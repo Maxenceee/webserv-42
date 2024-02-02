@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/01 17:32:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 15:00:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -447,7 +447,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	std::cout << request << std::endl;
 	Response response = Response(*this, request.getClientSocket(), request);
 	this->handleRoutes(request, response);
-	response.status(100).end();
+	// response.status(100).end();
 	std::cout << response << std::endl;
 	printf(B_YELLOW"------------------Client closed-------------------%s\n\n", RESET);
 	close(client);

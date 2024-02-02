@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/01 17:34:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 14:47:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,18 @@ std::ostream	&operator<<(std::ostream &os, const Router &router)
 	router.print(os);
 	os << std::endl;
 	return os;
+}
+
+std::map<std::string, void (Router::*)(Request &, Response &)>	Router::_method_handlers = Router::initMethodHandlers();
+
+std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMethodHandlers()
+{
+	std::map<std::string, void (Router::*)(Request &, Response &)>	map;
+
+	map["GET"] = &Router::handleGETMethod;
+	map["POST"] = &Router::handlePOSTMethod;
+	map["PUT"] = &Router::handlePUTMethod;
+	return (map);
 }
 
 /**
@@ -169,6 +181,12 @@ void	Router::route(Request &request, Response &response)
 	 */
 	if ((request.getPath().compare(0, this->_path.size(), this->_path) == 0 && !this->_strict) || (request.getPath() == this->_path))
 	{
+		if (this->_allowed_methods.size() && !contains(this->_allowed_methods, request.getMethod()))
+		{
+			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods));
+			response.status(405).end();
+			return ;
+		}
 		/**
 		 * Nginx n'est pas très clair quant au priorité entre `root`/`alias` et
 		 * `return`. Nous avons fait le choix de toujours donner la priorité à
@@ -176,16 +194,10 @@ void	Router::route(Request &request, Response &response)
 		 */
 		if (this->_redirection.enabled) {
 			std::cout << "redirect to: " << this->_redirection.path << std::endl;
-			response.redirect(this->_redirection.path, this->_redirection.status);
-			response.end();
+			response.redirect(this->_redirection.path, this->_redirection.status).end();
 			return ;
 		}
-		if (request.getMethod() == "GET")
-			this->handleGETMethod(request, response);
-		else if (request.getMethod() == "POST")
-			this->handlePOSTMethod(request, response);
-		else
-			response.status(400);
+		this->call(request.getMethod(), request, response);
 		response.end();
 	}
 }
@@ -227,9 +239,21 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 	response.status(204).end();
 }
 
+void	Router::handlePUTMethod(Request &request, Response &response)
+{
+	std::cout << "<------------" << B_BLUE << "PUT" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
+	std::cout << "post request: " << request.getBody() << std::endl;
+	response.status(204).end();
+}
+
 bool	Router::isValidMethod(const std::string method) const
 {
 	return (std::find(this->_server.getMethods().begin(), this->_server.getMethods().end(), method) != this->_server.getMethods().end());
+}
+
+void	Router::call(std::string method, Request &request, Response &response)
+{
+	(this->*Router::_method_handlers[method])(request, response);
 }
 
 std::string	&Router::checkLeadingTrailingSlash(std::string &str)
