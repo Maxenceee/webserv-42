@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/01 19:25:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 22:19:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ std::map<int, std::string>	Response::initCodes()
 	 */
 	codes[200] = "OK";
 	codes[201] = "Created";
+	codes[202] = "Accepted";
 	codes[204] = "No Content";
 	/**
 	 * Redirection
@@ -124,7 +125,7 @@ Response	&Response::sendFile(const std::string filepath)
 		 * type MIME via l'en-tête 'Content-Type' afin de préciser au client
 		 * à quel type de fichier/données il a à faire.
 		 */
-		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath))+"; charset=utf-8");
+		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath))); // +"; charset=utf-8"
 		this->_body = buffer.str();
 		/**
 		 * On ajoute l'en-tête 'Content-Length' afin d'indiquer au client la taille de
@@ -280,5 +281,11 @@ Response	&Response::setCookie(const std::string name, const std::string value, c
 	}
 
 	this->_cookie[name] = cookieStr;
+	return (*this);
+}
+
+Response		&Response::clearBody(void)
+{
+	this->_body.clear();
 	return (*this);
 }

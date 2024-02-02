@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/30 14:11:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 21:30:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,7 +184,6 @@ void	Parser::createNewRouter(const std::string key, const std::string val)
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent)
 {
-	// std::cout << "allow_method " << key << " " << val << std::endl;
 	/**
 	 * Directive Listen
 	 */
@@ -259,9 +258,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	}
 
 	/**
-	 * Directive allow_method
+	 * Directive allow_methods
 	 */
-	if (key == "allow_method") {
+	if (key == "allow_methods") {
 		std::vector<std::string> tokens = split(val, ' ');
 		for (size_t i = 0; i < tokens.size(); i++) {
 			this->tmp_router->allowMethod(tokens[i]);
