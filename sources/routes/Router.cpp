@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 16:01:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 22:13:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,10 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	std::map<std::string, void (Router::*)(Request &, Response &)>	map;
 
 	map["GET"] = &Router::handleGETMethod;
+	map["HEAD"] = &Router::handleHEADMethod;
 	map["POST"] = &Router::handlePOSTMethod;
 	map["PUT"] = &Router::handlePUTMethod;
+	map["DELETE"] = &Router::handleDELETEMethod;
 	return (map);
 }
 
@@ -232,6 +234,14 @@ void	Router::handleGETMethod(Request &request, Response &response)
 	}
 }
 
+void	Router::handleHEADMethod(Request &request, Response &response)
+{
+	std::cout << "<------------" << B_BLUE << "HEAD" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
+	std::cout << "post request: " << request.getBody() << std::endl;
+	this->handleGETMethod(request, response);
+	response.clearBody();
+}
+
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
 	std::cout << "<------------" << B_BLUE << "POST" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
@@ -242,6 +252,13 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 void	Router::handlePUTMethod(Request &request, Response &response)
 {
 	std::cout << "<------------" << B_BLUE << "PUT" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
+	std::cout << "post request: " << request.getBody() << std::endl;
+	response.status(204).end();
+}
+
+void	Router::handleDELETEMethod(Request &request, Response &response)
+{
+	std::cout << "<------------" << B_BLUE << "DELETE" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
 	std::cout << "post request: " << request.getBody() << std::endl;
 	response.status(204).end();
 }

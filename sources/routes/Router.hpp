@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 14:45:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 22:05:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,10 @@ private:
 
 	void	call(std::string method, Request &request, Response &response);
 	void	handleGETMethod(Request &request, Response &response);
+	void	handleHEADMethod(Request &request, Response &response);
 	void	handlePOSTMethod(Request &request, Response &response);
 	void	handlePUTMethod(Request &request, Response &response);
+	void	handleDELETEMethod(Request &request, Response &response);
 
 public:
 	Router(Server &server, const std::string path, const std::string parent_root = "/", const bool strict = false);

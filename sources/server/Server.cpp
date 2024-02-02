@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 15:00:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 22:07:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,10 @@ std::vector<std::string>	Server::initMethods()
 	 * Les méthodes PUT et PATCH sont similaires à POST, les différences étant la nature
 	 * des modifications apportées. POST permet la création/ajout d'une ressource sur le serveur,
 	 * PUT et PATCH permettent la modification de ladite ressource à la différence que PATCH
-	 * a pour but de ne faire qu'une modification partielle.
+	 * a pour but de ne faire qu'une modification partielle. Cepedant PUT est idempotent, c'est
+	 * à dire que si la ressource existe déjà, elle sera remplacée, si elle n'existe pas elle sera
+	 * créée. POST et PATCH ne sont pas idempotents, elles peuvent être utilisées pour modifier une ressource
+	 * plusieurs fois et obtenir des résultats différents.
 	 * 
 	 * La méthode TRACE est aussi assez simple, elle consiste à simplement retourner le contenu
 	 * de la requête au client afin que celui-ci puisse évaluer la qualité de la connexion.
@@ -56,15 +59,32 @@ std::vector<std::string>	Server::initMethods()
 	 */
 	std::vector<std::string>	methods;
 
-	methods.push_back("GET");
-	methods.push_back("HEAD");
-	methods.push_back("POST");
-	methods.push_back("PUT");
-	methods.push_back("PATCH");
-	methods.push_back("DELETE");
-	methods.push_back("TRACE");
-	methods.push_back("OPTIONS");
-	methods.push_back("CONNECT");
+	methods.push_back("GET");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/GET)
+	methods.push_back("HEAD");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/HEAD)
+	methods.push_back("POST");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/POST)
+	/** POST
+	 * En-têtes requis:
+	 * - Content-Type
+	 */
+	methods.push_back("PUT");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PUT)
+	/** PUT
+	 * Codes de réponse:
+	 * - 201 si le fichier a été créé
+	 * - 204 si le fichier a été modifié
+	 * En-têtes de réponse:
+	 * - Content-Location
+	 */
+	methods.push_back("PATCH");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PATCH)
+	methods.push_back("DELETE");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/DELETE)
+	/** DELETE
+	 * Codes de réponse:
+	 * - 202 si le fichier peut être supprimé
+	 * - 204 si le fichier a été supprimé
+	 * - 200 si le fichier a été supprimé et que le serveur a renvoyé un message de confirmation
+	 */
+	methods.push_back("TRACE");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/TRACE)
+	methods.push_back("OPTIONS");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/OPTIONS)
+	methods.push_back("CONNECT");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/CONNECT)
 	return methods;
 }
 
