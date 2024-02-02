@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/01 14:16:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/02 14:45:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,13 @@ private:
 	
 	const std::string		getDirList(const std::string dirpath, std::string reqPath);
 
+	static std::map<std::string, void (Router::*)(Request &, Response &)>	_method_handlers;
+	static std::map<std::string, void (Router::*)(Request &, Response &)>	initMethodHandlers();
+
+	void	call(std::string method, Request &request, Response &response);
 	void	handleGETMethod(Request &request, Response &response);
 	void	handlePOSTMethod(Request &request, Response &response);
+	void	handlePUTMethod(Request &request, Response &response);
 
 public:
 	Router(Server &server, const std::string path, const std::string parent_root = "/", const bool strict = false);
