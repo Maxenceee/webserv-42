@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/01 17:34:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/01 19:25:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ std::map<int, std::string>	Response::initCodes()
 	 * Erreur du serveur
 	 */
 	codes[500] = "Internal Server Error";
+	codes[503] = "Service Unavailable";
 	codes[505] = "HTTP Version not supported";
 	return (codes);
 }
