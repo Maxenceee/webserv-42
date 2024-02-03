@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 16:38:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/03 18:46:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,11 @@ public:
 	
 	void		print(std::ostream &os) const;
 
+	class ServerPortInUse : public std::exception
+	{
+	public:
+		virtual const char* what() const throw();
+	};
 	class ServerInvalidPort : public std::exception
 	{
 	public:

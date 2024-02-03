@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 22:07:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/03 18:55:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,9 +177,8 @@ const int	Server::init(void)
 	int ret_conn = bind(this->socket_fd, (sockaddr *)&this->socket_addr, sizeof(this->socket_addr));
 	if (ret_conn == -1)
 	{
-		std::cerr << "server error: Could not bind port" << std::endl;
-		perror("bind");
-		return (W_SOCKET_ERR);
+		// perror("bind");
+		throw Server::ServerPortInUse();
 	}
 	// this->setupRoutes(); // for demo to remove
 	this->_init = true;
@@ -493,6 +492,14 @@ void	Server::handleRoutes(Request &req, Response &res)
 const char	*Server::ServerInvalidPort::what() const throw()
 {
 	return (B_RED"server error: could not start server: port not set"RESET);
+}
+
+const char	*Server::ServerPortInUse::what() const throw()
+{
+	std::string *base = new std::string(B_RED"server error: bind error: ");
+	std::string err(strerror(errno));
+	*base += err + RESET;
+	return ((*base).c_str());
 }
 
 const char	*Server::ServerNotInit::what() const throw()
