@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 21:30:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/03 19:15:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 				parent = key;
 			}
 			// std::cout << B_YELLOW << k ey << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
-			this->switchConfigDirectives(key, val, parent);
+			this->switchConfigDirectives(key, val, parent, line);
 		}
 		// Standard property line
 		else if (line[line.length() - 1] == ';') {
@@ -93,7 +93,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 			}
 			pop(val);
 			// std::cout << B_RED << key << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
-			this->switchConfigDirectives(key, val, parent);
+			this->switchConfigDirectives(key, val, parent, line);
 		}
 		// Object closing line
 		else if (line[line.length() - 1] == '}') {
@@ -141,48 +141,57 @@ void	Parser::extract(const std::string &conf)
 	}
 }
 
-void	Parser::throwError(const std::string key, const std::string val)
+void	Parser::throwError(const std::string key, const std::string val, const std::string raw_line)
 {
-	std::string	tmp(B_RED"parser error: invalid directive found: ");
-	tmp += key + " " + val;
+	std::string	tmp(B_RED"parser error: invalid directive found");
+	if (raw_line.size() > 0) {
+		tmp += RESET;
+		tmp += "\n\t" + raw_line;
+		tmp += "\n"B_GREEN"\t^\n"RESET;
+		tmp += "1 error generated.";
+	}
+	else
+		tmp += ": " + key + " " + val;
 	tmp += RESET;
 	throw std::invalid_argument(tmp.c_str());
 }
 
-void	Parser::switchConfigDirectives(const std::string key, const std::string val, const std::string parent)
+void	Parser::switchConfigDirectives(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
 	if (!this->new_server && key != "server")
-		this->throwError(key, val);
+		this->throwError(key, val, raw_line);
 	else if (key == "server") {
 		this->new_server = this->cluster.newServer();
 		this->tmp_router = &this->new_server->getDefaultHandler();
 	}
 	else if (key == "location")
-		this->createNewRouter(key, val);
+		this->createNewRouter(key, val, raw_line);
 	else
 	{
 		if (parent == "server")
 			this->tmp_router = &this->new_server->getDefaultHandler();
-		this->addRule(key, val, parent);
+		if (val.size() == 0)
+			this->throwError(key, val, raw_line);
+		this->addRule(key, val, parent, raw_line);
 	}
 }
 
-void	Parser::createNewRouter(const std::string key, const std::string val)
+void	Parser::createNewRouter(const std::string key, const std::string val, const std::string raw_line)
 {
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() > 2 || tokens.size() < 1)
-		this->throwError(key, val);
+		this->throwError(key, val, raw_line);
 	bool strict = false;
 	if (tokens.size() == 2 && tokens[0] == "=")
 		strict = true;
 	else if (tokens.size() == 2)
-		this->throwError(key, val);
+		this->throwError(key, val, raw_line);
 	std::string	path = tokens[tokens.size() - 1];
 	this->tmp_router = new Router(*this->new_server, path, this->new_server->getDefaultHandler().getRoot(), strict);
 	this->new_server->use(this->tmp_router);
 }
 
-void	Parser::addRule(const std::string key, const std::string val, const std::string parent)
+void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
 	/**
 	 * Directive Listen
@@ -245,7 +254,6 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		 * verifier si val contient une espace avant de split pour eviter 
 		 * de split pour rien
 		 */
-		std::cout << "return " << key << " " << val << std::endl;
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() == 2) {
 			status = std::atoi(tokens[0].c_str());
@@ -284,5 +292,5 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	/**
 	 * Default
 	 */
-	this->throwError(key, val);
+	this->throwError(key, val, raw_line);
 }

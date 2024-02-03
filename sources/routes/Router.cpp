@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 22:13:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/03 18:40:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,8 +166,6 @@ void	Router::route(Request &request, Response &response)
 	 */
 	if (!this->isValidMethod(request.getMethod()) && this->_allowed_methods.size())
 		return ;
-	std::cout << "Root: " << this->_path << "\nUse path: " << request.getPath() << std::endl;
-
 	/**
 	 * Avant de faire quelque logique que ce soit on s'assure que la réponse n'a pas déjà été
 	 * envoyé pour une quelconque raison.
