@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/03 18:40:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/05 15:24:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,7 +263,7 @@ void	Router::handleDELETEMethod(Request &request, Response &response)
 
 bool	Router::isValidMethod(const std::string method) const
 {
-	return (std::find(this->_server.getMethods().begin(), this->_server.getMethods().end(), method) != this->_server.getMethods().end());
+	return (contains(this->_server.getMethods(), method));
 }
 
 void	Router::call(std::string method, Request &request, Response &response)
@@ -287,7 +287,7 @@ std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 	}
 	/**
 	 * Nginx n'a pas de comportement spécifique dépendant de la présence ou
-	 * non du '/' au début du chemin du router. Le chemins 'chemin' et '/chemin'
+	 * non du '/' au début du chemin de la route. Le chemins 'chemin' et '/chemin'
 	 * ont le même comportement.
 	 * Pour simplifier la suite nous l'ajoutons s'il est manquant.
 	 */
