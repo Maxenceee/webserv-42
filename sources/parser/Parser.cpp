@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/03 19:15:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/06 12:07:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ void	Parser::parse(const char *configPath)
 	if (!isFile(configPath))
 		throw std::invalid_argument(PARSER_ERR);
 	this->open_and_read_file(configPath);
-
 	this->extract(this->buffer);
 }
 
@@ -57,7 +56,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 	for (std::vector<std::string>::iterator innerIt = innerLines.begin(); innerIt != innerLines.end(); ++innerIt) {
 		std::string line = *innerIt;
 		trim(line);
-		chunkedLine.empty() ? line : chunkedLine + " " + line;
+		line = chunkedLine.empty() ? line : chunkedLine + " " + line;
 
 		// Object opening line
 		if (line[line.length() - 1] == '{') {
@@ -130,14 +129,7 @@ void	Parser::extract(const std::string &conf)
 		// Line can contain comments, we need to remove them
 		lineRaw = split(lineRaw, '#')[0];
 		trim(lineRaw);
-
-		// Block transformation
-		std::vector<std::string> innerLines = split(lineRaw, '\n');
-		for (std::vector<std::string>::iterator innerIt = innerLines.begin(); innerIt != innerLines.end(); ++innerIt) {
-			std::string line = *innerIt;
-			trim(line);
-			this->processInnerLines(line, chunkedLine, parent, countOfParents);
-		}
+		this->processInnerLines(lineRaw, chunkedLine, parent, countOfParents);
 	}
 }
 
