@@ -1,42 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Cluster.hpp                                        :+:      :+:    :+:   */
+/*   Logger.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 19:31:37 by mgama            ###   ########.fr       */
+/*   Created: 2024/02/23 20:48:53 by mgama             #+#    #+#             */
+/*   Updated: 2024/02/23 20:56:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CLUSTER_HPP
-#define CLUSTER_HPP
-
 #include "webserv.hpp"
-#include "parser/Parser.hpp"
-#include "server/Server.hpp"
 
-class Parser;
-
-typedef std::vector<Server*>	v_servers;
-
-class Cluster
+class Logger
 {
 private:
-	Parser					*parser;
-	std::vector<Server*>	_servers;
-	// std::map<int, Server*>	_servers;
+	const bool	_debug;
 
 public:
-	Cluster(const char *configPath);
-	~Cluster();
+	Logger(const bool debug = false);
 
-	static bool		exit;
-
-	const int	start(void);
-
-	Server	*newServer(void);
+	static void	print(const std::string &msg, const bool error);
 };
-
-#endif /* CLUSTER_HPP */

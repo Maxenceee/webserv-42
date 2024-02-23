@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/10 11:51:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 19:24:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,15 @@ int	main(int argc, char const **argv)
 		std::cout << W_PREFIX"usage: [configuration file]" << RESET << std::endl;
 		return (EXIT_FAILURE);
 	}
-	Cluster	cluster(argv[1]);
-	return (cluster.start());
+	// try
+	// {
+		Cluster	cluster(argv[1]);
+		cluster.start();
+	// }
+	// catch(const std::exception& e)
+	// {
+	// 	std::cerr << e.what() << std::endl;
+	// 	return (1);
+	// }
+	return (0);
 }

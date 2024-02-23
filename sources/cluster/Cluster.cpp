@@ -6,17 +6,19 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 11:14:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 19:47:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
 
-/**
- * TODO:
- * faire en sorte de la classe cluster start() les serveurs et gere la boucle principale avec poll()
- * 
- */
+bool Cluster::exit = true;
+
+static void interruptHandler(int sig_int) {
+	(void)sig_int;
+	std::cout << "\b\b \b\b";
+	Cluster::exit = false;
+}
 
 Cluster::Cluster(const char *configPath)
 {
@@ -32,10 +34,10 @@ Cluster::Cluster(const char *configPath)
 
 Cluster::~Cluster()
 {
+	std::cout << B_GREEN << "Shutting down webserv" << RESET << std::endl;
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		delete *it;
 	delete this->parser;
-	std::cout << B_GREEN << "Shutting down webserv" << RESET << std::endl;
 }
 
 Server	*Cluster::newServer(void)
@@ -51,6 +53,10 @@ const int Cluster::start(void)
 	// std::vector<pollfd>	poll_fds;
 	pollfd	poll_fds[this->_servers.size()];
 	const int			timeout = 100;
+
+	// Gestion des signaux pour fermer proprement le serveur
+	signal(SIGINT, interruptHandler);
+	signal(SIGQUIT, interruptHandler);
 
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -115,6 +121,9 @@ const int Cluster::start(void)
 		// if (poll(&poll_fds[0], poll_fds.size(), timeout) == -1)
 		if (poll(poll_fds, this->_servers.size(), timeout) == -1)
 		{
+			if (errno == EINTR) {
+				break ;
+			}
 			std::cerr << "server error: an error occurred while poll'ing" << std::endl;
 			perror("poll");
 			return (W_SOCKET_ERR);

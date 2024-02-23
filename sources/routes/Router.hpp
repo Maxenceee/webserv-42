@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 11:54:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 20:27:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,10 @@ private:
 	struct s_Router_Root			_root;
 	struct s_Router_Redirection		_redirection;
 	std::vector<std::string>		_allowed_methods;
-	std::string						_index;
+	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
+
+	regmatch_t						*_match;
 
 	std::string	&checkLeadingTrailingSlash(std::string &str);
 	
@@ -67,6 +69,8 @@ private:
 	void	handleDELETEMethod(Request &request, Response &response);
 
 	bool	matchRoute(const std::string &route) const;
+	
+	std::string	getLocalFilePath(const std::string &requestPath);
 
 public:
 	Router(Server &server, const struct s_Router_Location location, const std::string parent_root = "/");
@@ -86,7 +90,8 @@ public:
 	void	setRedirection(const std::string to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
 
-	void	setIndex(const std::string index);
+	void	setIndex(const std::vector<std::string> index);
+	void	addIndex(const std::string index);
 	void	setErrorPage(const int code, const std::string path);
 
 	bool	isValidMethod(const std::string method) const;
