@@ -6,12 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 10:59:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 12:00:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Server.hpp"
+#include "routes/Router.hpp"
 
 std::ostream	&operator<<(std::ostream &os, const Server &server)
 {
@@ -24,7 +25,7 @@ std::vector<std::string>	Server::methods = Server::initMethods();
 
 Server::Server(int id, uint16_t port): _id(id), port(port)
 {
-	this->_default = new Router(*this, "/");
+	this->_default = new Router(*this, (struct s_Router_Location){.path = "/"});
 	this->_init = false;
 	this->_server_name = "webserv/1.0";
 	// this->_started = false;
@@ -463,11 +464,9 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	 * de la réponse.
 	 */
 	Request	request = Request(*this, std::string(buffer), client, clientAddr);
-	// Request	request = Request(*this, buffer, client, clientAddr);
 	std::cout << request << std::endl;
 	Response response = Response(*this, request.getClientSocket(), request);
 	this->handleRoutes(request, response);
-	// response.status(100).end();
 	std::cout << response << std::endl;
 	printf(B_YELLOW"------------------Client closed-------------------%s\n\n", RESET);
 	close(client);

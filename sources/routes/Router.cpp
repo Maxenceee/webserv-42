@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/05 15:24:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 12:21:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Router.hpp"
+#include "regex.h"
 
 std::ostream	&operator<<(std::ostream &os, const Router &router)
 {
@@ -37,7 +38,7 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
  * TODO:
  * Gerer les pages d'erreurs (error_page) envoyer la page si necessaire pour envoyer celle du serveur
  */
-Router::Router(Server &server, const std::string path, const std::string parent_root, const bool strict): _server(server), _path(path), _strict(strict), _autoindex(false)
+Router::Router(Server &server, const struct s_Router_Location location, const std::string parent_root): _server(server), _location(location), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
@@ -47,7 +48,7 @@ Router::Router(Server &server, const std::string path, const std::string parent_
 	this->_root.isAlias = false;
 	this->_root.set = false;
 	memset(&this->_redirection, 0, sizeof(this->_redirection));
-	checkLeadingTrailingSlash(this->_path);
+	checkLeadingTrailingSlash(this->_location.path);
 }
 
 Router::~Router(void)
@@ -179,7 +180,7 @@ void	Router::route(Request &request, Response &response)
 	 * Gérer correctement les chemins du router et les différentes méthodes. Seule la
 	 * directive `root` est géré pour le moment, il manque la gestion de `alias`.
 	 */
-	if ((request.getPath().compare(0, this->_path.size(), this->_path) == 0 && !this->_strict) || (request.getPath() == this->_path))
+	if (this->matchRoute(request.getPath()))
 	{
 		if (this->_allowed_methods.size() && !contains(this->_allowed_methods, request.getMethod()))
 		{
@@ -208,11 +209,26 @@ void	Router::handleGETMethod(Request &request, Response &response)
 	/**
 	 * TODO:
 	 * Gérer la directive `index`
+	 * FIXME:
+	 * Crashes when the path is regex.
 	 */
-	std::cout << "valid route for " << request.getPath() << std::endl;
-	std::string truncpath = request.getPath().substr(this->_path.size());
-	std::string fullpath = this->_root.path + this->checkLeadingTrailingSlash(truncpath);
-	std::cout << "full path: " << fullpath << std::endl;
+	std::string requestPath = request.getPath();
+	std::cout << "valid route for " << requestPath<< std::endl;
+
+	// std::string truncpath = request.getPath().substr(this->_location.path.size());
+	// std::string fullpath = this->_root.path + this->checkLeadingTrailingSlash(truncpath);
+	// std::cout << "full path: " << fullpath << std::endl;
+	std::string localPath;
+	if (_location.modifier == "=" || _location.modifier == "~" || _location.modifier == "~*") {
+        // Pour les correspondances exactes ou sensibles / insensibles à la casse, retirer simplement la partie correspondante du chemin
+        localPath = requestPath.substr(_location.path.size());
+    } else if (_location.modifier == "^~" || _location.modifier.empty()) {
+        // Pour les correspondances par préfixe ou si aucun modificateur n'est spécifié, utiliser le chemin complet demandé
+        localPath = requestPath;
+    }
+
+	std::string fullpath = _root.path + checkLeadingTrailingSlash(localPath);
+	
 	if (isDirectory(fullpath)) {
 		if (isFile(fullpath+"/index.html")) {
 			response.sendFile(fullpath+"/index.html");	
@@ -266,6 +282,53 @@ bool	Router::isValidMethod(const std::string method) const
 	return (contains(this->_server.getMethods(), method));
 }
 
+bool Router::matchRoute(const std::string& route) const
+{
+    regex_t	regex;
+    int		result;
+
+    // Construire l'expression régulière en fonction du chemin de localisation et du modificateur
+    std::string regexPattern;
+    if (this->_location.modifier == "=") {
+        regexPattern = "^" + this->_location.path + "$"; // Exact Match
+    } else if (this->_location.modifier == "~") {
+        regexPattern = this->_location.path; // Regular Expression Case-Sensitive Match
+    } else if (this->_location.modifier == "~*") {
+		 regexPattern = "(?i)" + this->_location.path; // Regular Expression Case-Insensitive Match
+    } else if (this->_location.modifier == "^~" || !this->_location.modifier.size()) {
+        regexPattern = "^" + this->_location.path; // Prefix Match
+    } else {
+        // Modificateur non reconnu
+        std::cerr << "Unknown modifier: " << this->_location.modifier << std::endl;
+        return (false);
+    }
+
+    if (!this->_location.strict) {
+        // Si ce n'est pas strict, ajouter .* à la fin pour correspondre à n'importe quelle fin
+        regexPattern += ".*";
+    }
+
+	std::cout << "location pattern: " << regexPattern << std::endl;
+
+    // Compiler l'expression régulière
+    result = regcomp(&regex, regexPattern.c_str(), REG_EXTENDED);
+
+    if (result != 0) {
+        // La compilation a échoué
+        std::cerr << "Regex compilation failed" << std::endl;
+        return false;
+    }
+
+    // Vérifier si la route correspond à l'expression régulière
+    result = regexec(&regex, route.c_str(), 0, NULL, 0);
+
+    // Libérer la mémoire utilisée par l'expression régulière compilée
+    regfree(&regex);
+
+    // Si la route correspond, retourner true, sinon retourner false
+    return (result == 0);
+}
+
 void	Router::call(std::string method, Request &request, Response &response)
 {
 	(this->*Router::_method_handlers[method])(request, response);
@@ -273,6 +336,7 @@ void	Router::call(std::string method, Request &request, Response &response)
 
 std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 {
+	return (str);
 	/**
 	 * Si le chemin du router est '/' on ne fait rien.
 	 */
@@ -301,7 +365,7 @@ std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 	 * Si le router n'est pas strict nous le supprimons s'il est présent pour
 	 * simplifier la suite.
 	 */
-	if (str[str.size() - 1] == '/' && !this->_strict) {
+	if (str[str.size() - 1] == '/' && !this->_location.strict) {
 		str.resize(str.size() - 1);
 	}
 	return (str);
@@ -343,7 +407,7 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 void	Router::print(std::ostream &os) const
 {
 	os << "\t" << B_GREEN"Router: \n";
-	os << "\t" << B_CYAN"Path: " << RESET << this->_path << (this->_strict ? " (strict)" : " (not strict)") << "\n";
+	os << "\t" << B_CYAN"Path: " << RESET << (this->_location.modifier.size() ? this->_location.modifier+" " : "") << this->_location.path << "\n";
 	os << "\t" << B_CYAN"Methods:" << RESET;
 	if (this->_allowed_methods.size() == 0)
 		os << " all";

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 22:05:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 11:54:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,18 @@ struct s_Router_Redirection {
 	std::string		path;
 };
 
+struct s_Router_Location {
+	std::string		path;
+	std::string		modifier;
+	bool			strict;
+};
+
 class Router
 {
 private:
 	Server							&_server;
-	bool							_strict;
 	bool							_autoindex;
-	std::string						_path;
+	struct s_Router_Location		_location;
 	struct s_Router_Root			_root;
 	struct s_Router_Redirection		_redirection;
 	std::vector<std::string>		_allowed_methods;
@@ -61,8 +66,10 @@ private:
 	void	handlePUTMethod(Request &request, Response &response);
 	void	handleDELETEMethod(Request &request, Response &response);
 
+	bool	matchRoute(const std::string &route) const;
+
 public:
-	Router(Server &server, const std::string path, const std::string parent_root = "/", const bool strict = false);
+	Router(Server &server, const struct s_Router_Location location, const std::string parent_root = "/");
 	~Router(void);
 
 	void	route(Request &request, Response &response);
