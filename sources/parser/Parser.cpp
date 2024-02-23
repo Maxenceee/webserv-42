@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 11:53:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 20:55:51 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,7 @@ void	Parser::createNewRouter(const std::string key, const std::string val, const
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() > 2 || tokens.size() < 1)
 		this->throwError(key, val, raw_line);
-	if (tokens.size() == 2) {
+	if (tokens.size() == 2 && this->isValidModifier(tokens[0])) {
 		location.modifier = tokens[0];
 		if (location.modifier == "=")
 			location.strict = true;
@@ -225,7 +225,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Directive index
 	 */
 	if (key == "index") {
-		std::string index = split(val, ' ')[0];
+		std::vector<std::string> index = split(val, ' ');
 		this->tmp_router->setIndex(index);
 		return ;
 	}
@@ -289,4 +289,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Default
 	 */
 	this->throwError(key, val, raw_line);
+}
+
+bool	Parser::isValidModifier(const std::string &modifier) const
+{
+	return (modifier == "=" || modifier == "~" || modifier == "~*" || modifier == "^~");
 }

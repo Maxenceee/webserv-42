@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/11 11:02:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 19:52:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,16 @@
 
 void printFileInfo(const char *filename)
 {
-    struct stat fileStat;
+	struct stat fileStat;
 
-    if (stat(filename, &fileStat) == 0) {
-        std::cout << "Nom: " << filename << std::endl;
-        std::cout << "Taille: " << fileStat.st_size << " octets" << std::endl;
-        std::cout << "Dernière modification: " << ctime(&fileStat.st_mtime);
-        std::cout << "----------------------------------------\n";
-    } else {
-        perror("stat");
-    }
+	if (stat(filename, &fileStat) == 0) {
+		std::cout << "Nom: " << filename << std::endl;
+		std::cout << "Taille: " << fileStat.st_size << " octets" << std::endl;
+		std::cout << "Dernière modification: " << ctime(&fileStat.st_mtime);
+		std::cout << "----------------------------------------\n";
+	} else {
+		perror("stat");
+	}
 }
 
 int		isFile(const std::string &path)
@@ -43,15 +43,16 @@ int		isFile(const std::string &path)
 	return (0);
 }
 
-bool	isDirectory(const std::string &path)
+bool	isDirectory(const std::string &path, const bool throwError)
 {
-    struct stat pathStat;
+	struct stat pathStat;
 
-    if (stat(path.c_str(), &pathStat) != 0) {
-        perror("stat");
-        return (false);
-    }
-    return S_ISDIR(pathStat.st_mode);
+	if (stat(path.c_str(), &pathStat) != 0) {
+		if (throwError)
+			perror("stat");
+		return (false);
+	}
+	return S_ISDIR(pathStat.st_mode);
 }
 
 void listFilesInDirectory(const std::string &path, std::map<std::string, std::string> &fileMap, bool recursive)

@@ -6,12 +6,11 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 12:21:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 20:55:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Router.hpp"
-#include "regex.h"
 
 std::ostream	&operator<<(std::ostream &os, const Router &router)
 {
@@ -47,8 +46,9 @@ Router::Router(Server &server, const struct s_Router_Location location, const st
 	this->_root.path = parent_root;
 	this->_root.isAlias = false;
 	this->_root.set = false;
+	this->_match = NULL;
 	memset(&this->_redirection, 0, sizeof(this->_redirection));
-	checkLeadingTrailingSlash(this->_location.path);
+	this->checkLeadingTrailingSlash(this->_location.path);
 }
 
 Router::~Router(void)
@@ -144,9 +144,14 @@ void	Router::setAutoIndex(const bool autoindex)
 	this->_autoindex = autoindex;
 }
 
-void	Router::setIndex(const std::string index)
+void	Router::setIndex(const std::vector<std::string> index)
 {
 	this->_index = index;
+}
+
+void	Router::addIndex(const std::string index)
+{
+	this->_index.push_back(index);
 }
 
 void	Router::setErrorPage(const int code, const std::string path)
@@ -156,7 +161,6 @@ void	Router::setErrorPage(const int code, const std::string path)
 	}
 	this->_error_page[code] = path;
 }
-
 
 void	Router::route(Request &request, Response &response)
 {
@@ -176,10 +180,8 @@ void	Router::route(Request &request, Response &response)
 	/**
 	 * On compare le chemin du router et celui de la requête.
 	 * Pour le moment toutes les requête sont considérées comme GET.
-	 * TODO:
-	 * Gérer correctement les chemins du router et les différentes méthodes. Seule la
-	 * directive `root` est géré pour le moment, il manque la gestion de `alias`.
 	 */
+	std::cout << "check route for " << request.getPath() << std::endl;
 	if (this->matchRoute(request.getPath()))
 	{
 		if (this->_allowed_methods.size() && !contains(this->_allowed_methods, request.getMethod()))
@@ -199,6 +201,7 @@ void	Router::route(Request &request, Response &response)
 			return ;
 		}
 		this->call(request.getMethod(), request, response);
+		std::cout << "end route" << std::endl;
 		response.end();
 	}
 }
@@ -209,29 +212,22 @@ void	Router::handleGETMethod(Request &request, Response &response)
 	/**
 	 * TODO:
 	 * Gérer la directive `index`
-	 * FIXME:
-	 * Crashes when the path is regex.
 	 */
-	std::string requestPath = request.getPath();
-	std::cout << "valid route for " << requestPath<< std::endl;
+	std::cout << "requestPath " << request.getPath() << std::endl;
+	std::string fullpath = this->getLocalFilePath(request.getPath());
+	std::cout << "full path: " << fullpath << std::endl;
 
-	// std::string truncpath = request.getPath().substr(this->_location.path.size());
-	// std::string fullpath = this->_root.path + this->checkLeadingTrailingSlash(truncpath);
-	// std::cout << "full path: " << fullpath << std::endl;
-	std::string localPath;
-	if (_location.modifier == "=" || _location.modifier == "~" || _location.modifier == "~*") {
-        // Pour les correspondances exactes ou sensibles / insensibles à la casse, retirer simplement la partie correspondante du chemin
-        localPath = requestPath.substr(_location.path.size());
-    } else if (_location.modifier == "^~" || _location.modifier.empty()) {
-        // Pour les correspondances par préfixe ou si aucun modificateur n'est spécifié, utiliser le chemin complet demandé
-        localPath = requestPath;
-    }
-
-	std::string fullpath = _root.path + checkLeadingTrailingSlash(localPath);
-	
 	if (isDirectory(fullpath)) {
-		if (isFile(fullpath+"/index.html")) {
-			response.sendFile(fullpath+"/index.html");	
+		std::string file_p = fullpath + "/"; 
+		for (std::vector<std::string>::iterator it = this->_index.begin(); it != this->_index.end(); it++) {
+			if (isFile(file_p + *it)) {
+				response.sendFile(file_p + *it);
+				return ;
+			}
+		}
+		file_p += "index.html";
+		if (isFile(file_p)) {
+			response.sendFile(file_p);	
 		} else {
 			std::cerr << "cannot get " << fullpath << std::endl;
 			if (this->_autoindex) {
@@ -284,49 +280,96 @@ bool	Router::isValidMethod(const std::string method) const
 
 bool Router::matchRoute(const std::string& route) const
 {
-    regex_t	regex;
-    int		result;
+	regex_t	regex;
+	int		result;
+	int		flags = REG_EXTENDED;
 
-    // Construire l'expression régulière en fonction du chemin de localisation et du modificateur
-    std::string regexPattern;
-    if (this->_location.modifier == "=") {
-        regexPattern = "^" + this->_location.path + "$"; // Exact Match
-    } else if (this->_location.modifier == "~") {
-        regexPattern = this->_location.path; // Regular Expression Case-Sensitive Match
-    } else if (this->_location.modifier == "~*") {
-		 regexPattern = "(?i)" + this->_location.path; // Regular Expression Case-Insensitive Match
-    } else if (this->_location.modifier == "^~" || !this->_location.modifier.size()) {
-        regexPattern = "^" + this->_location.path; // Prefix Match
-    } else {
-        // Modificateur non reconnu
-        std::cerr << "Unknown modifier: " << this->_location.modifier << std::endl;
-        return (false);
-    }
+	std::string regexPattern;
+	// Construire l'expression régulière en fonction du chemin de localisation et du modificateur
+	if (this->_location.modifier == "=") {
+		regexPattern = "^" + this->_location.path + "$"; // Exact Match
+	} else if (this->_location.modifier == "~" || this->_location.modifier == "~*") {
+		regexPattern = this->_location.path; // Regular Expression Case-Sensitive Match
+		if (this->_location.modifier == "~*")
+			flags |= REG_ICASE; // Regular Expression Case-Insensitive Match
+	} else if (this->_location.modifier == "^~" || !this->_location.modifier.size()) {
+		regexPattern = "^" + this->_location.path; // Prefix Match
+	} else {
+		// Modificateur non reconnu
+		std::cerr << "Unknown modifier: " << this->_location.modifier << std::endl;
+		return (false);
+	}
 
-    if (!this->_location.strict) {
-        // Si ce n'est pas strict, ajouter .* à la fin pour correspondre à n'importe quelle fin
-        regexPattern += ".*";
-    }
+	if (!this->_location.strict) {
+		// Si ce n'est pas strict, ajouter .* à la fin pour correspondre à n'importe quelle fin
+		regexPattern += ".*";
+	}
 
 	std::cout << "location pattern: " << regexPattern << std::endl;
 
-    // Compiler l'expression régulière
-    result = regcomp(&regex, regexPattern.c_str(), REG_EXTENDED);
+	// Compiler l'expression régulière
+	result = regcomp(&regex, regexPattern.c_str(), flags);
 
-    if (result != 0) {
-        // La compilation a échoué
-        std::cerr << "Regex compilation failed" << std::endl;
-        return false;
+	if (result != 0) {
+		std::cerr << "Regex compilation failed" << std::endl;
+		return false;
+	}
+
+	// Vérifier si la route correspond à l'expression régulière
+	result = regexec(&regex, route.c_str(), 0, NULL, 0);
+
+	// Libérer la mémoire utilisée par l'expression régulière compilée
+	regfree(&regex);
+
+	// Si la route correspond, retourner true, sinon retourner false
+	return (result == 0);
+}
+
+std::string	Router::getLocalFilePath(const std::string &requestPath)
+{
+    // Extraire le chemin relatif de la requête
+    std::string relativePath;
+
+    // Vérifier si le modificateur est une expression régulière
+    if (this->_location.modifier == "~" || this->_location.modifier == "~*") {
+        regex_t regex;
+        int result;
+
+		int flags = REG_EXTENDED;
+
+		// Ajouter le flag REG_ICASE si le modificateur est ~* (Case-Insensitive Match)
+		if (this->_location.modifier == "~*") {
+			flags |= REG_ICASE;
+		}
+
+        // Compiler l'expression régulière du modificateur
+        result = regcomp(&regex, this->_location.path.c_str(), flags);
+        if (result != 0) {
+            std::cerr << "Regex compilation failed" << std::endl;
+            return ("");
+        }
+
+        // Chercher la correspondance dans le chemin de la requête
+        regmatch_t match;
+        result = regexec(&regex, requestPath.c_str(), 1, &match, 0);
+        if (result == 0) {
+            relativePath = requestPath.substr(match.rm_eo);
+        } else {
+            return ("");
+        }
+
+        // Libérer la mémoire utilisée par l'expression régulière compilée
+        regfree(&regex);
+    } else {
+        // Si ce n'est pas une expression régulière, extraire simplement la partie de chemin après this->_location.path
+        relativePath = requestPath.substr(this->_location.path.size());
     }
 
-    // Vérifier si la route correspond à l'expression régulière
-    result = regexec(&regex, route.c_str(), 0, NULL, 0);
+    // Construire le chemin complet en utilisant le chemin racine et le chemin relatif
+    std::string fullPath = this->_root.path + relativePath;
+	this->checkLeadingTrailingSlash(fullPath);
 
-    // Libérer la mémoire utilisée par l'expression régulière compilée
-    regfree(&regex);
-
-    // Si la route correspond, retourner true, sinon retourner false
-    return (result == 0);
+	return (fullPath);
 }
 
 void	Router::call(std::string method, Request &request, Response &response)
@@ -417,7 +460,10 @@ void	Router::print(std::ostream &os) const
 	os << "\t" << B_CYAN"Root: " << RESET << this->_root.path << (this->_root.isAlias ? " (alias)" : "") << "\n";
 	os << "\t" << B_CYAN"Redirection: " << RESET << (this->_redirection.enabled ? this->_redirection.path + " status: " + toString(this->_redirection.status) : "none") << "\n";
 	os << "\t" << B_CYAN"Autoindex: " << RESET << (this->_autoindex ? "enabled" : "disabled") << "\n";
-	os << "\t" << B_CYAN"Index: " << RESET << this->_index << "\n";
+	os << "\t" << B_CYAN"Index: " << RESET;
+	for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++)
+		os << "" << *it;
+	os << "\n";
 	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
 	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
 		os << "\t" << it->first << " => " << it->second << "\n";

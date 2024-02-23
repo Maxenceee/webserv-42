@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/12 12:03:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 19:52:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,9 @@
 template <typename T>
 std::string toString(T val)
 {
-    std::stringstream stream;
-    stream << val;
-    return stream.str();
+	std::stringstream stream;
+	stream << val;
+	return stream.str();
 }
 
 std::string		&pop(std::string &str)
@@ -32,9 +32,9 @@ std::string		&pop(std::string &str)
 
 std::string		&shift(std::string &str)
 {
-    if (!str.empty())
-        str.erase(str.begin());
-    return str;
+	if (!str.empty())
+		str.erase(str.begin());
+	return str;
 }
 
 std::vector<std::string>		split(const std::string &str, char c)
@@ -61,10 +61,10 @@ struct StringConcatenator {
 std::string					join(std::vector<std::string> &list, const std::string &c)
 {
 	if (list.empty()) {
-        return ("");
-    }
+		return ("");
+	}
 	std::vector<std::string>::iterator nextElement = list.begin();
-    std::advance(nextElement, 1);
+	std::advance(nextElement, 1);
 	return (std::accumulate(
 		nextElement,
 		list.end(),
@@ -138,11 +138,11 @@ std::string		&capitalize(std::string &str)
 
 std::string		getExtension(const std::string &filename)
 {
-    size_t dotPosition = filename.find_last_of('.');
-    if (dotPosition != std::string::npos && dotPosition < filename.length() - 1) {
-        return (filename.substr(dotPosition + 1));
-    }
-    return ("");
+	size_t dotPosition = filename.find_last_of('.');
+	if (dotPosition != std::string::npos && dotPosition < filename.length() - 1) {
+		return (filename.substr(dotPosition + 1));
+	}
+	return ("");
 }
 
 std::string	getIPAddress(int addr)
