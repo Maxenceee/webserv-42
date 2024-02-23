@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 14:12:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 23:27:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,10 @@ int		isFile(const std::string &path);
 bool	isDirectory(const std::string &path, const bool throw_error = true);
 void	listFilesInDirectory(const std::string &path, std::map<std::string, std::string> &fileMap, bool recursive = true);
 void	listDirContent(const std::string dirpath);
+
+int	createFile(const std::string &path, const std::string &content);
+int	appendFile(const std::string &path, const std::string &content);
+int	deleteFile(const std::string &path);
 
 // URIs
 

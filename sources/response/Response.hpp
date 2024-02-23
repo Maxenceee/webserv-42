@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 22:11:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 23:10:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,6 @@ private:
 	t_mapss				_headers;
 	t_mapss				_cookie;
 	std::string			_body;
-
-	// t_mapss				_static_dir;
 	
 	static std::map<int, std::string>		_res_codes;
 	static std::map<int, std::string>		initCodes();
@@ -53,7 +51,6 @@ private:
 	std::string			getTime(void);
 
 public:
-	// Response(const Server &server, int socket, t_mapss static_dir, std::string version, int status = 200);
 	Response(const Server &server, int socket, const Request &req);
 	~Response(void);
 
