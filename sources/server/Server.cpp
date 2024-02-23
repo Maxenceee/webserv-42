@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/03 18:55:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 10:59:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ Server::Server(int id, uint16_t port): _id(id), port(port)
 {
 	this->_default = new Router(*this, "/");
 	this->_init = false;
+	this->_server_name = "webserv/1.0";
 	// this->_started = false;
 }
 
