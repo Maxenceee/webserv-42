@@ -47,10 +47,11 @@ https://en.wikipedia.org/wiki/HTTP#Request_methods
 
 https://fr.wikipedia.org/wiki/Liste_des_codes_HTTP
 
+https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms
+
 cgi 
 
 http://www.mnuwer.dbasedeveloper.co.uk/dlearn/web/session01.htm
-
 
 https://hackmd.io/@laian/SJZHcOsmT?utm_source=preview-mode&utm_medium=rec
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/19 18:35:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 11:05:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,8 @@ Server	*Cluster::newServer(void)
 const int Cluster::start(void)
 {
 	v_servers::iterator it;
-	std::vector<pollfd>	poll_fds;
+	// std::vector<pollfd>	poll_fds;
+	pollfd	poll_fds[this->_servers.size()];
 	const int			timeout = 100;
 
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
@@ -59,6 +60,7 @@ const int Cluster::start(void)
 	}
 
 	// Initialise le tableau des descripteurs à surveiller
+	int i = 0;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		int serverSocket = (*it)->getSocketFD();
@@ -66,7 +68,8 @@ const int Cluster::start(void)
         //     perror("fcntl");
         //     return (W_SOCKET_ERR);
         // }
-		poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
+		// poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
+		poll_fds[i++] = (pollfd){serverSocket, POLLIN, 0};
 	}
 
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -109,7 +112,8 @@ const int Cluster::start(void)
 		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est
 		 * prêt pour la lecture.
 		 */
-		if (poll(&poll_fds[0], poll_fds.size(), timeout) == -1)
+		if (poll(poll_fds, this->_servers.size(), timeout) == -1)
+		// if (poll(&poll_fds[0], poll_fds.size(), timeout) == -1)
 		{
 			std::cerr << "server error: an error occurred while poll'ing" << std::endl;
 			perror("poll");
