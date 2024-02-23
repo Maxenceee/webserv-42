@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/06 12:07:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 11:53:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,16 +170,20 @@ void	Parser::switchConfigDirectives(const std::string key, const std::string val
 
 void	Parser::createNewRouter(const std::string key, const std::string val, const std::string raw_line)
 {
+	struct s_Router_Location	location;
+
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() > 2 || tokens.size() < 1)
 		this->throwError(key, val, raw_line);
-	bool strict = false;
-	if (tokens.size() == 2 && tokens[0] == "=")
-		strict = true;
+	if (tokens.size() == 2) {
+		location.modifier = tokens[0];
+		if (location.modifier == "=")
+			location.strict = true;
+	}
 	else if (tokens.size() == 2)
 		this->throwError(key, val, raw_line);
-	std::string	path = tokens[tokens.size() - 1];
-	this->tmp_router = new Router(*this->new_server, path, this->new_server->getDefaultHandler().getRoot(), strict);
+	location.path = tokens[tokens.size() - 1];
+	this->tmp_router = new Router(*this->new_server, location, this->new_server->getDefaultHandler().getRoot());
 	this->new_server->use(this->tmp_router);
 }
 

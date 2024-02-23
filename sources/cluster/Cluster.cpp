@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 11:05:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 11:14:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,8 +112,8 @@ const int Cluster::start(void)
 		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est
 		 * prêt pour la lecture.
 		 */
-		if (poll(poll_fds, this->_servers.size(), timeout) == -1)
 		// if (poll(&poll_fds[0], poll_fds.size(), timeout) == -1)
+		if (poll(poll_fds, this->_servers.size(), timeout) == -1)
 		{
 			std::cerr << "server error: an error occurred while poll'ing" << std::endl;
 			perror("poll");
