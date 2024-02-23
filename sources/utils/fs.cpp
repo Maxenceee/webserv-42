@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 19:52:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/23 23:36:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,4 +94,44 @@ void	listDirContent(const std::string dirpath)
 	listFilesInDirectory(dirpath, active_dir_files);
 	for (std::map<std::string, std::string>::iterator it = active_dir_files.begin(); it != active_dir_files.end(); it++)
 		std::cout << it->first << " -> " << it->second << std::endl;
+}
+
+int	createFile(const std::string &path, const std::string &content)
+{
+	std::ofstream file;
+
+	file.open(path.c_str());
+	if (!file.is_open())
+	{
+		std::cerr << "Error: could not open file " << path << std::endl;
+		return (W_ERR);
+	}
+	file << content;
+	file.close();
+	return (W_NOERR);
+}
+
+int	appendFile(const std::string &path, const std::string &content)
+{
+	std::ofstream file;
+
+	file.open(path.c_str(), std::ios::app);
+	if (!file.is_open())
+	{
+		std::cerr << "Error: could not open file " << path << std::endl;
+		return (W_ERR);
+	}
+	file << content;
+	file.close();
+	return (W_NOERR);
+}
+
+int	deleteFile(const std::string &path)
+{
+	if (remove(path.c_str()) != 0)
+	{
+		std::cerr << "Error: could not delete file " << path << std::endl;
+		return (W_ERR);
+	}
+	return (W_NOERR);
 }

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 20:55:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 00:25:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,30 +247,97 @@ void	Router::handleGETMethod(Request &request, Response &response)
 void	Router::handleHEADMethod(Request &request, Response &response)
 {
 	std::cout << "<------------" << B_BLUE << "HEAD" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	std::cout << "post request: " << request.getBody() << std::endl;
 	this->handleGETMethod(request, response);
 	response.clearBody();
 }
 
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
+	/**
+	 * TODO:
+	 * Send all the needed headers
+	 */
 	std::cout << "<------------" << B_BLUE << "POST" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
 	std::cout << "post request: " << request.getBody() << std::endl;
-	response.status(204).end();
+
+	std::string fullpath = this->getLocalFilePath(request.getPath());
+	std::cout << "full path: " << fullpath << std::endl;
+
+	if (isFile(fullpath)) {
+		if (appendFile(fullpath, request.getBody())) {
+			response.status(500);
+			return ;
+		}
+		response.status(200);
+	} else {
+		if (isDirectory(fullpath)) {
+			response.status(409);
+			return ;
+		}
+		if (createFile(fullpath, request.getBody())) {
+			response.status(500);
+			return ;
+		}
+		response.status(201);
+	}
 }
 
 void	Router::handlePUTMethod(Request &request, Response &response)
 {
+	/**
+	 * TODO:
+	 * Send all the needed headers
+	 */
 	std::cout << "<------------" << B_BLUE << "PUT" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	std::cout << "post request: " << request.getBody() << std::endl;
-	response.status(204).end();
+	std::cout << "put request: " << request.getBody() << std::endl;
+
+	std::string fullpath = this->getLocalFilePath(request.getPath());
+	std::cout << "full path: " << fullpath << std::endl;
+
+	if (isFile(fullpath)) {
+		if (deleteFile(fullpath)) {
+			response.status(500);
+			return ;
+		}
+		if (createFile(fullpath, request.getBody())) {
+			response.status(500);
+			return ;
+		}
+		response.status(200);
+	} else {
+		if (isDirectory(fullpath)) {
+			response.status(409);
+			return ;
+		}
+		if (createFile(fullpath, request.getBody())) {
+			response.status(500);
+			return ;
+		}
+		response.status(201);
+	}
 }
 
 void	Router::handleDELETEMethod(Request &request, Response &response)
 {
 	std::cout << "<------------" << B_BLUE << "DELETE" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	std::cout << "post request: " << request.getBody() << std::endl;
-	response.status(204).end();
+	std::cout << "delete request: " << request.getBody() << std::endl;
+
+	std::string fullpath = this->getLocalFilePath(request.getPath());
+	std::cout << "full path: " << fullpath << std::endl;
+
+	if (isFile(fullpath)) {
+		if (deleteFile(fullpath)) {
+			response.status(500);
+			return ;
+		}
+		response.status(200);
+	} else {
+		if (isDirectory(fullpath)) {
+			response.status(409);
+		} else {
+			response.status(404);
+		}
+	}
 }
 
 bool	Router::isValidMethod(const std::string method) const
@@ -327,13 +394,16 @@ bool Router::matchRoute(const std::string& route) const
 
 std::string	Router::getLocalFilePath(const std::string &requestPath)
 {
-    // Extraire le chemin relatif de la requête
-    std::string relativePath;
+	// La directive root consiste simplement à ajouter le chemin de la requête à la directive root
+	if (!this->_root.isAlias)
+		return (this->_root.path + requestPath);
 
-    // Vérifier si le modificateur est une expression régulière
-    if (this->_location.modifier == "~" || this->_location.modifier == "~*") {
-        regex_t regex;
-        int result;
+	std::string relativePath;
+
+	// Vérifier si le modificateur est une expression régulière
+	if (this->_location.modifier == "~" || this->_location.modifier == "~*") {
+		regex_t regex;
+		int result;
 
 		int flags = REG_EXTENDED;
 
@@ -342,31 +412,28 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 			flags |= REG_ICASE;
 		}
 
-        // Compiler l'expression régulière du modificateur
-        result = regcomp(&regex, this->_location.path.c_str(), flags);
-        if (result != 0) {
-            std::cerr << "Regex compilation failed" << std::endl;
-            return ("");
-        }
+		// Compiler l'expression régulière du modificateur
+		result = regcomp(&regex, this->_location.path.c_str(), flags);
+		if (result != 0) {
+			std::cerr << "Regex compilation failed" << std::endl;
+			return ("");
+		}
 
-        // Chercher la correspondance dans le chemin de la requête
-        regmatch_t match;
-        result = regexec(&regex, requestPath.c_str(), 1, &match, 0);
-        if (result == 0) {
-            relativePath = requestPath.substr(match.rm_eo);
-        } else {
-            return ("");
-        }
+		// Chercher la correspondance dans le chemin de la requête
+		regmatch_t match;
+		result = regexec(&regex, requestPath.c_str(), 1, &match, 0);
+		if (result != 0)
+			return ("");
+		relativePath = requestPath.substr(match.rm_eo);
 
-        // Libérer la mémoire utilisée par l'expression régulière compilée
-        regfree(&regex);
-    } else {
-        // Si ce n'est pas une expression régulière, extraire simplement la partie de chemin après this->_location.path
-        relativePath = requestPath.substr(this->_location.path.size());
-    }
+		// Libérer la mémoire utilisée par l'expression régulière compilée
+		regfree(&regex);
+	} else {
+		// Si ce n'est pas une expression régulière, extraire simplement la partie de chemin après this->_location.path
+		relativePath = requestPath.substr(this->_location.path.size());
+	}
 
-    // Construire le chemin complet en utilisant le chemin racine et le chemin relatif
-    std::string fullPath = this->_root.path + relativePath;
+	std::string fullPath = this->_root.path + relativePath;
 	this->checkLeadingTrailingSlash(fullPath);
 
 	return (fullPath);
