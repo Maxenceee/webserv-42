@@ -13,6 +13,20 @@ do
 	printf "\n\n"
 done
 
+for i in {1..10}
+do
+	printf "Request $i\n"
+	curl -iL -X POST http://localhost:$port/upload/file_$i.txt -d "Hello World"
+	printf "\n\n"
+done
+
+for i in {1..5}
+do
+	printf "Request $i\n"
+	curl -iL -X DELETE http://localhost:$port/remove/file_$i.txt
+	printf "\n\n"
+done
+
 # for i in {1..100}
 # do
 # 	printf "Request $i\n"

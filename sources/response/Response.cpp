@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 23:40:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 15:19:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,6 +203,11 @@ std::string		Response::getTime(void)
 
 Response	&Response::end()
 {
+	/**
+	 * TODO:
+	 * Handle error pages
+	 * 
+	 */
 	if (!this->_sent)
 	{
 		this->setHeader("Date", this->getTime());
