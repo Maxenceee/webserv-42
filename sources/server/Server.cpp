@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 20:55:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 15:56:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -378,6 +378,16 @@ const std::vector<std::string>	Server::getMethods(void) const
 Router	&Server::getDefaultHandler(void)
 {
 	return (*this->_default);
+}
+
+const bool			Server::hasErrorPage(const int code) const
+{
+	return (this->_default->getErrorPage().count(code) > 0);
+}
+
+const std::string	Server::getErrorPage(const int code) const
+{
+	return (this->_default->getErrorPage().at(code));
 }
 
 // std::stringstream &readMultipart(const int client, std::stringstream &stream)

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 23:10:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,9 +66,10 @@ public:
 	Response		&setCookie(const std::string name, const std::string value, const CookieOptions &options = CookieOptions());
 
 	Response		&clearBody(void);
+	bool			hasBody(void) const;
 
 	const std::string		getVersion(void) const;
-	const int				getSatus(void) const;
+	const int				getStatus(void) const;
 	const std::string		getSatusName(void) const;
 	const t_mapss			getHeaders(void) const;
 	const t_mapss			getCookies(void) const;

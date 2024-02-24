@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/08 01:32:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ const std::string	Request::getBody(void) const
 	return (this->_body);
 }
 
-const int			Request::getSatus(void) const
+const int			Request::getStatus(void) const
 {
 	return (this->_status);
 }

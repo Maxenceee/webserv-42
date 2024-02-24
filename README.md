@@ -67,15 +67,13 @@ https://fr.wikipedia.org/wiki/Multipurpose_Internet_Mail_Extensions
 
 ## TODO
 
-Faire une class Cluster qui gere autant de Server que necessaire.
-
 Ajouter le parser pour le fichier config :
-- server_name
-- listen
-- allowed_method (method)
-- redirection 
-- root
-- alias
-- index
-- autoindex (on/off)
-- error_page
+- server_name ✅
+- listen (TODO: handle addr)
+- allowed_method (method) ✅
+- return ✅
+- root ✅
+- alias ✅
+- index ✅
+- autoindex (on/off) ✅
+- error_page ✅

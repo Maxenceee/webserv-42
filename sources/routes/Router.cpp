@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 00:25:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 16:39:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,6 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-/**
- * TODO:
- * Gerer les pages d'erreurs (error_page) envoyer la page si necessaire pour envoyer celle du serveur
- */
 Router::Router(Server &server, const struct s_Router_Location location, const std::string parent_root): _server(server), _location(location), _autoindex(false)
 {
 	/**
@@ -46,9 +42,7 @@ Router::Router(Server &server, const struct s_Router_Location location, const st
 	this->_root.path = parent_root;
 	this->_root.isAlias = false;
 	this->_root.set = false;
-	this->_match = NULL;
 	memset(&this->_redirection, 0, sizeof(this->_redirection));
-	this->checkLeadingTrailingSlash(this->_location.path);
 }
 
 Router::~Router(void)
@@ -160,9 +154,37 @@ void	Router::setErrorPage(const int code, const std::string path)
 		std::cout << B_YELLOW"router info: overriding previous error page for " << code << RESET << std::endl;
 	}
 	this->_error_page[code] = path;
+	std::cout << "error page: " << this->_error_page[code] << std::endl;
+	checkLeadingTrailingSlash(this->_error_page[code]);
+	std::cout << "normalized error page: " << this->_error_page[code] << std::endl;
+}
+
+std::map<int, std::string>	Router::getErrorPage(void) const
+{
+	return (this->_error_page);
 }
 
 void	Router::route(Request &request, Response &response)
+{
+	if (this->handleRoutes(request, response)) {
+		if (response.canSend() && !response.hasBody())
+		{
+			if (this->_error_page.count(response.getStatus())) {
+				std::string fullpath = this->_root.path + this->_error_page[response.getStatus()];
+				std::cout << "router full path: " << fullpath << std::endl;
+				response.sendFile(fullpath);
+			}
+			else if (this->_server.hasErrorPage(response.getStatus())) {
+				std::string fullpath = this->_server.getDefaultHandler().getLocalFilePath(this->_server.getErrorPage(response.getStatus()));
+				std::cout << "server default full path: " << fullpath << std::endl;
+				response.sendFile(fullpath);
+			}
+		}
+		response.end();
+	}
+}
+
+bool	Router::handleRoutes(Request &request, Response &response)
 {
 	/**
 	 * Permet de faire le routage.
@@ -170,25 +192,25 @@ void	Router::route(Request &request, Response &response)
 	 * sur le router.
 	 */
 	if (!this->isValidMethod(request.getMethod()) && this->_allowed_methods.size())
-		return ;
+		return (false);
 	/**
 	 * Avant de faire quelque logique que ce soit on s'assure que la réponse n'a pas déjà été
 	 * envoyé pour une quelconque raison.
 	 */
 	if (!response.canSend())
-		return ;
+		return (false);
 	/**
 	 * On compare le chemin du router et celui de la requête.
 	 * Pour le moment toutes les requête sont considérées comme GET.
 	 */
 	std::cout << "check route for " << request.getPath() << std::endl;
-	if (this->matchRoute(request.getPath()))
+	if (this->matchRoute(request.getPath(), response))
 	{
 		if (this->_allowed_methods.size() && !contains(this->_allowed_methods, request.getMethod()))
 		{
 			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods));
-			response.status(405).end();
-			return ;
+			response.status(405);
+			return (true);
 		}
 		/**
 		 * Nginx n'est pas très clair quant au priorité entre `root`/`alias` et
@@ -198,23 +220,23 @@ void	Router::route(Request &request, Response &response)
 		if (this->_redirection.enabled) {
 			std::cout << "redirect to: " << this->_redirection.path << std::endl;
 			response.redirect(this->_redirection.path, this->_redirection.status).end();
-			return ;
+			return (true);
 		}
 		this->call(request.getMethod(), request, response);
-		std::cout << "end route" << std::endl;
-		response.end();
+		return (true);
 	}
+	return (false);
 }
 
 void	Router::handleGETMethod(Request &request, Response &response)
 {
 	std::cout << "<------------" << B_BLUE << "GET" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	/**
-	 * TODO:
-	 * Gérer la directive `index`
-	 */
 	std::cout << "requestPath " << request.getPath() << std::endl;
 	std::string fullpath = this->getLocalFilePath(request.getPath());
+	if (!fullpath.size()) {
+		response.status(500).end();
+		return ;
+	}
 	std::cout << "full path: " << fullpath << std::endl;
 
 	if (isDirectory(fullpath)) {
@@ -345,7 +367,7 @@ bool	Router::isValidMethod(const std::string method) const
 	return (contains(this->_server.getMethods(), method));
 }
 
-bool Router::matchRoute(const std::string& route) const
+bool Router::matchRoute(const std::string& route, Response &response) const
 {
 	regex_t	regex;
 	int		result;
@@ -361,10 +383,6 @@ bool Router::matchRoute(const std::string& route) const
 			flags |= REG_ICASE; // Regular Expression Case-Insensitive Match
 	} else if (this->_location.modifier == "^~" || !this->_location.modifier.size()) {
 		regexPattern = "^" + this->_location.path; // Prefix Match
-	} else {
-		// Modificateur non reconnu
-		std::cerr << "Unknown modifier: " << this->_location.modifier << std::endl;
-		return (false);
 	}
 
 	if (!this->_location.strict) {
@@ -379,7 +397,8 @@ bool Router::matchRoute(const std::string& route) const
 
 	if (result != 0) {
 		std::cerr << "Regex compilation failed" << std::endl;
-		return false;
+		response.status(500).end();
+		return (false);
 	}
 
 	// Vérifier si la route correspond à l'expression régulière
@@ -433,8 +452,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		relativePath = requestPath.substr(this->_location.path.size());
 	}
 
-	std::string fullPath = this->_root.path + relativePath;
-	this->checkLeadingTrailingSlash(fullPath);
+	std::string fullPath = this->_root.path + relativePath;;
 
 	return (fullPath);
 }
@@ -446,7 +464,6 @@ void	Router::call(std::string method, Request &request, Response &response)
 
 std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 {
-	return (str);
 	/**
 	 * Si le chemin du router est '/' on ne fait rien.
 	 */

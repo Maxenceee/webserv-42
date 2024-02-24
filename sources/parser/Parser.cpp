@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 20:55:51 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 16:38:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,8 +216,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		this->tmp_router->setRoot(val);
 		return ;
 	}
-	else if (key == "alias") {
+	else if (key == "alias" && parent == "server.location") {
 		this->tmp_router->setAlias(val);
+		return ;
+	} else if (key == "alias") {
+		this->throwError(key, val);
 		return ;
 	}
 
@@ -245,18 +248,15 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "return") {
 		int status = 302;
 		std::string loc = val;
-		/*
-		 * TODO:
-		 * verifier si val contient une espace avant de split pour eviter 
-		 * de split pour rien
-		 */
-		std::vector<std::string> tokens = split(val, ' ');
-		if (tokens.size() == 2) {
-			status = std::atoi(tokens[0].c_str());
-			loc = tokens[1];
+		if (val.find(' ') != std::string::npos) {
+			std::vector<std::string> tokens = split(val, ' ');
+			if (tokens.size() == 2) {
+				status = std::atoi(tokens[0].c_str());
+				loc = tokens[1];
+			}
+			else if (tokens.size() > 2)
+				this->throwError(key, val);
 		}
-		else if (tokens.size() > 2)
-			this->throwError(key, val);
 		this->tmp_router->setRedirection(loc, status);
 		return ;
 	}
