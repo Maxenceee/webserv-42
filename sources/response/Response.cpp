@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 15:19:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ Response::Response(const Server &server, int socket, const Request &req): _serve
 	this->_socket = socket;
 	this->_version = req.getVersion();
 	this->_method = req.getMethod();
-	this->_status = req.getSatus();
+	this->_status = req.getStatus();
 	this->_path = req.getPath();
 	this->initCodes();
 	this->setHeader("Server", server.getName());
@@ -203,11 +203,6 @@ std::string		Response::getTime(void)
 
 Response	&Response::end()
 {
-	/**
-	 * TODO:
-	 * Handle error pages
-	 * 
-	 */
 	if (!this->_sent)
 	{
 		this->setHeader("Date", this->getTime());
@@ -294,4 +289,9 @@ Response		&Response::clearBody(void)
 {
 	this->_body.clear();
 	return (*this);
+}
+
+bool		Response::hasBody(void) const
+{
+	return (this->_body.size() > 0);
 }

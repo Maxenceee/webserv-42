@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 20:27:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 16:25:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,6 @@ private:
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
 
-	regmatch_t						*_match;
-
 	std::string	&checkLeadingTrailingSlash(std::string &str);
 	
 	const std::string		getDirList(const std::string dirpath, std::string reqPath);
@@ -61,6 +59,7 @@ private:
 	static std::map<std::string, void (Router::*)(Request &, Response &)>	_method_handlers;
 	static std::map<std::string, void (Router::*)(Request &, Response &)>	initMethodHandlers();
 
+	bool	handleRoutes(Request &request, Response &response);
 	void	call(std::string method, Request &request, Response &response);
 	void	handleGETMethod(Request &request, Response &response);
 	void	handleHEADMethod(Request &request, Response &response);
@@ -68,9 +67,7 @@ private:
 	void	handlePUTMethod(Request &request, Response &response);
 	void	handleDELETEMethod(Request &request, Response &response);
 
-	bool	matchRoute(const std::string &route) const;
-	
-	std::string	getLocalFilePath(const std::string &requestPath);
+	bool	matchRoute(const std::string &route, Response &response) const;
 
 public:
 	Router(Server &server, const struct s_Router_Location location, const std::string parent_root = "/");
@@ -86,13 +83,16 @@ public:
 	void	setAlias(const std::string path);
 
 	const std::string	getRoot(void) const;
+	std::string			getLocalFilePath(const std::string &requestPath);
 
 	void	setRedirection(const std::string to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
 
 	void	setIndex(const std::vector<std::string> index);
 	void	addIndex(const std::string index);
-	void	setErrorPage(const int code, const std::string path);
+
+	void						setErrorPage(const int code, const std::string path);
+	std::map<int, std::string>	getErrorPage(void) const;
 
 	bool	isValidMethod(const std::string method) const;
 

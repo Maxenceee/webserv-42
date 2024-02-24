@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 18:19:44 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/02 14:23:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ std::ostream	&operator<<(std::ostream &os, const Response &res)
 {
 	t_mapss::const_iterator	it;
 
-	os << B_GREEN"HTTP" << RESET << "/" << res.getVersion() << " " << res.getSatus() << " " << res.getSatusName() << "\n";
+	os << B_GREEN"HTTP" << RESET << "/" << res.getVersion() << " " << res.getStatus() << " " << res.getSatusName() << "\n";
 
 	os << B_CYAN"Headers: " << RESET << std::endl;
 	const t_mapss &headers = res.getHeaders();
@@ -43,7 +43,7 @@ const std::string	Response::getVersion(void) const
 	return (this->_version);
 }
 
-const int			Response::getSatus(void) const
+const int			Response::getStatus(void) const
 {
 	return (this->_status);
 }

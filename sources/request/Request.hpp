@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/18 00:27:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ public:
 	const t_mapss			getHeaders(void) const;
 	const t_mapss			getCookies(void) const;
 	const std::string		getBody(void) const;
-	const int				getSatus(void) const;
+	const int				getStatus(void) const;
 	const int				getClientSocket(void) const;
 	const sockaddr_in		getClientAddr(void) const;
 	const std::string		getIP(void) const;
