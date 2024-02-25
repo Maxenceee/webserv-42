@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 17:25:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 17:45:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,7 @@ Server::~Server(void)
 std::vector<std::string>	Server::initMethods()
 {
 	/**
-	 * Seules les méthodes GET, POST et DELETE sont obligatoires, pour le moment
-	 * toutes les méthodes sont présentes il faudra faire le tri par la suite en
-	 * fonction de nos besoins.
+	 * Seules les méthodes GET, POST et DELETE sont obligatoires.
 	 * 
 	 * La méthode HEAD est similaire à GET à ceci près qu'elle ne renvoie que l'en-tête
 	 * de réponse.
@@ -342,6 +340,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 			Logger::error("Client not ready to read");
 			return ;
 		} else {
+			Logger::error("server error: an error occurred while reading from client");
 			perror("recv");
 		}
 		return ;
