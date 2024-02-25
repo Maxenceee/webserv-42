@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 23:03:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 16:53:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,13 +28,14 @@ Cluster::Cluster(const char *configPath)
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		(*it)->init();
-		std::cout << *(*it) << std::endl;
+		if (Logger::_debug)
+			std::cout << *(*it) << std::endl;
 	}
 }
 
 Cluster::~Cluster()
 {
-	std::cout << B_GREEN << "Shutting down webserv" << RESET << std::endl;
+	Logger::print("Shutting down webserv", B_GREEN);
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		delete *it;
 	delete this->parser;
@@ -81,7 +82,7 @@ const int Cluster::start(void)
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		Server *server = *it;
-		std::cout << B_GREEN"Listening on port " << server->getPort() << RESET << std::endl;
+		Logger::print("Listening on port " + toString<int>(server->getPort()), B_GREEN);
 
 		/**
 		 * La fonction listen() permet de marquer un socket comme étant un socket en
@@ -93,7 +94,7 @@ const int Cluster::start(void)
 		int error = listen(server->getSocketFD(), 1024);
 		if (error == -1)
 		{
-			std::cerr << "server error: an error occurred while listening" << std::endl;
+			Logger::error("server error: an error occurred while listening", RESET);
 			perror("listen");
 			return (W_SOCKET_ERR);
 		}
@@ -124,7 +125,7 @@ const int Cluster::start(void)
 			if (errno == EINTR) {
 				break ;
 			}
-			std::cerr << "server error: an error occurred while poll'ing" << std::endl;
+			Logger::error("server error: an error occurred while poll'ing", RESET);
 			perror("poll");
 			return (W_SOCKET_ERR);
 		}
@@ -148,6 +149,7 @@ const int Cluster::start(void)
 				int newClient = accept(this->_servers[i]->getSocketFD(), (sockaddr *)&client_addr, &len);
 				if (newClient == -1)
 				{
+					Logger::error("server error: an error occurred while accept'ing the client", RESET);
 					perror("accept");
 					continue;
 				}

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 23:27:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 17:05:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@
 #include <cstddef>
 #include <map>
 
+#include "logger/Logger.hpp"
+
 template <typename T>
 std::string					toString(T val);
 
@@ -36,8 +38,10 @@ std::string					&to_upper(std::string &str);
 std::string					&to_lower(std::string &str);
 std::string					&capitalize(std::string &str);
 std::string					getExtension(const std::string &filename);
-std::string					getIPAddress(int addr);
 void						replace(std::string &buffer, std::string searchValue, std::string replaceValue);
+
+std::string					getIPAddress(int addr);
+uint32_t					setIPAddress(std::string addr);
 
 /* list */
 
@@ -54,9 +58,10 @@ T	&shift(T &container);
 
 void	printFileInfo(const char *filename);
 int		isFile(const std::string &path);
-bool	isDirectory(const std::string &path, const bool throw_error = true);
+bool	isDirectory(const std::string &path);
 void	listFilesInDirectory(const std::string &path, std::map<std::string, std::string> &fileMap, bool recursive = true);
 void	listDirContent(const std::string dirpath);
+std::string	getLastModifiedDate(const std::string filepath);
 
 int	createFile(const std::string &path, const std::string &content);
 int	appendFile(const std::string &path, const std::string &content);

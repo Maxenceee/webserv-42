@@ -6,14 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 16:38:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 16:59:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
 
-#define PARSER_ERR		B_RED"parser error: invalid file path"RESET
+#define PARSER_ERR		RED"parser error: invalid file path"RESET
 
 Parser::Parser(Cluster &c): cluster(c)
 {
@@ -30,8 +30,10 @@ int		Parser::open_and_read_file(const char *file_name)
 	std::vector<std::string>	tmp;
 	
 	this->file.open(file_name, std::ios::in);
-	if (!this->file)
-		return (std::cerr << "parser error: Could not open file " << file_name << std::endl, EXIT_FAILURE);
+	if (!this->file) {
+		Logger::error("parser error: Could not open file " + std::string(file_name), RESET);
+		return (EXIT_FAILURE);
+	}
 
 	while (getline(this->file, line))
 	{
@@ -73,7 +75,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 			} else {
 				parent = key;
 			}
-			// std::cout << B_YELLOW << k ey << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
+			Logger::debug(YELLOW + key + RESET + "\t" + val + "\t" + GREEN + parent + RESET);
 			this->switchConfigDirectives(key, val, parent, line);
 		}
 		// Standard property line
@@ -91,7 +93,7 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 				pop(key);
 			}
 			pop(val);
-			// std::cout << B_RED << key << RESET << "\t" << val << "\t" << B_GREEN << parent << RESET << std::endl;
+			Logger::debug(RED + key + RESET + "\t" + val + "\t" + GREEN + parent + RESET);
 			this->switchConfigDirectives(key, val, parent, line);
 		}
 		// Object closing line
@@ -195,7 +197,18 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "listen" && parent != "server")
 		this->throwError(key, val);
 	else if (key == "listen") {
-		this->new_server->setPort(std::atoi(val.c_str()));
+		// check if there is a column in the value
+		if (val.find(':') == std::string::npos) {
+			this->new_server->setPort(std::atoi(val.c_str()));
+		} else {
+			std::vector<std::string> tokens = split(val, ':');
+			if (tokens.size() == 2) {
+				this->new_server->setAddress(tokens[0]);
+				this->new_server->setPort(std::atoi(tokens[1].c_str()));
+			}
+			else
+				this->throwError(key, val);
+		}
 		return ;
 	}
 

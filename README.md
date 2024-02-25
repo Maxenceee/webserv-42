@@ -68,8 +68,8 @@ https://fr.wikipedia.org/wiki/Multipurpose_Internet_Mail_Extensions
 ## TODO
 
 Ajouter le parser pour le fichier config :
-- server_name ✅
-- listen (TODO: handle addr)
+- server_name
+- listen ✅
 - allowed_method (method) ✅
 - return ✅
 - root ✅
@@ -77,3 +77,4 @@ Ajouter le parser pour le fichier config :
 - index ✅
 - autoindex (on/off) ✅
 - error_page ✅
+- client body max sizz

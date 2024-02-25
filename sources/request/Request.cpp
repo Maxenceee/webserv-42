@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/29 19:18:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 16:34:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ int	Request::getRequestLine(const std::string &str, size_t &i)
 	j = req_line.find_first_of(' ');
 	if (j == std::string::npos)
 	{
-		std::cerr << B_RED << "RFC error: no space after method" << RESET << std::endl;
+		Logger::error("RFC error: no space after method");
 		return (400);
 	}
 	this->_method.assign(req_line, 0, j); // on extrait la méthode de la requête
@@ -75,7 +75,7 @@ int	Request::getRequestPath(const std::string &str)
 	req_tokens = split(str, ' ');
 	if (req_tokens.size() < 3)
 	{
-		std::cerr << B_RED << "RFC error: missing PATH or HTTP version" << RESET << std::endl;
+		Logger::error("RFC error: missing PATH or HTTP version");
 		return (400);
 	}
 	this->_path = decodeURIComponent(req_tokens[1]); // on extrait le chemin de la requête
@@ -95,13 +95,13 @@ int	Request::getRequestVersion(const std::string &str)
 		// plus facilement implémentables.
 		if (this->_version != "1.0" && this->_version != "1.1")
 		{
-			std::cerr << B_RED << "request error: unsupported HTTP version" << RESET << std::endl;
+			Logger::error("request error: unsupported HTTP version");
 			return (505);
 		}
 	}
 	else
 	{
-		std::cerr << B_RED << "RFC error: invalid HTTP version" << RESET << std::endl;
+		Logger::error("RFC error: invalid HTTP version");
 		return (400);
 	}
 	/**

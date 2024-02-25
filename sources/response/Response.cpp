@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 17:25:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Response::Response(const Server &server, int socket, const Request &req): _serve
 	this->_status = req.getStatus();
 	this->_path = req.getPath();
 	this->initCodes();
-	this->setHeader("Server", server.getName());
+	this->setHeader("Server", "webserv/1.0");
 	/**
 	 * On vérifie si la requête n'a renvoyé aucune erreur de parsing.
 	 */
@@ -121,6 +121,7 @@ Response	&Response::sendFile(const std::string filepath)
 		}
 		buffer << file.rdbuf();
 		file.close();
+		this->setHeader("Last-Modified", getLastModifiedDate(filepath));
 		/**
 		 * Lors de l'envoie d'un fichier il est préférable d'envoyer son
 		 * type MIME via l'en-tête 'Content-Type' afin de préciser au client
@@ -161,52 +162,45 @@ std::string		Response::getTime(void)
 {
 	/**
 	 * Création de l'en-tête `Date` selon la norme. Une valeur de date HTTP
-	 * représente l'heure en tant qu'instance de Coordinated Universal Time (UTC).
+	 * représente l'heure en tant qu'instance de Universal Time Coordinated (UTC).
 	 * La date indique UTC par l'abréviation de trois lettres pour
-	 * Greenwich Mean Time, "GMT", aun prédécesseur du standard UTC.
+	 * Greenwich Mean Time, "GMT", un prédécesseur du standard UTC.
 	 * Les valeurs au format asctime sont supposées être en UTC.
 	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-7.1.1.1)
 	 */
-	static const char	*wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-	static const char	*months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	// static const char	*wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	// static const char	*months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	time_t		now = time(0);
 	tm			*gmtm = gmtime(&now); // récuperation du temps GMT
 	std::string	date;
 
-	date += wdays[gmtm->tm_wday];
-	date += ", ";
-    date += (gmtm->tm_mday < 10 ? "0" : "") + toString(gmtm->tm_mday);
-	date += " ";
-    date += months[gmtm->tm_mon];
-	date += " ";
-	date += toString(1900 + gmtm->tm_year);
-	date += " ";
-    date += toString(gmtm->tm_hour) + ":" + toString(gmtm->tm_min) + ":" + toString(gmtm->tm_sec);
-	date += " GMT";
+	// date += wdays[gmtm->tm_wday];
+	// date += ", ";
+    // date += (gmtm->tm_mday < 10 ? "0" : "") + toString(gmtm->tm_mday);
+	// date += " ";
+    // date += months[gmtm->tm_mon];
+	// date += " ";
+	// date += toString(1900 + gmtm->tm_year);
+	// date += " ";
+    // date += toString(gmtm->tm_hour) + ":" + toString(gmtm->tm_min) + ":" + toString(gmtm->tm_sec);
+	// date += " GMT";
+	char buffer[80];
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", gmtm);
+	date = buffer;
 	return (date);
 }
-
-/**
- * A voir si on la garde
- */
-// Response	&Response::render(const std::string filename)
-// {
-// 	if (!this->_static_dir.count(filename))
-// 	{
-// 		this->status(500);
-// 		this->setHeader("Content-Type", "text/html");
-// 		this->_body = "<!DOCTYPE html>\n<html><title>Error</title><body>There was an error finding your file</body></html>";
-// 	}
-// 	this->sendFile(this->_static_dir[filename]);
-// 	return (*this);
-// }
 
 Response	&Response::end()
 {
 	if (!this->_sent)
 	{
 		this->setHeader("Date", this->getTime());
-		// this->setHeader("Connection", "close");
+		/**
+		 * On force l'ajout de l'en-tête 'Content-Length' afin d'indiquer au client la taille de
+		 * de la ressource.
+		 */
+		if (!this->_headers.count("Content-Length"))
+			this->setHeader("Content-Length", toString<int>(this->_body.size()));
 		std::string	res = this->prepareResponse();
 		/**
 		 * La fonction send() sert à écrire le contenu d'un descripteur de fichiers, ici
@@ -215,8 +209,9 @@ Response	&Response::end()
 		 * gestion de la l'écriture dans un contexte de travaille en réseau.
 		 */
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
+		(void)ret;
 		this->_sent = true;
-		printf(B_YELLOW"------------------Response sent-------------------%s\n\n", RESET);
+		Logger::debug(B_YELLOW"------------------Response sent-------------------\n");
 	}
 	return (*this);
 }
@@ -233,15 +228,15 @@ const std::string	Response::prepareResponse(void)
 	 * Corps de réponse
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
 	 */
-	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + "\n";
+	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + "\r\n";
 	for (t_mapss::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
-		res += it->first + ": " + it->second + "\n";
+		res += it->first + ": " + it->second + "\r\n";
 	}
 	for (t_mapss::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
-		res += "Set-Cookie: " + it->second + "\n";
+		res += "Set-Cookie: " + it->second + "\r\n";
 	}
-	res += "\n";
-	res += this->_body + "\n";
+	res += "\r\n";
+	res += this->_body + "\r\n";
 	return (res);
 }
 
@@ -250,7 +245,7 @@ Response	&Response::setHeader(const std::string header, const std::string value)
 	if (!this->_sent)
 		this->_headers[header] = value;
 	else
-		std::cerr << "Response error: cannot set header after it was sent" << std::endl;
+		Logger::error("Response error: cannot set header after it was sent");
 	return (*this);
 }
 
@@ -258,7 +253,7 @@ Response	&Response::setCookie(const std::string name, const std::string value, c
 {
 	if (this->_sent)
 	{
-		std::cerr << "Response error: cannot set header after it was sent" << std::endl;
+		Logger::error("Response error: cannot set header after it was sent");
 		return (*this);
 	}
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 16:25:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 16:07:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ private:
 	void	handlePOSTMethod(Request &request, Response &response);
 	void	handlePUTMethod(Request &request, Response &response);
 	void	handleDELETEMethod(Request &request, Response &response);
+	void	handleTRACEMethod(Request &request, Response &response);
 
 	bool	matchRoute(const std::string &route, Response &response) const;
 
