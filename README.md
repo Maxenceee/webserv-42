@@ -78,3 +78,9 @@ Ajouter le parser pour le fichier config :
 - autoindex (on/off) ✅
 - error_page ✅
 - client body max sizz
+
+Dans le cas ou il faut gerer plusieurs configuration par server :
+Creer une classe ServerConfig contenant tous les attributs de la classe Server ainsi qu'une partie de ses methodes (address, port, Routers, etc.)
+
+Chaque server contient une liste de ServerConfig, qui sont "executés" dans l'ordre lors de chaque requete. 
+L'idée est d'avoir une classe Server ecoutant sur chaque port, lors de l'arrivé d'une requete le server se charge de regarder parmis ses configs celle qui correspond au header Host s'il est present, puis c'est la ServerConfig qui se charge du routage (on deplace simplement la logique depuis la classe Server)
