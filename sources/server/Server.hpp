@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 15:54:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 17:03:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "request/Request.hpp"
 #include "response/Response.hpp"
 #include "routes/Router.hpp"
+#include "logger/Logger.hpp"
 
 class Router;
 class Request;
@@ -27,7 +28,7 @@ class Server
 private:
 	int							_id;
 	bool						_init;
-	// bool						_started;
+	uint32_t					address;
 	uint16_t					port;
 	std::string					_server_name;
 	int							socket_fd;
@@ -55,6 +56,10 @@ public:
 	const bool		isInit(void) const;
 	const int		getSocketFD(void) const;
 
+	void			setAddress(const std::string address);
+	void			setAddress(const uint32_t address);
+	const uint32_t	getAddress(void) const;
+
 	void			setPort(const uint16_t port);
 	const uint16_t	getPort(void) const;
 
@@ -71,6 +76,7 @@ public:
 
 	void		handleRequest(const int client, sockaddr_in clientAddr);
 	
+	void		printResponse(const Request &req, const Response &res) const;
 	void		print(std::ostream &os) const;
 
 	class ServerPortInUse : public std::exception

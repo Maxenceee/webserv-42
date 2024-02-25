@@ -9,6 +9,10 @@ app.get('/', (req, res) => {
 
 app.use('/static', express.static("../public/router_1"));
 
+app.post('/upload', (req, res, next) => {
+  res.status(200).end();
+});
+
 app.listen(port, () => {
   console.log(`Server is listening at http://localhost:${port}`);
 });

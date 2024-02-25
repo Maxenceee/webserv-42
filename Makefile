@@ -5,7 +5,7 @@ SRCS			=	$(shell find $(SOURCES_DIR) -name "*.cpp")
 OBJS			=	$(patsubst $(SOURCES_DIR)%.cpp, $(OBJ_DIR)%.o, $(SRCS))
 
 HEADERS_DIR		=	includes
-HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.hpp")
+HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.hpp") $(shell find $(SOURCES_DIR) -name "*.hpp")
 
 RM				=	rm -f
 CC				=	clang++

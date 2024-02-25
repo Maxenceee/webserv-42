@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 16:39:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 16:50:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,12 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 {
 	std::map<std::string, void (Router::*)(Request &, Response &)>	map;
 
-	map["GET"] = &Router::handleGETMethod;
-	map["HEAD"] = &Router::handleHEADMethod;
-	map["POST"] = &Router::handlePOSTMethod;
-	map["PUT"] = &Router::handlePUTMethod;
-	map["DELETE"] = &Router::handleDELETEMethod;
+	map["GET"]		= &Router::handleGETMethod;
+	map["HEAD"] 	= &Router::handleHEADMethod;
+	map["POST"] 	= &Router::handlePOSTMethod;
+	map["PUT"]		= &Router::handlePUTMethod;
+	map["DELETE"]	= &Router::handleDELETEMethod;
+	map["TRACE"]	= &Router::handleTRACEMethod;
 	return (map);
 }
 
@@ -58,7 +59,7 @@ void	Router::allowMethod(const std::string method)
 	if (this->isValidMethod(method))
 		this->_allowed_methods.push_back(method);
 	else
-		std::cerr << B_RED"router error: Invalid method found. No such `" << method << "`" << RESET << std::endl;
+		Logger::error("router error: Invalid method found. No such `" + method + "`");
 }
 
 void	Router::allowMethod(const std::vector<std::string> method)
@@ -80,9 +81,9 @@ void	Router::setRoot(const std::string path)
 	 * directive sera écrasée.
 	 */
 	if (this->_root.isAlias && this->_root.set) {
-		std::cout << B_YELLOW"router info: Aliasing is already enbaled for this router." << RESET << std::endl;
+		Logger::info("router info: Aliasing is already enbaled for this router.");
 	} else if (this->_root.set) {
-		std::cout << B_YELLOW"router info: Root is already set, abording." << RESET << std::endl;
+		Logger::info("router info: Root is already set, abording.");
 	} else if (!isDirectory(path)) {
 		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
 	} else {
@@ -104,12 +105,12 @@ void	Router::setAlias(const std::string path)
 	 * précédemment cette dernière sera écrasée.
 	 */
 	if (!this->_root.isAlias && this->_root.set) {
-		std::cout << B_YELLOW"router info: Alias is already set, abording." << RESET << std::endl;
+		Logger::info("router info: Root is already set, abording.");
 	} else if (!isDirectory(path)) {
 		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
 	} else {
 		if (this->_root.set)
-			std::cout << B_YELLOW"router info: Overriding `root` directive." << RESET << std::endl;
+			Logger::info("router info: Overriding `root` directive.");
 		this->_root.path = path;
 		this->_root.isAlias = true;
 	}
@@ -151,12 +152,10 @@ void	Router::addIndex(const std::string index)
 void	Router::setErrorPage(const int code, const std::string path)
 {
 	if (this->_error_page.count(code)) {
-		std::cout << B_YELLOW"router info: overriding previous error page for " << code << RESET << std::endl;
+		Logger::info("router info: overriding previous error page for " + toString<int>(code));
 	}
 	this->_error_page[code] = path;
-	std::cout << "error page: " << this->_error_page[code] << std::endl;
 	checkLeadingTrailingSlash(this->_error_page[code]);
-	std::cout << "normalized error page: " << this->_error_page[code] << std::endl;
 }
 
 std::map<int, std::string>	Router::getErrorPage(void) const
@@ -171,12 +170,12 @@ void	Router::route(Request &request, Response &response)
 		{
 			if (this->_error_page.count(response.getStatus())) {
 				std::string fullpath = this->_root.path + this->_error_page[response.getStatus()];
-				std::cout << "router full path: " << fullpath << std::endl;
+				Logger::debug("router full path: " + fullpath);
 				response.sendFile(fullpath);
 			}
 			else if (this->_server.hasErrorPage(response.getStatus())) {
 				std::string fullpath = this->_server.getDefaultHandler().getLocalFilePath(this->_server.getErrorPage(response.getStatus()));
-				std::cout << "server default full path: " << fullpath << std::endl;
+				Logger::debug("server default full path: " + fullpath);
 				response.sendFile(fullpath);
 			}
 		}
@@ -203,7 +202,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 * On compare le chemin du router et celui de la requête.
 	 * Pour le moment toutes les requête sont considérées comme GET.
 	 */
-	std::cout << "check route for " << request.getPath() << std::endl;
+	// std::cout << "check route for " << request.getPath() << std::endl;
 	if (this->matchRoute(request.getPath(), response))
 	{
 		if (this->_allowed_methods.size() && !contains(this->_allowed_methods, request.getMethod()))
@@ -218,7 +217,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		 * return.
 		 */
 		if (this->_redirection.enabled) {
-			std::cout << "redirect to: " << this->_redirection.path << std::endl;
+			// std::cout << "redirect to: " << this->_redirection.path << std::endl;
 			response.redirect(this->_redirection.path, this->_redirection.status).end();
 			return (true);
 		}
@@ -230,14 +229,15 @@ bool	Router::handleRoutes(Request &request, Response &response)
 
 void	Router::handleGETMethod(Request &request, Response &response)
 {
-	std::cout << "<------------" << B_BLUE << "GET" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	std::cout << "requestPath " << request.getPath() << std::endl;
+	Logger::debug("<------------ "B_BLUE"GET"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("requestPath: " + request.getPath());
+
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
 		response.status(500).end();
 		return ;
 	}
-	std::cout << "full path: " << fullpath << std::endl;
+	Logger::debug("full path: " + fullpath);
 
 	if (isDirectory(fullpath)) {
 		std::string file_p = fullpath + "/"; 
@@ -251,7 +251,6 @@ void	Router::handleGETMethod(Request &request, Response &response)
 		if (isFile(file_p)) {
 			response.sendFile(file_p);	
 		} else {
-			std::cerr << "cannot get " << fullpath << std::endl;
 			if (this->_autoindex) {
 				response.setHeader("Content-Type", "text/html; charset=utf-8");
 				response.send(this->getDirList(fullpath, request.getPath()));
@@ -268,22 +267,22 @@ void	Router::handleGETMethod(Request &request, Response &response)
 
 void	Router::handleHEADMethod(Request &request, Response &response)
 {
-	std::cout << "<------------" << B_BLUE << "HEAD" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
+	Logger::debug("<------------ "B_BLUE"HEAD"B_GREEN" handler"RESET" ------------>");
 	this->handleGETMethod(request, response);
 	response.clearBody();
 }
 
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
-	/**
-	 * TODO:
-	 * Send all the needed headers
-	 */
-	std::cout << "<------------" << B_BLUE << "POST" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	std::cout << "post request: " << request.getBody() << std::endl;
+	Logger::debug("<------------ "B_BLUE"POST"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("post request: " + request.getBody());
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
-	std::cout << "full path: " << fullpath << std::endl;
+	if (!fullpath.size()) {
+		response.status(500).end();
+		return ;
+	}
+	Logger::debug("full path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (appendFile(fullpath, request.getBody())) {
@@ -306,15 +305,15 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 
 void	Router::handlePUTMethod(Request &request, Response &response)
 {
-	/**
-	 * TODO:
-	 * Send all the needed headers
-	 */
-	std::cout << "<------------" << B_BLUE << "PUT" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	std::cout << "put request: " << request.getBody() << std::endl;
+	Logger::debug("<------------ "B_BLUE"PUT"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("put request: " + request.getBody());
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
-	std::cout << "full path: " << fullpath << std::endl;
+	if (!fullpath.size()) {
+		response.status(500).end();
+		return ;
+	}
+	Logger::debug("full path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
@@ -325,7 +324,7 @@ void	Router::handlePUTMethod(Request &request, Response &response)
 			response.status(500);
 			return ;
 		}
-		response.status(200);
+		response.status(204);
 	} else {
 		if (isDirectory(fullpath)) {
 			response.status(409);
@@ -341,18 +340,21 @@ void	Router::handlePUTMethod(Request &request, Response &response)
 
 void	Router::handleDELETEMethod(Request &request, Response &response)
 {
-	std::cout << "<------------" << B_BLUE << "DELETE" << B_GREEN << " handler" << RESET << "------------>" << std::endl;
-	std::cout << "delete request: " << request.getBody() << std::endl;
+	Logger::debug("<------------ "B_BLUE"DELETE"B_GREEN" handler"RESET" ------------>");
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
-	std::cout << "full path: " << fullpath << std::endl;
+	if (!fullpath.size()) {
+		response.status(500).end();
+		return ;
+	}
+	Logger::debug("full path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
 			response.status(500);
 			return ;
 		}
-		response.status(200);
+		response.status(204);
 	} else {
 		if (isDirectory(fullpath)) {
 			response.status(409);
@@ -360,6 +362,18 @@ void	Router::handleDELETEMethod(Request &request, Response &response)
 			response.status(404);
 		}
 	}
+}
+
+void	Router::handleTRACEMethod(Request &request, Response &response)
+{
+	Logger::debug("<------------ "B_BLUE"TRACE"B_GREEN" handler"RESET" ------------>");
+	
+	std::string res = request.getMethod() + " " + request.getPath() + " " + request.getVersion() + "\r\n";
+	t_mapss headers = request.getHeaders();
+	for (t_mapss::const_iterator it = headers.begin(); it != headers.end(); it++) {
+		res += it->first + ": " + it->second + "\r\n";
+	}
+	response.status(200).send(res).end();
 }
 
 bool	Router::isValidMethod(const std::string method) const
@@ -390,13 +404,13 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 		regexPattern += ".*";
 	}
 
-	std::cout << "location pattern: " << regexPattern << std::endl;
+	Logger::debug("location pattern: " + regexPattern);
 
 	// Compiler l'expression régulière
 	result = regcomp(&regex, regexPattern.c_str(), flags);
 
 	if (result != 0) {
-		std::cerr << "Regex compilation failed" << std::endl;
+		Logger::error("Regex compilation failed");
 		response.status(500).end();
 		return (false);
 	}
@@ -434,7 +448,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		// Compiler l'expression régulière du modificateur
 		result = regcomp(&regex, this->_location.path.c_str(), flags);
 		if (result != 0) {
-			std::cerr << "Regex compilation failed" << std::endl;
+			Logger::error("Regex compilation failed");
 			return ("");
 		}
 

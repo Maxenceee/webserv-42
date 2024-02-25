@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 23:01:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 16:56:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,22 @@ int	main(int argc, char const **argv)
 	print_name();
 	if (argc != 2)
 	{
-		std::cerr << W_PREFIX"Invalid usage" << std::endl;
-		std::cout << W_PREFIX"usage: [configuration file]" << RESET << std::endl;
-		return (EXIT_FAILURE);
+		/**
+		 * TODO:
+		 * Faire un meilleur parser d'arguments
+		 */
+		if (argc == 3) {
+			if (std::string(argv[1]) == "-d") {
+				Logger::_debug = true;
+				argv[1] = argv[2];
+			} else if (std::string(argv[2]) == "-d") {
+				Logger::_debug = true;
+			}
+		} else {
+			Logger::error(W_PREFIX"Invalid usage", RESET);
+			Logger::error(W_PREFIX"usage: [configuration file]", RESET);
+			return (EXIT_FAILURE);
+		}
 	}
 	try
 	{
@@ -51,7 +64,7 @@ int	main(int argc, char const **argv)
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << B_RED << W_PREFIX << RESET << e.what() << std::endl;
+		Logger::error(e.what());
 		return (1);
 	}
 	return (0);

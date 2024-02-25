@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 19:52:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 17:05:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,6 +156,19 @@ std::string	getIPAddress(int addr)
 	res += toString((addr & 0xFF00) >> 8);
 	res += ".";
 	res += toString(addr & 0xFF);
+	return (res);
+}
+
+uint32_t	setIPAddress(std::string addr)
+{
+	std::vector<std::string>	tokens = split(addr, '.');
+	uint32_t					res = 0;
+	if (tokens.size() != 4)
+		return (0);
+	res |= (std::atoi(tokens[0].c_str()) << 24);
+	res |= (std::atoi(tokens[1].c_str()) << 16);
+	res |= (std::atoi(tokens[2].c_str()) << 8);
+	res |= std::atoi(tokens[3].c_str());
 	return (res);
 }
 

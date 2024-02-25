@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 23:36:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/25 16:36:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,13 +43,15 @@ int		isFile(const std::string &path)
 	return (0);
 }
 
-bool	isDirectory(const std::string &path, const bool throwError)
+bool	isDirectory(const std::string &path)
 {
 	struct stat pathStat;
 
 	if (stat(path.c_str(), &pathStat) != 0) {
-		if (throwError)
-			perror("stat");
+		if (errno == ENOENT)
+			Logger::debug("No such file or directory");
+		else
+			Logger::error(strerror(errno));
 		return (false);
 	}
 	return S_ISDIR(pathStat.st_mode);
@@ -96,6 +98,23 @@ void	listDirContent(const std::string dirpath)
 		std::cout << it->first << " -> " << it->second << std::endl;
 }
 
+std::string	getLastModifiedDate(const std::string filepath)
+{
+	struct stat fileStat;
+	std::string res;
+	
+	if (stat(filepath.c_str(), &fileStat) == -1) {
+		Logger::error("Error: could not get file information");
+		return res;
+	}
+
+	struct tm* timeInfo = gmtime(&fileStat.st_mtime);
+	char buffer[80];
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeInfo);
+	res = buffer;
+	return (res);
+}
+
 int	createFile(const std::string &path, const std::string &content)
 {
 	std::ofstream file;
@@ -103,7 +122,7 @@ int	createFile(const std::string &path, const std::string &content)
 	file.open(path.c_str());
 	if (!file.is_open())
 	{
-		std::cerr << "Error: could not open file " << path << std::endl;
+		Logger::error("Error: could not open file " + path);
 		return (W_ERR);
 	}
 	file << content;
@@ -118,7 +137,7 @@ int	appendFile(const std::string &path, const std::string &content)
 	file.open(path.c_str(), std::ios::app);
 	if (!file.is_open())
 	{
-		std::cerr << "Error: could not open file " << path << std::endl;
+		Logger::error("Error: could not open file " + path);
 		return (W_ERR);
 	}
 	file << content;
@@ -130,7 +149,7 @@ int	deleteFile(const std::string &path)
 {
 	if (remove(path.c_str()) != 0)
 	{
-		std::cerr << "Error: could not delete file " << path << std::endl;
+		Logger::error("Error: could not delete file " + path);
 		return (W_ERR);
 	}
 	return (W_NOERR);
