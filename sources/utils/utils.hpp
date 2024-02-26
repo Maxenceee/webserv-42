@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 17:05:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 13:46:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <map>
+#include <ctime>
 
 #include "logger/Logger.hpp"
 
@@ -67,8 +68,12 @@ int	createFile(const std::string &path, const std::string &content);
 int	appendFile(const std::string &path, const std::string &content);
 int	deleteFile(const std::string &path);
 
-// URIs
+/* URIs */
 
 std::string	decodeURIComponent(std::string encoded);
+
+/* time */
+
+double	getTimestamp();
 
 #include "list.tpp"
