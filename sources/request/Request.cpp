@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 16:34:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 13:26:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _socket(socket), _clientAddr(clientAddr), _status(200), _host(""), _body(""), _port(80)
 {
+	this->request_time = getTimestamp();
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
 	this->parse();
 }

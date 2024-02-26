@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 13:26:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@ private:
 	const sockaddr_in			_clientAddr;
 	std::string					_ip;
 
+	long long					request_time;
+
 	int		parse(void);
 	int		getRequestLine(const std::string &str, size_t &i);
 	int		getRequestPath(const std::string &str);
@@ -68,6 +70,7 @@ public:
 	const int				getClientSocket(void) const;
 	const sockaddr_in		getClientAddr(void) const;
 	const std::string		getIP(void) const;
+	const time_t			getRequestTime(void) const;
 };
 
 std::ostream	&operator<<(std::ostream &os, const Request &req);
