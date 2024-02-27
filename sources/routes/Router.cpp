@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:02:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 11:43:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Server &server, ServerConfig &config, const struct s_Router_Location location, const std::string parent_root): _server(server), _config(config), _location(location), _autoindex(false)
+Router::Router(ServerConfig &config, const struct s_Router_Location location, const std::string parent_root): _config(config), _location(location), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
@@ -56,7 +56,7 @@ void	Router::allowMethod(const std::string method)
 	 * Router::allowMethod() indique au router qu'elle méthode HTTP il doit servir. Si aucune méthode
 	 * n'est spécifiée le router les accepte toutes.
 	 */
-	if (this->isValidMethod(method))
+	if (Server::isValidMethod(method))
 		this->_allowed_methods.push_back(method);
 	else
 		Logger::error("router error: Invalid method found. No such `" + method + "`");
@@ -190,7 +190,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 * Dans un premier temps on s'assure que la méthode de la requête est autorisé
 	 * sur le router.
 	 */
-	if (!this->isValidMethod(request.getMethod()) && this->_allowed_methods.size())
+	if (!Server::isValidMethod(request.getMethod()) && this->_allowed_methods.size())
 		return (false);
 	/**
 	 * Avant de faire quelque logique que ce soit on s'assure que la réponse n'a pas déjà été
@@ -374,11 +374,6 @@ void	Router::handleTRACEMethod(Request &request, Response &response)
 		res += it->first + ": " + it->second + "\r\n";
 	}
 	response.status(200).send(res).end();
-}
-
-bool	Router::isValidMethod(const std::string method) const
-{
-	return (contains(this->_server.getMethods(), method));
 }
 
 bool Router::matchRoute(const std::string& route, Response &response) const

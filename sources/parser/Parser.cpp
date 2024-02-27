@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:46:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 11:58:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ void	Parser::parse(const char *configPath)
 		throw std::invalid_argument(PARSER_ERR);
 	this->open_and_read_file(configPath);
 	this->extract(this->buffer);
+	this->cluster.initConfigs(this->configs);
 }
 
 void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedLine, std::string &parent, int &countOfParents)
@@ -155,7 +156,8 @@ void	Parser::switchConfigDirectives(const std::string key, const std::string val
 	if (!this->new_server && key != "server")
 		this->throwError(key, val, raw_line);
 	else if (key == "server") {
-		this->new_server = this->cluster.newServer();
+		this->new_server = new ServerConfig();
+		this->configs.push_back(this->new_server);
 		this->tmp_router = &this->new_server->getDefaultHandler();
 	}
 	else if (key == "location")
@@ -218,7 +220,8 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "server_name" && parent != "server")
 		this->throwError(key, val);
 	else if (key == "server_name") {
-		this->new_server->setName(val);
+		std::vector<std::string> names = split(val, ' ');
+		this->new_server->setNames(names);
 		return ;
 	}
 

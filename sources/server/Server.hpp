@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:43:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 12:27:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ private:
 	struct sockaddr_in			socket_addr;
 	fd_set						_fd_set;
 
-	std::vector<ServerConfig*>	_configs;
+	std::vector<ServerConfig *>	_configs;
 
 	// les comportements par default du serveur sont stocké dans un router spécifique
 	// Router						*_default;
@@ -48,7 +48,7 @@ private:
 	// void		handleRoutes(Request &req, Response &res);
 
 public:
-	Server(int id, uint16_t port = 0);
+	Server(int id, uint16_t port = 80);
 	~Server(void);
 
 	const int	init(void);
@@ -57,14 +57,7 @@ public:
 	const bool		isInit(void) const;
 	const int		getSocketFD(void) const;
 
-	// ServerConfig	*newConfig(std::string name = "");
-	// bool			hasConfigFor(std::string name) const;
-
-	void			setAddress(const std::string address);
-	void			setAddress(const uint32_t address);
-	const uint32_t	getAddress(void) const;
-
-	void			setPort(const uint16_t port);
+	void			*addConfig(ServerConfig *config);
 	const uint16_t	getPort(void) const;
 	
 	const std::vector<std::string>	getMethods(void) const;
@@ -73,6 +66,8 @@ public:
 	
 	void		printResponse(const Request &req, const Response &res) const;
 	void		print(std::ostream &os) const;
+
+	static bool	isValidMethod(const std::string method);
 
 	class ServerPortInUse : public std::exception
 	{

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:08:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 11:43:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ struct s_Router_Location {
 class Router
 {
 private:
-	Server							&_server;
 	ServerConfig					&_config;
 	bool							_autoindex;
 	struct s_Router_Location		_location;
@@ -74,7 +73,7 @@ private:
 	bool	matchRoute(const std::string &route, Response &response) const;
 
 public:
-	Router(Server &server, ServerConfig &_config, const struct s_Router_Location location, const std::string parent_root = "/");
+	Router(ServerConfig &_config, const struct s_Router_Location location, const std::string parent_root = "/");
 	~Router(void);
 
 	void	route(Request &request, Response &response);
@@ -97,8 +96,6 @@ public:
 
 	void						setErrorPage(const int code, const std::string path);
 	std::map<int, std::string>	getErrorPage(void) const;
-
-	bool	isValidMethod(const std::string method) const;
 
 	void	print(std::ostream &os) const;
 };
