@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:06:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/01/05 12:32:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 15:16:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,4 +33,18 @@ T	&shift(T &container)
 		container.erase(it);
 	}
 	return (container);
+}
+
+template <typename T>
+std::string	toStringl(T &container, std::string separator)
+{
+	std::string str;
+
+	for (typename T::const_iterator it = container.begin(); it != container.end(); it++)
+	{
+		str += *it;
+		if (it + 1 != container.end())
+			str += separator;
+	}
+	return (str);
 }

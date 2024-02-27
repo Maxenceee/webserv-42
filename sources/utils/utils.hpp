@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 13:46:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 15:10:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,9 @@ T	&pop(T &container);
 
 template <typename T>
 T	&shift(T &container);
+
+template <typename T>
+std::string	toStringl(T &container, std::string separator = " ");
 
 /* fs */
 

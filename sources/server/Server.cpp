@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 13:47:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 15:53:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,16 +25,12 @@ std::vector<std::string>	Server::methods = Server::initMethods();
 
 Server::Server(int id, uint16_t port): _id(id), port(port)
 {
-	this->_default = new Router(*this, (struct s_Router_Location){.path = "/"});
 	this->_init = false;
-	this->_server_name = "";
 	this->address = 0;
-	// this->_started = false;
 }
 
 Server::~Server(void)
 {
-	delete this->_default;
 }
 
 std::vector<std::string>	Server::initMethods()
@@ -183,6 +179,12 @@ const int	Server::init(void)
 	}
 	this->_init = true;
 	return (W_NOERR);
+	
+}
+
+void	Server::kill(void)
+{
+	close(this->socket_fd);
 }
 
 const bool		Server::isInit(void) const
@@ -195,15 +197,26 @@ const int		Server::getSocketFD(void) const
 	return (this->socket_fd);
 }
 
-void	Server::kill(void)
-{
-	close(this->socket_fd);
-}
+// ServerConfig	*Server::newConfig(std::string name)
+// {
+// 	ServerConfig	*config;
 
-void	Server::use(Router *router)
-{
-	this->_routes.push_back(router);
-}
+// 	if (name.empty())
+// 		config = new ServerConfig(*this);
+// 	else
+// 		config = new ServerConfig(*this, name);
+// 	this->_configs.push_back(config);
+// 	return (config);
+// }
+
+// bool	Server::hasConfigFor(std::string name) const
+// {
+// 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+// 		if (contains((*it)->getName(), name))
+// 			return (true);
+// 	}
+// 	return (false);
+// }
 
 void	Server::setAddress(const std::string address)
 {
@@ -239,34 +252,9 @@ const uint16_t	Server::getPort(void) const
 	return (this->port);
 }
 
-void	Server::setName(const std::string name)
-{
-	this->_server_name = name;
-}
-
-const std::string	Server::getName(void) const
-{
-	return (this->_server_name);
-}
-
 const std::vector<std::string>	Server::getMethods(void) const
 {
 	return (this->methods);
-}
-
-Router	&Server::getDefaultHandler(void)
-{
-	return (*this->_default);
-}
-
-const bool			Server::hasErrorPage(const int code) const
-{
-	return (this->_default->getErrorPage().count(code) > 0);
-}
-
-const std::string	Server::getErrorPage(const int code) const
-{
-	return (this->_default->getErrorPage().at(code));
 }
 
 // std::stringstream &readMultipart(const int client, std::stringstream &stream)
@@ -357,29 +345,26 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	if (Logger::_debug)
 		std::cout << request << std::endl;
 	Response response = Response(*this, request.getClientSocket(), request);
-	this->handleRoutes(request, response);
+
+	/**
+	 * On cherche la configuration du serveur correspondant au nom de domaine de la requête.
+	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
+	 * la configuration par défaut.
+	 */
+	ServerConfig *clientConfig = *this->_configs.begin();
+	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+		if (contains((*it)->getName(), request.getHost())) {
+			clientConfig = *it;
+			break;
+		}
+	}
+	clientConfig->handleRoutes(request, response);
+
 	if (Logger::_debug)
 		std::cout << response << std::endl;
 	this->printResponse(request, response);
 	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
 	close(client);
-}
-
-void	Server::handleRoutes(Request &req, Response &res)
-{
-	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
-		(*it)->route(req, res);
-		if (!res.canSend())
-			break;
-	}
-	/**
-	 * Dans le cas où la route demandée n'a pu être géré par aucun des routers du serveur,
-	 * on renvoie la réponse par defaut. (Error 404, Not Found)
-	 */
-	if (res.canSend())
-	{
-		res.sendNotFound().end();
-	}
 }
 
 void	Server::printResponse(const Request &req, const Response &res) const
@@ -432,13 +417,10 @@ void	Server::print(std::ostream &os) const
 {
 	os << B_BLUE << "<--- Server " << this->_id << " --->" << RESET << "\n";
 	os << B_CYAN << "Initiated: " << RESET << (this->_init ? "true" : "false") << "\n";
-	os << B_CYAN << "Name: " << RESET << this->_server_name << "\n";
 	os << B_CYAN << "Address: " << RESET << getIPAddress(this->address) << "\n";
 	os << B_CYAN << "Port: " << RESET << this->port << "\n";
-	os << B_ORANGE << "Default router: " << RESET << "\n";
-	os << *this->_default;
-	os << B_ORANGE << "Routers: " << RESET << "\n";
-	for (std::vector<Router *>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
-		os << **it;
+	os << B_ORANGE << "Configurations: " << RESET << "\n";
+	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+		os << *it;
 	}
 }
