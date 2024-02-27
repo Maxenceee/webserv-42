@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:05:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 16:05:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@ struct s_Router_Location {
 	std::string		path;
 	std::string		modifier;
 	bool			strict;
+
+	s_Router_Location() : path("/"), modifier(""),  strict(false) {}
 };
 
 class Router

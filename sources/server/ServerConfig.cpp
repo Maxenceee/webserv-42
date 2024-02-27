@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:45:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 16:04:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ std::ostream	&operator<<(std::ostream &os, const ServerConfig &config)
 
 ServerConfig::ServerConfig(Server *server): _server(server)
 {
-	this->_default = new Router(*this, (struct s_Router_Location){.path = "/"});
+	this->_default = new Router(*this, s_Router_Location());
 	this->port = 80;
 	this->address = 0;
 }

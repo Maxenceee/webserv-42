@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 14:54:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:57:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ Server::Server(int id, uint16_t port, uint32_t address): _id(id), port(port), _a
 
 Server::~Server(void)
 {
+	for (std::vector<ServerConfig *>::iterator it = this->_configs.begin(); it != this->_configs.end(); it++)
+		delete *it;
 }
 
 std::vector<std::string>	Server::initMethods()
