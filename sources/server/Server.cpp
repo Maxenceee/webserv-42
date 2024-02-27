@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:53:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 12:24:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,54 +197,10 @@ const int		Server::getSocketFD(void) const
 	return (this->socket_fd);
 }
 
-// ServerConfig	*Server::newConfig(std::string name)
-// {
-// 	ServerConfig	*config;
-
-// 	if (name.empty())
-// 		config = new ServerConfig(*this);
-// 	else
-// 		config = new ServerConfig(*this, name);
-// 	this->_configs.push_back(config);
-// 	return (config);
-// }
-
-// bool	Server::hasConfigFor(std::string name) const
-// {
-// 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-// 		if (contains((*it)->getName(), name))
-// 			return (true);
-// 	}
-// 	return (false);
-// }
-
-void	Server::setAddress(const std::string address)
+void	*Server::addConfig(ServerConfig *config)
 {
-	if (!this->_init)
-		this->address = setIPAddress(address);
-	else
-		Logger::error("server error: could not set address after server startup");
-}
-
-void	Server::setAddress(const uint32_t address)
-{
-	if (!this->_init)
-		this->address = address;
-	else
-		Logger::error("server error: could not set address after server startup");
-}
-
-const uint32_t	Server::getAddress(void) const
-{
-	return (this->address);
-}
-
-void	Server::setPort(const uint16_t port)
-{
-	if (!this->_init)
-		this->port = port;
-	else
-		Logger::error("server error: could not set port after server startup");
+	this->_configs.push_back(config);
+	return (config);
 }
 
 const uint16_t	Server::getPort(void) const
@@ -353,7 +309,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	 */
 	ServerConfig *clientConfig = *this->_configs.begin();
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-		if (contains((*it)->getName(), request.getHost())) {
+		if ((*it)->evalName(request.getHost(), request.getPort())) {
 			clientConfig = *it;
 			break;
 		}
@@ -395,6 +351,11 @@ void	Server::printResponse(const Request &req, const Response &res) const
 	Logger::print(response);
 }
 
+bool	Server::isValidMethod(const std::string method)
+{
+	return (contains(Server::methods, method));
+}
+
 const char	*Server::ServerInvalidPort::what() const throw()
 {
 	return (B_RED"server error: could not start server: port not set"RESET);
@@ -421,6 +382,6 @@ void	Server::print(std::ostream &os) const
 	os << B_CYAN << "Port: " << RESET << this->port << "\n";
 	os << B_ORANGE << "Configurations: " << RESET << "\n";
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-		os << *it;
+		os << **it;
 	}
 }

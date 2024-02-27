@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 16:06:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 11:57:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "webserv.hpp"
 #include "parser/Parser.hpp"
 #include "server/Server.hpp"
+#include "server/ServerConfig.hpp"
 
 class Parser;
 
@@ -26,7 +27,6 @@ class Cluster
 private:
 	Parser					*parser;
 	std::vector<Server*>	_servers;
-	// std::map<int, Server*>	_servers;
 
 public:
 	Cluster(const char *configPath);
@@ -36,7 +36,8 @@ public:
 
 	const int	start(void);
 
-	Server	*newServer(void);
+	void	initConfigs(std::vector<ServerConfig *> configs);
+	Server	*addConfig(ServerConfig *config);
 };
 
 #endif /* CLUSTER_HPP */

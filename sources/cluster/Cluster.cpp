@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:46:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 11:57:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,9 +41,27 @@ Cluster::~Cluster()
 	delete this->parser;
 }
 
-Server	*Cluster::newServer(void)
+void	Cluster::initConfigs(std::vector<ServerConfig *> configs)
 {
-	Server	*server = new Server(this->_servers.size() + 1);
+	for (std::vector<ServerConfig *>::iterator it = configs.begin(); it != configs.end(); it++)
+	{
+		this->addConfig(*it);
+	}
+}
+
+Server	*Cluster::addConfig(ServerConfig *config)
+{
+	v_servers::iterator it;
+	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
+	{
+		if ((*it)->getPort() == config->getPort())
+		{
+			(*it)->addConfig(config);
+			return (*it);
+		}
+	}
+	Server *server = new Server(this->_servers.size() + 1, config->getPort());
+	server->addConfig(config);
 	this->_servers.push_back(server);
 	return (server);
 }
