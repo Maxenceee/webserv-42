@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:11:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:37:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ void	Router::setRoot(const std::string path)
 		this->_root.path = path;
 		this->_root.isAlias = false;
 	}
-	// listDirContent(path);
 }
 
 void	Router::setAlias(const std::string path)
@@ -102,8 +101,8 @@ void	Router::setAlias(const std::string path)
 	/**
 	 * Permet de définir la directive `alias` pour ce router. Contrairement à `root`,
 	 * la directive `alias` remplace le segment de l'URL correspondant par le chemin spécifié.
-	 * (ex: router = /images, request = /images/photo.jpg, alias = ./public/images, chemin final => ./public/images/photo.jpg)
-	 * (dans ce cas root aurait donné: router = /images, request = /images/photo.jpg, root = ./public/images, chemin final => ./public/images/images/photo.jpg)
+	 * (ex: router = /images, request = /images/photo.jpg, alias = ./public/photos, chemin final => ./public/photos/photo.jpg)
+	 * (dans ce cas root aurait donné: router = /images, request = /images/photo.jpg, root = ./public/photos, chemin final => ./public/photos/images/photo.jpg)
 	 * 
 	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `root` a été définie
 	 * précédemment cette dernière sera écrasée.
@@ -118,7 +117,6 @@ void	Router::setAlias(const std::string path)
 		this->_root.path = path;
 		this->_root.isAlias = true;
 	}
-	// listDirContent(path);
 }
 
 const std::string	Router::getRoot(void) const
