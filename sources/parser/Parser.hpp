@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 16:06:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 15:44:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "webserv.hpp"
 #include "cluster/Cluster.hpp"
 #include "server/Server.hpp"
+#include "server/ServerConfig.hpp"
 #include "routes/Router.hpp"
 #include "logger/Logger.hpp"
 
@@ -29,8 +30,10 @@ private:
 	std::fstream	file;
 	std::string		buffer;
 
-	Server	*new_server;
-	Router	*tmp_router;
+	ServerConfig	*new_server;
+	Router			*tmp_router;
+
+	std::vector<ServerConfig *>	configs;
 	
 	int		open_and_read_file(const char *file_name);
 

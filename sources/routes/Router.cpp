@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 16:50:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 15:02:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Server &server, const struct s_Router_Location location, const std::string parent_root): _server(server), _location(location), _autoindex(false)
+Router::Router(Server &server, ServerConfig &config, const struct s_Router_Location location, const std::string parent_root): _server(server), _config(config), _location(location), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
@@ -173,8 +173,8 @@ void	Router::route(Request &request, Response &response)
 				Logger::debug("router full path: " + fullpath);
 				response.sendFile(fullpath);
 			}
-			else if (this->_server.hasErrorPage(response.getStatus())) {
-				std::string fullpath = this->_server.getDefaultHandler().getLocalFilePath(this->_server.getErrorPage(response.getStatus()));
+			else if (this->_config.hasErrorPage(response.getStatus())) {
+				std::string fullpath = this->_config.getDefaultHandler().getLocalFilePath(this->_config.getErrorPage(response.getStatus()));
 				Logger::debug("server default full path: " + fullpath);
 				response.sendFile(fullpath);
 			}

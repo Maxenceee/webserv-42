@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 16:07:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 15:08:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,14 @@
 
 #include "webserv.hpp"
 #include "server/Server.hpp"
+#include "server/ServerConfig.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
 
 class Server;
 class Request;
 class Response;
+class ServerConfig;
 
 struct s_Router_Root {
 	bool			set;
@@ -44,6 +46,7 @@ class Router
 {
 private:
 	Server							&_server;
+	ServerConfig					&_config;
 	bool							_autoindex;
 	struct s_Router_Location		_location;
 	struct s_Router_Root			_root;
@@ -71,7 +74,7 @@ private:
 	bool	matchRoute(const std::string &route, Response &response) const;
 
 public:
-	Router(Server &server, const struct s_Router_Location location, const std::string parent_root = "/");
+	Router(Server &server, ServerConfig &_config, const struct s_Router_Location location, const std::string parent_root = "/");
 	~Router(void);
 
 	void	route(Request &request, Response &response);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 17:05:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/26 15:09:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <iterator>
 
 template <typename T>
-std::string toString(T val)
+std::string	toString(T val)
 {
 	std::stringstream stream;
 	stream << val;
