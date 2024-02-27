@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:25:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 16:01:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -416,10 +416,10 @@ void	Router::handleTRACEMethod(Request &request, Response &response)
 bool Router::matchRoute(const std::string& route, Response &response) const
 {
 	regex_t	regex;
-	int		result;
+	int		result = 0;
 	int		flags = REG_EXTENDED;
 
-	std::string regexPattern;
+	std::string regexPattern = "";
 	// Construire l'expression régulière en fonction du chemin de localisation et du modificateur
 	if (this->_location.modifier == "=") {
 		regexPattern = "^" + this->_location.path + "$"; // Exact Match
