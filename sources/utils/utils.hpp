@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:21:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 20:46:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,8 @@ uint32_t					setIPAddress(std::string addr);
 
 int							parseSize(std::string size);
 std::string					getSize(int size);
+
+bool						isDigit(const std::string &str);
 
 /* list */
 

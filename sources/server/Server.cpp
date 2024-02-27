@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:57:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:25:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ std::vector<std::string>	Server::methods = Server::initMethods();
 
 Server::Server(int id, uint16_t port, uint32_t address): _id(id), port(port), _address(address)
 {
+	this->_default = NULL;
 	this->_init = false;
 }
 
@@ -94,7 +95,7 @@ const int	Server::init(void)
 		throw Server::ServerInvalidPort();
 
 	FD_ZERO(&this->_fd_set); // reset la liste de fildes
-	std::cout << B_GREEN"Initiating server " << this->_id << RESET << std::endl;
+	Logger::print("Initiating server " + toString<int>(this->_id), B_GREEN);
 	/**
 	 * La fonction socket() permet de créer un point de terminaison (end-point) pour
 	 * la communication réseau. 
@@ -180,7 +181,6 @@ const int	Server::init(void)
 	}
 	this->_init = true;
 	return (W_NOERR);
-	
 }
 
 void	Server::kill(void)
@@ -198,10 +198,22 @@ const int		Server::getSocketFD(void) const
 	return (this->socket_fd);
 }
 
-void	*Server::addConfig(ServerConfig *config)
+void	Server::addConfig(ServerConfig *config)
 {
+	if (!this->_default) {
+		this->_default = config;
+	} else if (config->evalName("_") && !this->_default->evalName("_")) {
+		this->_default = config;
+	} else if (config->evalName("_") && this->_default->evalName("_")) {
+		Logger::warning("server warning: multiple default configurations, only the first one will be used.");
+	}
+	config->setServer(this);
 	this->_configs.push_back(config);
-	return (config);
+}
+
+ServerConfig	*Server::getDefault(void) const
+{
+	return (this->_default);
 }
 
 const uint32_t	Server::getAddress(void) const
@@ -313,7 +325,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
 	 * la configuration par défaut.
 	 */
-	ServerConfig *clientConfig = *this->_configs.begin();
+	ServerConfig *clientConfig = this->_default;
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
 		if ((*it)->evalName(request.getHost(), request.getPort())) {
 			clientConfig = *it;

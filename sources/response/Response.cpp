@@ -6,14 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/25 17:25:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:21:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 #include "MIMEType.hpp"
 
-std::map<int, std::string>	Response::_res_codes = Response::initCodes();
+std::map<int, std::string>	Response::http_codes = Response::initCodes();
 
 Response::Response(const Server &server, int socket, const Request &req): _server(server), _sent(false)
 {
@@ -219,6 +219,17 @@ Response	&Response::end()
 const std::string	Response::prepareResponse(void)
 {
 	std::string	res;
+
+	/**
+	 * Pour éviter les mauvaises surprises, on vérifie que le code de statut
+	 * de la réponse est bien un code de statut HTTP valide.
+	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-6)
+	 */
+	if (!this->http_codes.count(this->_status))
+	{
+		Logger::error("Response error: invalid status code");
+		this->_status = 500;
+	}
 
 	/**
 	 * La norme RFC impose que chaque réponse HTTP suive un modèle strict.

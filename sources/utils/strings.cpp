@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:21:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 20:48:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,4 +223,9 @@ std::string	getSize(int size)
 	else
 		ret = toString(size / (1024 * 1024 * 1024)) + "GB";
 	return (ret);
+}
+
+bool isDigit(const std::string &str)
+{
+	return std::all_of(str.begin(), str.end(), ::isdigit);
 }

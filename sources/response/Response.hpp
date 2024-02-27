@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:21:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ private:
 	t_mapss				_cookie;
 	std::string			_body;
 	
-	static std::map<int, std::string>		_res_codes;
 	static std::map<int, std::string>		initCodes();
 	
 	const std::string	prepareResponse(void);
@@ -53,6 +52,8 @@ private:
 public:
 	Response(const Server &server, int socket, const Request &req);
 	~Response(void);
+
+	static std::map<int, std::string>		http_codes;
 
 	Response		&status(const int code);
 	Response		&send(const std::string data);

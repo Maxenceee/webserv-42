@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 18:19:44 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/24 15:56:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:21:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ const int			Response::getStatus(void) const
 
 const std::string	Response::getSatusName(void) const
 {
-	return (this->_res_codes[this->_status]);
+	return (this->http_codes[this->_status]);
 }
 
 const t_mapss	Response::getHeaders(void) const
