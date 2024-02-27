@@ -78,3 +78,5 @@ Ajouter le parser pour le fichier config :
 - autoindex (on/off) ✅
 - error_page ✅
 - client body max size ✅
+
+Gere les CGI !!!
