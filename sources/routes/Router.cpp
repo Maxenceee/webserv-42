@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:37:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:39:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,9 +127,8 @@ const std::string	Router::getRoot(void) const
 void	Router::setRedirection(const std::string to, int status)
 {
 	/**
-	 * Définit le chemin de redirection du router, le booléen `permanent`
-	 * permet de spécifier le type de redirection (permanent ou temporaire),
-	 * celui-ci affectant le code de réponse (respectivement 301 et 302).
+	 * Définit le chemin de redirection du router, le statut par défaut est 302 (Found).
+	 * Si le chemin est vide alors le statut est retourné sans redirection.
 	 */
 	this->_redirection.path = to;
 	this->_redirection.status = status;
