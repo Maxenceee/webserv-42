@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 14:53:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 20:57:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ private:
 	struct sockaddr_in			socket_addr;
 	fd_set						_fd_set;
 
+	ServerConfig				*_default;
 	std::vector<ServerConfig *>	_configs;
 
 	// les comportements par default du serveur sont stocké dans un router spécifique
@@ -57,7 +58,9 @@ public:
 	const bool		isInit(void) const;
 	const int		getSocketFD(void) const;
 
-	void			*addConfig(ServerConfig *config);
+	void			addConfig(ServerConfig *config);
+	ServerConfig	*getDefault(void) const;
+
 	const uint16_t	getPort(void) const;
 	const uint32_t	getAddress(void) const;
 	

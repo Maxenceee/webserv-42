@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 16:05:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:11:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,8 @@ public:
 
 	void	setRedirection(const std::string to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
+	
+	const struct s_Router_Redirection	getRedirection(void) const;
 
 	void	setIndex(const std::vector<std::string> index);
 	void	addIndex(const std::string index);

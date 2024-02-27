@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 16:04:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:13:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,11 @@ ServerConfig::~ServerConfig(void)
 	delete this->_default;
 }
 
+void	ServerConfig::setServer(Server *server)
+{
+	this->_server = server;
+}
+
 void	ServerConfig::handleRoutes(Request &req, Response &res)
 {
 	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
@@ -46,6 +51,15 @@ void	ServerConfig::handleRoutes(Request &req, Response &res)
 	 */
 	if (res.canSend())
 	{
+		/**
+		 * Dans le cas ou le chemin de la requête ne correspond à aucune route, on vérifie si
+		 * une redirection est définie par defaut pour le serveur. Si c'est le cas, on redirige
+		 * la requête vers le chemin spécifié.
+		 */
+		if (this->_default->getRedirection().enabled) {
+			res.redirect(this->_default->getRedirection().path, this->_default->getRedirection().status).end();
+			return ;
+		}
 		res.sendNotFound().end();
 	}
 }
@@ -115,6 +129,11 @@ void	ServerConfig::addName(const std::string name)
 	}
 }
 
+std::vector<struct s_Name>	ServerConfig::getNames(void) const
+{
+	return (this->_server_name);
+}
+
 bool	ServerConfig::evalName(const std::string name, const uint16_t port) const
 {
 	/**
@@ -141,7 +160,10 @@ const std::string	ServerConfig::getErrorPage(const int code) const
 
 void	ServerConfig::print(std::ostream &os) const
 {
-	os << B_BLUE << "Config: " << RESET << "\n";
+	os << B_BLUE << "Config: " << RESET;
+	if (this->_server->getDefault() == this)
+		os << B_GREEN << "default" << RESET;
+	os << "\n";
 	os << B_CYAN << "Name: " << RESET;
 	for (std::vector<struct s_Name>::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{

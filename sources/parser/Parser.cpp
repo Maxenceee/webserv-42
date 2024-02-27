@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:48:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:22:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -279,6 +279,12 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			}
 			else if (tokens.size() > 2)
 				this->throwError(key, val);
+		} else if (isDigit(val)) {
+			status = std::atoi(val.c_str());
+			loc = "";
+		}
+		if (Response::http_codes.count(status) == 0) {
+			Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
 		}
 		this->tmp_router->setRedirection(loc, status);
 		return ;

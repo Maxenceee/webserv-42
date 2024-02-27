@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 16:01:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:11:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,6 +138,11 @@ void	Router::setRedirection(const std::string to, int status)
 	this->_redirection.enabled = true;
 }
 
+const struct s_Router_Redirection	Router::getRedirection(void) const
+{
+	return (this->_redirection);
+}
+
 void	Router::setAutoIndex(const bool autoindex)
 {
 	this->_autoindex = autoindex;
@@ -254,7 +259,11 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		 * return.
 		 */
 		if (this->_redirection.enabled) {
-			// std::cout << "redirect to: " << this->_redirection.path << std::endl;
+			if (this->_redirection.path.size() == 0) {
+				response.status(this->_redirection.status);
+				return (true);
+			}
+			Logger::debug("redirect to: " + this->_redirection.path);
 			response.redirect(this->_redirection.path, this->_redirection.status).end();
 			return (true);
 		}
