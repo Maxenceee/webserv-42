@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 12:23:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:29:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,13 +24,18 @@ class Router;
 class Request;
 class Response;
 
+struct s_Name {
+	std::string		name;
+	int				port;	
+};
+
 class ServerConfig
 {
 private:
 	Server						*_server;
 	uint32_t					address;
 	uint16_t					port;
-	std::map<int, std::string>	_server_name;
+	std::vector<struct s_Name>	_server_name;
 
 	// les comportements par default du serveur sont stocké dans un router spécifique
 	Router						*_default;

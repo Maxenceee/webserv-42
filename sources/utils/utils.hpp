@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:10:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:21:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,9 @@ void						replace(std::string &buffer, std::string searchValue, std::string repl
 
 std::string					getIPAddress(int addr);
 uint32_t					setIPAddress(std::string addr);
+
+int							parseSize(std::string size);
+std::string					getSize(int size);
 
 /* list */
 

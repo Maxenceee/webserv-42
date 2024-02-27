@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 12:30:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:45:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,19 +108,23 @@ void	ServerConfig::addName(const std::string name)
 	if (pos != std::string::npos && pos != name.rfind(':'))
 		Logger::error("server error: invalid server name: " + name);
 	else {
-		int port = 80;
+		int port = -1;
 		if (pos != std::string::npos)
 			port = std::atoi(name.substr(pos + 1).c_str());
-		this->_server_name[port] = name.substr(0, pos);	
+		this->_server_name.push_back((struct s_Name){.name = name.substr(0, pos), .port = port});
 	}
 }
 
 bool	ServerConfig::evalName(const std::string name, const uint16_t port) const
 {
-	if (this->_server_name.count(port) > 0)
-	{
-		if (this->_server_name.at(port) == name)
+	/**
+	 * Si le port n'est pas spécifié dans le nom du serveur, ceci sous-entend que le serveur
+	 * accepte les requêtes sur tous les ports.
+	 */
+	for (size_t i = 0; i < _server_name.size(); ++i) {
+		if (_server_name[i].name == name && (_server_name[i].port == port || _server_name[i].port == -1)) {
 			return (true);
+		}
 	}
 	return (false);
 }
@@ -139,9 +143,12 @@ void	ServerConfig::print(std::ostream &os) const
 {
 	os << B_BLUE << "Config: " << RESET << "\n";
 	os << B_CYAN << "Name: " << RESET;
-	for (std::map<int, std::string>::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
+	for (std::vector<struct s_Name>::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{
-		os << it->second << ":" << it->first << " ";
+		os << it->name;
+		if (it->port > 0)
+			os << ":" << it->port;
+		os << " ";
 	}
 	os << "\n";
 	os << B_ORANGE << "Default router: " << RESET << "\n";

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 11:43:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:25:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,10 @@ Router::Router(ServerConfig &config, const struct s_Router_Location location, co
 	this->_root.path = parent_root;
 	this->_root.isAlias = false;
 	this->_root.set = false;
+	/**
+	 * Nginx definit la valeur par defaut comme étant 1Mo.
+	 */
+	this->_client_max_body_size = 1024 * 1024; // 1MB
 	memset(&this->_redirection, 0, sizeof(this->_redirection));
 }
 
@@ -163,6 +167,24 @@ std::map<int, std::string>	Router::getErrorPage(void) const
 	return (this->_error_page);
 }
 
+void	Router::setClientMaxBodySize(const std::string &size)
+{
+	this->_client_max_body_size = parseSize(size);
+	if (this->_client_max_body_size < 0) {
+		Logger::error("router error: Invalid size: " + size);
+	}
+}
+
+void	Router::setClientMaxBodySize(const int size)
+{
+	this->_client_max_body_size = size;
+}
+
+const int	Router::getClientMaxBodySize(void) const
+{
+	return (this->_client_max_body_size);
+}
+
 void	Router::route(Request &request, Response &response)
 {
 	if (this->handleRoutes(request, response)) {
@@ -210,6 +232,21 @@ bool	Router::handleRoutes(Request &request, Response &response)
 			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods));
 			response.status(405);
 			return (true);
+		}
+		/**
+		 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
+		 * desactive la verification de la limite de taille du corps de la requête.
+		 */
+		if (this->_client_max_body_size > 0) {
+			if (request.getBody().size() > this->_client_max_body_size) {
+				response.status(413);
+				return (true);
+			}
+		} else if (this->_config.getDefaultHandler().getClientMaxBodySize() > 0) {
+			if (request.getBody().size() > this->_config.getDefaultHandler().getClientMaxBodySize()) {
+				response.status(413);
+				return (true);
+			}
 		}
 		/**
 		 * Nginx n'est pas très clair quant au priorité entre `root`/`alias` et
@@ -423,8 +460,11 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 std::string	Router::getLocalFilePath(const std::string &requestPath)
 {
 	// La directive root consiste simplement à ajouter le chemin de la requête à la directive root
-	if (!this->_root.isAlias)
+	if (!this->_root.isAlias) {
+		if (this->_root.path == "/")
+			return (requestPath);
 		return (this->_root.path + requestPath);
+	}
 
 	std::string relativePath;
 
@@ -557,6 +597,7 @@ void	Router::print(std::ostream &os) const
 	for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++)
 		os << "" << *it;
 	os << "\n";
+	os << "\t" << B_CYAN"Client max body size: " << RESET << getSize(this->_client_max_body_size) << "\n";
 	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
 	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
 		os << "\t" << it->first << " => " << it->second << "\n";

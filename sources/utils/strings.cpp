@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:09:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:21:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,4 +185,42 @@ void	replace(std::string &buffer, std::string searchValue, std::string replaceVa
 		std::size_t last_found = found_place;
 		found_place = buffer.find(sv, found_place + 1);
 	}
+}
+
+int	parseSize(std::string size)
+{
+	int		ret = 0;
+	size_t	i = 0;
+
+	while (i < size.size() && size[i] >= '0' && size[i] <= '9')
+	{
+		ret = ret * 10 + size[i] - '0';
+		i++;
+	}
+	if (i < size.size())
+	{
+		if (size[i] == 'k' || size[i] == 'K')
+			ret *= 1024;
+		else if (size[i] == 'm' || size[i] == 'M')
+			ret *= 1024 * 1024;
+		else if (size[i] == 'g' || size[i] == 'G')
+			ret *= 1024 * 1024 * 1024;
+		else
+			return (-1);
+	}
+	return (ret);
+}
+
+std::string	getSize(int size)
+{
+	std::string	ret;
+	if (size < 1024)
+		ret = toString(size) + "B";
+	else if (size < 1024 * 1024)
+		ret = toString(size / 1024) + "KB";
+	else if (size < 1024 * 1024 * 1024)
+		ret = toString(size / (1024 * 1024)) + "MB";
+	else
+		ret = toString(size / (1024 * 1024 * 1024)) + "GB";
+	return (ret);
 }

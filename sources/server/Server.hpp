@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 12:27:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 14:53:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ class Server
 private:
 	int							_id;
 	bool						_init;
-	uint32_t					address;
+	uint32_t					_address;
 	uint16_t					port;
 	int							socket_fd;
 	struct sockaddr_in			socket_addr;
@@ -48,7 +48,7 @@ private:
 	// void		handleRoutes(Request &req, Response &res);
 
 public:
-	Server(int id, uint16_t port = 80);
+	Server(int id, uint16_t port = 80, uint32_t address = 0);
 	~Server(void);
 
 	const int	init(void);
@@ -59,6 +59,7 @@ public:
 
 	void			*addConfig(ServerConfig *config);
 	const uint16_t	getPort(void) const;
+	const uint32_t	getAddress(void) const;
 	
 	const std::vector<std::string>	getMethods(void) const;
 	

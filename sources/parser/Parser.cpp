@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 11:58:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:48:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,12 +156,19 @@ void	Parser::switchConfigDirectives(const std::string key, const std::string val
 	if (!this->new_server && key != "server")
 		this->throwError(key, val, raw_line);
 	else if (key == "server") {
+		// On empeche l'imbrication de blocs server
+		if (parent != "server")
+			this->throwError(key, val, raw_line);
 		this->new_server = new ServerConfig();
 		this->configs.push_back(this->new_server);
 		this->tmp_router = &this->new_server->getDefaultHandler();
 	}
-	else if (key == "location")
+	else if (key == "location") {
+		// On empeche l'imbrication des locations
+		if (parent != "server.location")
+			this->throwError(key, val, raw_line);
 		this->createNewRouter(key, val, raw_line);
+	}
 	else
 	{
 		if (parent == "server")
@@ -298,6 +305,14 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		for (size_t i = 0; i < tokens.size() - 1; i++) {
 			this->tmp_router->setErrorPage(std::atoi(tokens[i].c_str()), tokens[tokens.size() - 1]);
 		}
+		return ;
+	}
+
+	/**
+	 * Directive client_max_body_size
+	 */
+	if (key == "client_max_body_size") {
+		this->tmp_router->setClientMaxBodySize(val);
 		return ;
 	}
 

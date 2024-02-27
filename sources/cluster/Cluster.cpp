@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 11:57:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 14:56:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,13 +54,13 @@ Server	*Cluster::addConfig(ServerConfig *config)
 	v_servers::iterator it;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
-		if ((*it)->getPort() == config->getPort())
+		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress())
 		{
 			(*it)->addConfig(config);
 			return (*it);
 		}
 	}
-	Server *server = new Server(this->_servers.size() + 1, config->getPort());
+	Server *server = new Server(this->_servers.size() + 1, config->getPort(), config->getAddress());
 	server->addConfig(config);
 	this->_servers.push_back(server);
 	return (server);
@@ -112,7 +112,7 @@ const int Cluster::start(void)
 		int error = listen(server->getSocketFD(), 1024);
 		if (error == -1)
 		{
-			Logger::error("server error: an error occurred while listening", RESET);
+			Logger::error("server error: an error occurred while listening");
 			perror("listen");
 			return (W_SOCKET_ERR);
 		}
