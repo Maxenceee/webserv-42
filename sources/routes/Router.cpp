@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:39:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 21:40:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,6 +213,9 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 * Permet de faire le routage.
 	 * Dans un premier temps on s'assure que la méthode de la requête est autorisé
 	 * sur le router.
+	 * FIXEME:
+	 *  - A voir si non seulement ca fonctionne mais si c'est utile
+	 * 	- Si la méthode n'est pas autorisée on devrait retourner un 405 comme on le fait deja plus bas
 	 */
 	if (!Server::isValidMethod(request.getMethod()) && this->_allowed_methods.size())
 		return (false);
