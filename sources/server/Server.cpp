@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 12:24:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 14:54:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,9 @@ std::ostream	&operator<<(std::ostream &os, const Server &server)
 
 std::vector<std::string>	Server::methods = Server::initMethods();
 
-Server::Server(int id, uint16_t port): _id(id), port(port)
+Server::Server(int id, uint16_t port, uint32_t address): _id(id), port(port), _address(address)
 {
 	this->_init = false;
-	this->address = 0;
 }
 
 Server::~Server(void)
@@ -148,7 +147,7 @@ const int	Server::init(void)
 	memset(&this->socket_addr, 0, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->port);
-	this->socket_addr.sin_addr.s_addr = htonl(this->address);
+	this->socket_addr.sin_addr.s_addr = htonl(this->_address);
 	/**
 	 * La fonction bind permet d'attacher un socket à une adresse IP et un port
 	 * de la machine hôte. Cela permet d'identifier de manière unique le socket
@@ -201,6 +200,11 @@ void	*Server::addConfig(ServerConfig *config)
 {
 	this->_configs.push_back(config);
 	return (config);
+}
+
+const uint32_t	Server::getAddress(void) const
+{
+	return (this->_address);
 }
 
 const uint16_t	Server::getPort(void) const
@@ -378,7 +382,7 @@ void	Server::print(std::ostream &os) const
 {
 	os << B_BLUE << "<--- Server " << this->_id << " --->" << RESET << "\n";
 	os << B_CYAN << "Initiated: " << RESET << (this->_init ? "true" : "false") << "\n";
-	os << B_CYAN << "Address: " << RESET << getIPAddress(this->address) << "\n";
+	os << B_CYAN << "Address: " << RESET << getIPAddress(this->_address) << "\n";
 	os << B_CYAN << "Port: " << RESET << this->port << "\n";
 	os << B_ORANGE << "Configurations: " << RESET << "\n";
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {

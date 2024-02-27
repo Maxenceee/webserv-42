@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 11:43:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/27 15:05:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ private:
 	std::vector<std::string>		_allowed_methods;
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
+	int								_client_max_body_size; // in bytes
 
 	std::string	&checkLeadingTrailingSlash(std::string &str);
 	
@@ -96,6 +97,10 @@ public:
 
 	void						setErrorPage(const int code, const std::string path);
 	std::map<int, std::string>	getErrorPage(void) const;
+
+	void 		setClientMaxBodySize(const std::string &size);
+	void 		setClientMaxBodySize(const int size);
+	const int 	getClientMaxBodySize(void) const;
 
 	void	print(std::ostream &os) const;
 };
