@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 15:19:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 20:36:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ const uint16_t	ServerConfig::getPort(void) const
 	return (this->port);
 }
 
-void	ServerConfig::setNames(const std::vector<std::string> name)
+void	ServerConfig::addNames(const std::vector<std::string> name)
 {
 	for (std::vector<std::string>::const_iterator it = name.begin(); it != name.end(); it++)
 	{
