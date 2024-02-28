@@ -6,13 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 18:20:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 20:24:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGIWorker.hpp"
 
-t_mapss		CGIWorker::init(const Request &req)
+t_mapss		CGIWorker::init(const Request &req, t_mapss &params, const std::string &body)
 {
 	t_mapss headers = req.getHeaders();
 	t_mapss env;
@@ -27,7 +27,7 @@ t_mapss		CGIWorker::init(const Request &req)
 	env["PATH_TRANSLATED"] = req.getPath();
 	env["PATH_INFO"] = req.getPath();
 	// env["QUERY_STRING"] = req.getQueryString();
-	env["CONTENT_LENGTH"] = toString<int>(req.getBody().length());
+	env["CONTENT_LENGTH"] = toString<int>(body.length());
 	env["CONTENT_TYPE"] = headers["Content-Type"];
 	if (headers.count("Authorization"))
 		env["HTTP_AUTHORIZATION"] = headers["Authorization"];
@@ -41,6 +41,10 @@ t_mapss		CGIWorker::init(const Request &req)
 	else
 		env["SERVER_NAME"] = env["REMOTE_ADDR"];
 	env["SERVER_HOST"] = req.getHost();
+	for (t_mapss::iterator it = headers.begin(); it != headers.end(); it++)
+	{
+		env[it->first] = it->second;
+	}
 	return env;
 }
 
@@ -59,7 +63,7 @@ char	**CGIWorker::getEnv(const t_mapss &_env)
 	return env;
 }
 
-std::string		CGIWorker::run(const Request &req, const std::string &scriptpname)
+std::string		CGIWorker::run(const Request &req, t_mapss &params, const std::string &scriptpname, const std::string &body)
 {
 	int		sstdin = dup(STDIN_FILENO);
 	int		sstdout = dup(STDOUT_FILENO);
@@ -67,14 +71,15 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpname)
 
 	try
 	{
-		env = CGIWorker::getEnv(CGIWorker::init(req));
+		env = CGIWorker::getEnv(CGIWorker::init(req, params, body));
 	}
 	catch(const std::exception& e)
 	{
 		Logger::error("CGIWorker error: " + std::string(e.what()));
 	}
 
-	Logger::debug("CGIWorker: running " + scriptpname);
+	Logger::debug("CGIWorker: running: " + scriptpname);
+	Logger::debug("CGIWorker: with body: " + body);
 	
 	FILE *tmpin = tmpfile();
 	FILE *tmpout = tmpfile();
@@ -82,7 +87,7 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpname)
 	int fdout = fileno(tmpout);
 	std::string result;
 
-	write(fdin, req.getBody().c_str(), req.getBody().length());
+	write(fdin, body.c_str(), body.size());
 	lseek(fdin, 0, SEEK_SET);
 	
 	pid_t pid = fork();

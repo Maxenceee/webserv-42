@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:33:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 20:12:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ struct s_Router_Location {
 struct s_CGI_Data {
 	bool			enabled;
 	std::string		path;
-	std::string		extension;
+	t_mapss			params;
 };
 
 class Router
@@ -80,6 +80,8 @@ private:
 	void	handlePUTMethod(Request &request, Response &response);
 	void	handleDELETEMethod(Request &request, Response &response);
 	void	handleTRACEMethod(Request &request, Response &response);
+
+	void	handleCGI(Request &request, Response &response);
 
 	bool	matchRoute(const std::string &route, Response &response) const;
 
@@ -115,6 +117,8 @@ public:
 	const int 	getClientMaxBodySize(void) const;
 
 	void				setCGI(const std::string path, const std::string extension = "");
+	void				enableCGI(void);
+	void				addCGIParam(const std::string key, const std::string value);
 	const std::string	&getCGIPath() const;
 
 	void	print(std::ostream &os) const;

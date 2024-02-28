@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:57:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 20:27:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,8 +191,17 @@ const int	Router::getClientMaxBodySize(void) const
 void	Router::setCGI(const std::string path, const std::string extension)
 {
 	this->_cgi.path = path;
-	this->_cgi.extension = extension;
 	this->_cgi.enabled = true;
+}
+
+void	Router::enableCGI(void)
+{
+	this->_cgi.enabled = true;
+}
+
+void	Router::addCGIParam(const std::string key, const std::string value)
+{
+	this->_cgi.params[key] = value;
 }
 
 const std::string	&Router::getCGIPath(void) const
@@ -261,7 +270,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		 * return.
 		 */
 		if (this->_redirection.enabled) {
-			if (this->_redirection.path.size() == 0) {
+			if (this->_redirection.path.empty()) {
 				response.status(this->_redirection.status);
 				return (true);
 			}
@@ -275,7 +284,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		 * et on envoie la réponse.
 		 */
 		if (this->_cgi.enabled) {
-			response.sendCGI(CGIWorker::run(request, this->_cgi.path)).end();
+			this->handleCGI(request, response);
 			return (true);
 		}
 		this->call(request.getMethod(), request, response);
@@ -433,6 +442,51 @@ void	Router::handleTRACEMethod(Request &request, Response &response)
 	response.status(200).send(res).end();
 }
 
+void	Router::handleCGI(Request &request, Response &response)
+{
+	Logger::debug("<------------ "B_BLUE"CGI"B_GREEN" handler"RESET" ------------>");
+
+	std::string	body = request.getBody();
+
+	if (this->_cgi.path.empty()) {
+		Logger::error("router error: CGI path is empty");
+		response.status(500).end();
+		return ;
+	}
+
+	/**
+	 * La méthode GET a un comportement légèrement différent des autres, elle
+	 * envoie le contenu du fichier demandé par la requête au CGI. Les autres
+	 * méthodes envoient directement le corps de la requête.
+	 */
+	if (request.getMethod() == "GET") {
+		std::string fullpath = this->getLocalFilePath(request.getPath());
+		if (!fullpath.size()) {
+			response.status(500).end();
+			return ;
+		}
+		
+		if (!isFile(fullpath)) {
+			response.status(404).end();
+			return ;
+		}
+
+		std::ofstream		file;
+		std::stringstream	buffer;
+
+		file.open(fullpath.c_str(), std::ifstream::in);
+		if (file.is_open() == false)
+		{
+			response.status(500).end();
+			return ;
+		}
+		buffer << file.rdbuf();
+		file.close();
+		body = buffer.str();
+	}
+	response.sendCGI(CGIWorker::run(request, this->_cgi.params, this->_cgi.path, body)).end();
+}
+
 bool Router::matchRoute(const std::string& route, Response &response) const
 {
 	regex_t	regex;
@@ -469,8 +523,6 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 
 	// Vérifier si la route correspond à l'expression régulière
 	result = regexec(&regex, route.c_str(), 0, NULL, 0);
-
-	Logger::debug("result: " + toString<int>(result));
 
 	// Libérer la mémoire utilisée par l'expression régulière compilée
 	regfree(&regex);
@@ -543,7 +595,7 @@ std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 	/**
 	 * Si le chemin du router est vide on le remplace par '/'.
 	 */
-	if (str.size() == 0) {
+	if (str.empty()) {
 		str = "/";
 		return (str);
 	}
@@ -607,7 +659,7 @@ void	Router::print(std::ostream &os) const
 	os << "\t" << B_GREEN"Router: \n";
 	os << "\t" << B_CYAN"Path: " << RESET << (this->_location.modifier.size() ? this->_location.modifier+" " : "") << this->_location.path << "\n";
 	os << "\t" << B_CYAN"Methods:" << RESET;
-	if (this->_allowed_methods.size() == 0)
+	if (this->_allowed_methods.empty())
 		os << " all";
 	for (std::vector<std::string>::const_iterator it = this->_allowed_methods.begin(); it != this->_allowed_methods.end(); it++)
 		os << " " << *it;
@@ -619,8 +671,9 @@ void	Router::print(std::ostream &os) const
 	for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++)
 		os << "" << *it;
 	os << "\n";
+	os << "\t" << B_CYAN"CGI: " << RESET << (this->_cgi.enabled ? "enabled" : "disabled") << "\n";
 	if (this->_cgi.enabled) {
-		os << "\t" << B_CYAN"CGI: " << RESET << this->_cgi.path << "\n";
+		os << "\t" << B_CYAN"CGI path: " << RESET << this->_cgi.path << "\n";
 	}
 	os << "\t" << B_CYAN"Client max body size: " << RESET << getSize(this->_client_max_body_size) << "\n";
 	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
