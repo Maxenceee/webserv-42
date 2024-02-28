@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:40:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 19:27:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,7 @@ void	Parser::switchConfigDirectives(const std::string key, const std::string val
 	{
 		if (parent == "server")
 			this->tmp_router = &this->new_server->getDefaultHandler();
-		if (val.size() == 0)
+		if (val.empty())
 			this->throwError(key, val, raw_line);
 		this->addRule(key, val, parent, raw_line);
 	}
@@ -323,9 +323,19 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	}
 
 	/**
-	 * Directive cgi_pass
+	 * Directive cgi_extension
 	 */
-	if (key == "cgi_pass") {
+
+	if (key == "cgi") {
+		if (val == "on")
+			this->tmp_router->enableCGI();
+		return ;
+	}
+
+	/**
+	 * Directive fastcgi_pass
+	 */
+	if (key == "fastcgi_pass") {
 		// std::vector<std::string> tokens = split(val, ' ');
 		// if (tokens.size() < 2)
 		// 	this->throwError(key, val);
@@ -333,6 +343,15 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		return ;
 	}
 
+	/**
+	 * Directive fastcgi_param
+	 */
+	if (key == "fastcgi_param") {
+		std::vector<std::string> tokens = split(val, ' ');
+		if (tokens.size() < 2)
+			this->throwError(key, val);
+		this->tmp_router->addCGIParam(tokens[0], tokens[1]);
+	}
 	/**
 	 * Default
 	 */

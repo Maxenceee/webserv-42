@@ -79,4 +79,5 @@ Ajouter le parser pour le fichier config :
 - error_page ✅
 - client body max size ✅
 
-Gere les CGI !!!
+Gerer les CGI ✅
+Gerer les inclusions en cascade de blocs "location" ?! 
