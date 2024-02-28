@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 11:41:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 18:27:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,5 +230,5 @@ std::string	getSize(int size)
 
 bool isDigit(const std::string &str)
 {
-	return all_of(str.begin(), str.end(), ::isdigit);
+	return ::all_of(str.begin(), str.end(), ::isdigit);
 }

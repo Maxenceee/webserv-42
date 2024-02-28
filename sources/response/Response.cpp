@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 18:24:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 18:47:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,7 +193,6 @@ std::string		Response::getTime(void)
 
 Response	&Response::sendCGI(const std::string data)
 {
-	std::cout << "cgi result: " << data << std::endl;
 	size_t	i = 0;
 	size_t	j = data.size();
 
@@ -202,19 +201,24 @@ Response	&Response::sendCGI(const std::string data)
 		return (*this);
 	}
 
-	while (data.find("\r\n\r\n", i) == std::string::npos || data.find("\r\n", i) == i)
-	{
-		std::string	line = data.substr(i, data.find("\r\n", i) - i);
-		std::cout << "line: " << line << std::endl;
-		if (line.find("Status:") == 0) {
-			this->status(atoi(line.substr(7).c_str()));
-		} else if (line.find("Content-Type:") == 0) {
-			this->setHeader("Content-Type", line.substr(13));
+	while (i < j) {
+		size_t pos = data.find("\r\n", i);
+		if (pos == std::string::npos) break;
+		std::string line = data.substr(i, pos - i);
+		
+		if (line.find("Status: ") == 0) {
+			this->status(std::atoi(line.substr(8, 3).c_str()));
+		} else if (line.find("Content-Type: ") == 0) {
+			this->setHeader("Content-Type", line.substr(14));
 		}
-		i += line.size() + 2;
+		
+		i = pos + 2;
 	}
-	while (data.find("\r\n", j) == j)
-		j -= 2;
+
+	while (j > 0 && data[j - 1] == '\r' || data[j - 1] == '\n') {
+		j -= 1;
+	}
+
 	this->send(data.substr(i, j - i));
 	return (*this);
 }
