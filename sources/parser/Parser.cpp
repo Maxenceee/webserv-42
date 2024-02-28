@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 19:27:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 20:36:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,7 +228,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		this->throwError(key, val);
 	else if (key == "server_name") {
 		std::vector<std::string> names = split(val, ' ');
-		this->new_server->setNames(names);
+		this->new_server->addNames(names);
 		return ;
 	}
 
