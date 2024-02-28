@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:40:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:57:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,8 @@ Router::Router(ServerConfig &config, const struct s_Router_Location location, co
 	 * Nginx definit la valeur par defaut comme étant 1Mo.
 	 */
 	this->_client_max_body_size = 1024 * 1024; // 1MB
-	memset(&this->_redirection, 0, sizeof(this->_redirection));
+	this->_redirection.enabled = false;
+	this->_cgi.enabled = false;
 }
 
 Router::~Router(void)
@@ -119,12 +120,12 @@ void	Router::setAlias(const std::string path)
 	}
 }
 
-const std::string	Router::getRoot(void) const
+const std::string	&Router::getRoot(void) const
 {
 	return (this->_root.path);
 }
 
-void	Router::setRedirection(const std::string to, int status)
+void	Router::setRedirection(std::string to, int status)
 {
 	/**
 	 * Définit le chemin de redirection du router, le statut par défaut est 302 (Found).
@@ -135,7 +136,7 @@ void	Router::setRedirection(const std::string to, int status)
 	this->_redirection.enabled = true;
 }
 
-const struct s_Router_Redirection	Router::getRedirection(void) const
+const struct s_Router_Redirection	&Router::getRedirection(void) const
 {
 	return (this->_redirection);
 }
@@ -164,7 +165,7 @@ void	Router::setErrorPage(const int code, const std::string path)
 	checkLeadingTrailingSlash(this->_error_page[code]);
 }
 
-std::map<int, std::string>	Router::getErrorPage(void) const
+const std::map<int, std::string>	&Router::getErrorPage(void) const
 {
 	return (this->_error_page);
 }
@@ -185,6 +186,18 @@ void	Router::setClientMaxBodySize(const int size)
 const int	Router::getClientMaxBodySize(void) const
 {
 	return (this->_client_max_body_size);
+}
+
+void	Router::setCGI(const std::string path, const std::string extension)
+{
+	this->_cgi.path = path;
+	this->_cgi.extension = extension;
+	this->_cgi.enabled = true;
+}
+
+const std::string	&Router::getCGIPath(void) const
+{
+	return (this->_cgi.path);
 }
 
 void	Router::route(Request &request, Response &response)
@@ -210,16 +223,6 @@ void	Router::route(Request &request, Response &response)
 bool	Router::handleRoutes(Request &request, Response &response)
 {
 	/**
-	 * Permet de faire le routage.
-	 * Dans un premier temps on s'assure que la méthode de la requête est autorisé
-	 * sur le router.
-	 * FIXEME:
-	 *  - A voir si non seulement ca fonctionne mais si c'est utile
-	 * 	- Si la méthode n'est pas autorisée on devrait retourner un 405 comme on le fait deja plus bas
-	 */
-	if (!Server::isValidMethod(request.getMethod()) && this->_allowed_methods.size())
-		return (false);
-	/**
 	 * Avant de faire quelque logique que ce soit on s'assure que la réponse n'a pas déjà été
 	 * envoyé pour une quelconque raison.
 	 */
@@ -229,7 +232,6 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 * On compare le chemin du router et celui de la requête.
 	 * Pour le moment toutes les requête sont considérées comme GET.
 	 */
-	// std::cout << "check route for " << request.getPath() << std::endl;
 	if (this->matchRoute(request.getPath(), response))
 	{
 		if (this->_allowed_methods.size() && !contains(this->_allowed_methods, request.getMethod()))
@@ -254,7 +256,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 			}
 		}
 		/**
-		 * Nginx n'est pas très clair quant au priorité entre `root`/`alias` et
+		 * Nginx n'est pas très clair quant aux priorités entre `root`/`alias` et
 		 * `return`. Nous avons fait le choix de toujours donner la priorité à
 		 * return.
 		 */
@@ -265,6 +267,15 @@ bool	Router::handleRoutes(Request &request, Response &response)
 			}
 			Logger::debug("redirect to: " + this->_redirection.path);
 			response.redirect(this->_redirection.path, this->_redirection.status).end();
+			return (true);
+		}
+		
+		/**
+		 * Si le router est configuré pour utiliser CGI, on execute le script CGI
+		 * et on envoie la réponse.
+		 */
+		if (this->_cgi.enabled) {
+			response.sendCGI(CGIWorker::run(request, this->_cgi.path)).end();
 			return (true);
 		}
 		this->call(request.getMethod(), request, response);
@@ -440,10 +451,10 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 		regexPattern = "^" + this->_location.path; // Prefix Match
 	}
 
-	if (!this->_location.strict) {
+	// if (this->_location.strict) {
 		// Si ce n'est pas strict, ajouter .* à la fin pour correspondre à n'importe quelle fin
-		regexPattern += ".*";
-	}
+		// regexPattern += ".*";
+	// }
 
 	Logger::debug("location pattern: " + regexPattern);
 
@@ -458,6 +469,8 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 
 	// Vérifier si la route correspond à l'expression régulière
 	result = regexec(&regex, route.c_str(), 0, NULL, 0);
+
+	Logger::debug("result: " + toString<int>(result));
 
 	// Libérer la mémoire utilisée par l'expression régulière compilée
 	regfree(&regex);
@@ -606,6 +619,9 @@ void	Router::print(std::ostream &os) const
 	for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++)
 		os << "" << *it;
 	os << "\n";
+	if (this->_cgi.enabled) {
+		os << "\t" << B_CYAN"CGI: " << RESET << this->_cgi.path << "\n";
+	}
 	os << "\t" << B_CYAN"Client max body size: " << RESET << getSize(this->_client_max_body_size) << "\n";
 	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
 	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)

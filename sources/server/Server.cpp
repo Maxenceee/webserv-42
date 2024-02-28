@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:25:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:09:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,7 +226,7 @@ const uint16_t	Server::getPort(void) const
 	return (this->port);
 }
 
-const std::vector<std::string>	Server::getMethods(void) const
+const std::vector<std::string>	&Server::getMethods(void) const
 {
 	return (this->methods);
 }
@@ -343,7 +343,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 
 void	Server::printResponse(const Request &req, const Response &res) const
 {
-	std::string response = req.getMethod() + " " + req.getPath() + " ";
+	std::string response = req.getMethod() + " " + req.getRawPath() + " ";
 	int status = res.getStatus();
 	if (status / 100 == 2)
 		response += GREEN;

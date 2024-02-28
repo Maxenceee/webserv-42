@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:11:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:33:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "server/ServerConfig.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
+#include "cgi/CGIWorker.hpp"
 
 class Server;
 class Request;
@@ -44,6 +45,12 @@ struct s_Router_Location {
 	s_Router_Location() : path("/"), modifier(""),  strict(false) {}
 };
 
+struct s_CGI_Data {
+	bool			enabled;
+	std::string		path;
+	std::string		extension;
+};
+
 class Router
 {
 private:
@@ -52,6 +59,7 @@ private:
 	struct s_Router_Location		_location;
 	struct s_Router_Root			_root;
 	struct s_Router_Redirection		_redirection;
+	struct s_CGI_Data				_cgi;
 	std::vector<std::string>		_allowed_methods;
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
@@ -88,23 +96,26 @@ public:
 	void	setRoot(const std::string path);
 	void	setAlias(const std::string path);
 
-	const std::string	getRoot(void) const;
+	const std::string	&getRoot(void) const;
 	std::string			getLocalFilePath(const std::string &requestPath);
 
 	void	setRedirection(const std::string to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
 	
-	const struct s_Router_Redirection	getRedirection(void) const;
+	const struct s_Router_Redirection	&getRedirection(void) const;
 
 	void	setIndex(const std::vector<std::string> index);
 	void	addIndex(const std::string index);
 
-	void						setErrorPage(const int code, const std::string path);
-	std::map<int, std::string>	getErrorPage(void) const;
+	void								setErrorPage(const int code, const std::string path);
+	const std::map<int, std::string>	&getErrorPage(void) const;
 
 	void 		setClientMaxBodySize(const std::string &size);
 	void 		setClientMaxBodySize(const int size);
 	const int 	getClientMaxBodySize(void) const;
+
+	void				setCGI(const std::string path, const std::string extension = "");
+	const std::string	&getCGIPath() const;
 
 	void	print(std::ostream &os) const;
 };

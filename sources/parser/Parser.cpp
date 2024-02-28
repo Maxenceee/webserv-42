@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:22:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:40:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -319,6 +319,17 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 */
 	if (key == "client_max_body_size") {
 		this->tmp_router->setClientMaxBodySize(val);
+		return ;
+	}
+
+	/**
+	 * Directive cgi_pass
+	 */
+	if (key == "cgi_pass") {
+		// std::vector<std::string> tokens = split(val, ' ');
+		// if (tokens.size() < 2)
+		// 	this->throwError(key, val);
+		this->tmp_router->setCGI(val);
 		return ;
 	}
 

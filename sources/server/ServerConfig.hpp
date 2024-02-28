@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:04:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 15:13:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,13 +59,13 @@ public:
 	void				setPort(const uint16_t port);
 	const uint16_t		getPort(void) const;
 	
-	void							setNames(const std::vector<std::string> name);
-	void							addName(const std::string name);
-	std::vector<struct s_Name>		getNames(void) const;
-	bool							evalName(const std::string name, const uint16_t port = 80) const;
+	void								setNames(const std::vector<std::string> name);
+	void								addName(const std::string name);
+	const std::vector<struct s_Name>	&getNames(void) const;
+	bool								evalName(const std::string name, const uint16_t port = 80) const;
 
 	const bool			hasErrorPage(const int code) const;
-	const std::string	getErrorPage(const int code) const;
+	const std::string	&getErrorPage(const int code) const;
 
 	void	print(std::ostream &os) const;
 };

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 18:19:44 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:21:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 15:17:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ const bool	Response::canSend(void) const
 	return (!this->_sent);
 }
 
-const std::string	Response::getVersion(void) const
+const std::string	&Response::getVersion(void) const
 {
 	return (this->_version);
 }
@@ -48,22 +48,22 @@ const int			Response::getStatus(void) const
 	return (this->_status);
 }
 
-const std::string	Response::getSatusName(void) const
+const std::string	&Response::getSatusName(void) const
 {
 	return (this->http_codes[this->_status]);
 }
 
-const t_mapss	Response::getHeaders(void) const
+const t_mapss	&Response::getHeaders(void) const
 {
 	return (this->_headers);
 }
 
-const t_mapss	Response::getCookies(void) const
+const t_mapss	&Response::getCookies(void) const
 {
 	return (this->_cookie);
 }
 
-const std::string	Response::getBody(void) const
+const std::string	&Response::getBody(void) const
 {
 	return (this->_body);
 }

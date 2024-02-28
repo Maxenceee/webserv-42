@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 13:26:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:08:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ private:
 	std::string					_version;
 	std::string					_method;
 	std::string					_path;
+	std::string					_raw_path;
 	std::string					_host;
 	int							_port;
 	t_mapss						_query;
@@ -57,19 +58,20 @@ public:
 	Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr);
 	~Request(void);
 
-	const std::string		getMethod(void) const;
-	const std::string		getVersion(void) const;
-	const std::string		getPath(void) const;
+	const std::string		&getMethod(void) const;
+	const std::string		&getVersion(void) const;
+	const std::string		&getPath(void) const;
+	const std::string		&getRawPath(void) const;
 	const int				getPort(void) const;
-	const std::string		getHost(void) const;
-	const t_mapss			getQueries(void) const;
-	const t_mapss			getHeaders(void) const;
-	const t_mapss			getCookies(void) const;
-	const std::string		getBody(void) const;
+	const std::string		&getHost(void) const;
+	const t_mapss			&getQueries(void) const;
+	const t_mapss			&getHeaders(void) const;
+	const t_mapss			&getCookies(void) const;
+	const std::string		&getBody(void) const;
 	const int				getStatus(void) const;
 	const int				getClientSocket(void) const;
-	const sockaddr_in		getClientAddr(void) const;
-	const std::string		getIP(void) const;
+	const sockaddr_in		&getClientAddr(void) const;
+	const std::string		&getIP(void) const;
 	const time_t			getRequestTime(void) const;
 };
 
