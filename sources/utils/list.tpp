@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:06:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:16:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 11:00:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,4 +47,14 @@ std::string	toStringl(T &container, std::string separator)
 			str += separator;
 	}
 	return (str);
+}
+
+template <class InputIterator, class UnaryPredicate>
+bool all_of(InputIterator first, InputIterator last, UnaryPredicate pred)
+{
+    while (first != last) {
+        if (!pred(*first)) return false;
+        ++first;
+    }
+    return true;
 }

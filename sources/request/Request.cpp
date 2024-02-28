@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 13:26:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:07:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ int	Request::getRequestPath(const std::string &str)
 		return (400);
 	}
 	this->_path = decodeURIComponent(req_tokens[1]); // on extrait le chemin de la requête
+	this->_raw_path = this->_path;
 	return (this->getRequestVersion(req_tokens[2]));
 }
 
@@ -90,11 +91,11 @@ int	Request::getRequestVersion(const std::string &str)
 	if (str.compare(0, 5, http) == 0)
 	{
 		this->_version.assign(str, 5, 3); // on extrait la version du protocole de la requête
-		// le serveur n'accepte que les versions 1.0 et 1.1 du protocole HTTP.
-		// Ces vieilles versions datent du début des années 2000 et offrent largement moins de
+		// le serveur n'accepte que le version 1.1 du protocole HTTP.
+		// Cette version date du début des années 2000 et offre moins de
 		// fonctionnalitées que les versions plus récentes (2023, HTTP/3) mais sont, de fait,
 		// plus facilement implémentables.
-		if (this->_version != "1.0" && this->_version != "1.1")
+		if (this->_version != "1.1")
 		{
 			Logger::error("request error: unsupported HTTP version");
 			return (505);

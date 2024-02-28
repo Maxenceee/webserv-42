@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:21:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 18:24:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,8 +67,9 @@ std::map<int, std::string>	Response::initCodes()
 	codes[404] = "Not Found";
 	codes[405] = "Method Not Allowed";
 	codes[409] = "Conflict";
+	codes[411] = "Length Required";
 	codes[413] = "Payload Too Large";
-	codes[418] = "I'm a teapot";
+	codes[418] = "I'm a teapot"; // (https://www.rfc-editor.org/rfc/rfc2324#section-2.3.2) HTCPCP/1.0
 	/**
 	 * Erreur du serveur
 	 */
@@ -190,6 +191,34 @@ std::string		Response::getTime(void)
 	return (date);
 }
 
+Response	&Response::sendCGI(const std::string data)
+{
+	std::cout << "cgi result: " << data << std::endl;
+	size_t	i = 0;
+	size_t	j = data.size();
+
+	if (data.empty()) {
+		this->status(500).end();
+		return (*this);
+	}
+
+	while (data.find("\r\n\r\n", i) == std::string::npos || data.find("\r\n", i) == i)
+	{
+		std::string	line = data.substr(i, data.find("\r\n", i) - i);
+		std::cout << "line: " << line << std::endl;
+		if (line.find("Status:") == 0) {
+			this->status(atoi(line.substr(7).c_str()));
+		} else if (line.find("Content-Type:") == 0) {
+			this->setHeader("Content-Type", line.substr(13));
+		}
+		i += line.size() + 2;
+	}
+	while (data.find("\r\n", j) == j)
+		j -= 2;
+	this->send(data.substr(i, j - i));
+	return (*this);
+}
+
 Response	&Response::end()
 {
 	if (!this->_sent)
@@ -227,6 +256,7 @@ const std::string	Response::prepareResponse(void)
 	 */
 	if (!this->http_codes.count(this->_status))
 	{
+		std::cout << "status code: " << this->_status << std::endl;
 		Logger::error("Response error: invalid status code");
 		this->_status = 500;
 	}

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 13:17:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:08:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ std::ostream	&operator<<(std::ostream &os, const Request &req)
 	t_mapss::const_iterator	it;
 
 	os << B_CYAN"Method: " << RESET << req.getMethod() << " | HTTP version: " << req.getVersion() << "\n";
-	os << B_CYAN"Path: " << RESET << req.getPath() << "\n";
+	os << B_CYAN"Path: " << RESET << req.getRawPath() << "\n";
 	os << B_CYAN"Host: " << RESET << req.getHost() << "\n";
 	os << B_CYAN"Port: " << RESET << req.getPort() << "\n";
 	os << B_CYAN"Origin IP: " << RESET << req.getIP() << "\n";
@@ -42,22 +42,27 @@ std::ostream	&operator<<(std::ostream &os, const Request &req)
 	return (os);
 }
 
-const std::string	Request::getMethod(void) const
+const std::string	&Request::getMethod(void) const
 {
 	return (this->_method);
 }
 
-const std::string	Request::getVersion(void) const
+const std::string	&Request::getVersion(void) const
 {
 	return (this->_version);
 }
 
-const std::string	Request::getPath(void) const
+const std::string	&Request::getPath(void) const
 {
 	return (this->_path);
 }
 
-const std::string	Request::getHost(void) const
+const std::string	&Request::getRawPath(void) const
+{
+	return (this->_raw_path);
+}
+
+const std::string	&Request::getHost(void) const
 {
 	return (this->_host);
 }
@@ -67,22 +72,22 @@ const int			Request::getPort(void) const
 	return (this->_port);
 }
 
-const t_mapss		Request::getQueries(void) const
+const t_mapss		&Request::getQueries(void) const
 {
 	return (this->_query);
 }
 
-const t_mapss		Request::getHeaders(void) const
+const t_mapss		&Request::getHeaders(void) const
 {
 	return (this->_headers);
 }
 
-const t_mapss		Request::getCookies(void) const
+const t_mapss		&Request::getCookies(void) const
 {
 	return (this->_cookie);
 }
 
-const std::string	Request::getBody(void) const
+const std::string	&Request::getBody(void) const
 {
 	return (this->_body);
 }
@@ -97,12 +102,12 @@ const int			Request::getClientSocket(void) const
 	return (this->_socket);
 }
 
-const sockaddr_in	Request::getClientAddr(void) const
+const sockaddr_in	&Request::getClientAddr(void) const
 {
 	return (this->_clientAddr);
 }
 
-const std::string	Request::getIP(void) const
+const std::string	&Request::getIP(void) const
 {
 	return (this->_ip);
 }

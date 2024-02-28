@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 20:48:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 11:41:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,9 @@ std::string	getIPAddress(int addr)
 
 uint32_t	setIPAddress(std::string addr)
 {
+	if (addr == "localhost")
+		return (INADDR_LOOPBACK);
+
 	std::vector<std::string>	tokens = split(addr, '.');
 	uint32_t					res = 0;
 	if (tokens.size() != 4)
@@ -227,5 +230,5 @@ std::string	getSize(int size)
 
 bool isDigit(const std::string &str)
 {
-	return std::all_of(str.begin(), str.end(), ::isdigit);
+	return all_of(str.begin(), str.end(), ::isdigit);
 }

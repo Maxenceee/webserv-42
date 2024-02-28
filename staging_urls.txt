@@ -1,10 +1,11 @@
 http://localhost:3000/redir
 http://localhost:3000/static/type2/file.txt
+http://localhost:3000/non/stylesheet/style.css
 http://localhost:3000/static/type3/server.log
 http://localhost:3000/static/type3/unmf.js
 http://localhost:3000/static/type2/obj.json
 http://localhost:3000/oui/type2/obj.json
-http://localhost:3000/oui/text.txt
-http://localhost:3000/non/script.js
+http://localhost:3000/oui/test/text.txt
+http://localhost:3000/non/test/script.js
 http://localhost:3000/non
 http://localhost:3000/test

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 20:57:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 15:14:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ public:
 	const uint16_t	getPort(void) const;
 	const uint32_t	getAddress(void) const;
 	
-	const std::vector<std::string>	getMethods(void) const;
+	const std::vector<std::string>	&getMethods(void) const;
 	
 	void		handleRequest(const int client, sockaddr_in clientAddr);
 	

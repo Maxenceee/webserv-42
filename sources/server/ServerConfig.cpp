@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:13:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 15:19:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ void	ServerConfig::addName(const std::string name)
 	}
 }
 
-std::vector<struct s_Name>	ServerConfig::getNames(void) const
+const std::vector<struct s_Name>	&ServerConfig::getNames(void) const
 {
 	return (this->_server_name);
 }
@@ -153,7 +153,7 @@ const bool			ServerConfig::hasErrorPage(const int code) const
 	return (this->_default->getErrorPage().count(code) > 0);
 }
 
-const std::string	ServerConfig::getErrorPage(const int code) const
+const std::string	&ServerConfig::getErrorPage(const int code) const
 {
 	return (this->_default->getErrorPage().at(code));
 }

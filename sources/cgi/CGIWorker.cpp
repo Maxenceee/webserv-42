@@ -6,40 +6,100 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/05 16:20:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 18:20:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGIWorker.hpp"
 
-CGIWorker::CGIWorker(const std::string path): _path(path)
+t_mapss		CGIWorker::init(const Request &req)
 {
-	this->_body = "";
+	t_mapss headers = req.getHeaders();
+	t_mapss env;
+
+	env["REDIRECT_STATUS"] = "200";
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	env["SERVER_SOFTWARE"] = "webserv/1.0";
+	env["REQUEST_METHOD"] = req.getMethod();
+	env["REQUEST_URI"] = req.getRawPath();
+	env["SCRIPT_NAME"] = req.getPath();
+	env["PATH_TRANSLATED"] = req.getPath();
+	env["PATH_INFO"] = req.getPath();
+	// env["QUERY_STRING"] = req.getQueryString();
+	env["CONTENT_LENGTH"] = toString<int>(req.getBody().length());
+	env["CONTENT_TYPE"] = headers["Content-Type"];
+	if (headers.count("Authorization"))
+		env["HTTP_AUTHORIZATION"] = headers["Authorization"];
+	if (headers.count("Cookie"))
+		env["HTTP_COOKIE"] = headers["Cookie"];
+	env["SERVER_PORT"] = toString<int>(req.getPort());
+	env["REMOTE_ADDR"] = req.getIP();
+	env["REMOTE_PORT"] = toString<int>(req.getPort());
+	if (headers.count("Hostname"))
+		env["SERVER_NAME"] = headers["Hostname"];
+	else
+		env["SERVER_NAME"] = env["REMOTE_ADDR"];
+	env["SERVER_HOST"] = req.getHost();
+	return env;
 }
 
-CGIWorker::~CGIWorker()
+char	**CGIWorker::getEnv(const t_mapss &_env)
 {
+	char **env = new char*[_env.size() + 1];
+	int i = 0;
+
+	for (t_mapss::const_iterator it = _env.begin(); it != _env.end(); it++)
+	{
+		std::string tmp = it->first + "=" + it->second;
+		env[i] = strdup(tmp.c_str());
+		i++;
+	}
+	env[i] = NULL;
+	return env;
 }
 
-void	CGIWorker::run(void)
+std::string		CGIWorker::run(const Request &req, const std::string &scriptpname)
 {
+	int		sstdin = dup(STDIN_FILENO);
+	int		sstdout = dup(STDOUT_FILENO);
+	char	**env;
+
+	try
+	{
+		env = CGIWorker::getEnv(CGIWorker::init(req));
+	}
+	catch(const std::exception& e)
+	{
+		Logger::error("CGIWorker error: " + std::string(e.what()));
+	}
+
+	Logger::debug("CGIWorker: running " + scriptpname);
+	
 	FILE *tmpin = tmpfile();
 	FILE *tmpout = tmpfile();
 	int fdin = fileno(tmpin);
 	int fdout = fileno(tmpout);
+	std::string result;
 
-	write(fdin, this->_body.c_str(), this->_body.length());
+	write(fdin, req.getBody().c_str(), req.getBody().length());
 	lseek(fdin, 0, SEEK_SET);
 	
 	pid_t pid = fork();
+	if (pid == -1)
+	{
+		Logger::error("CGIWorker error: fork failed");
+		return ("Status: 500\r\n\r\n");
+	}
 	if (pid == 0)
 	{
+		char * const * pth = NULL;
+
 		dup2(fdin, STDIN_FILENO);
 		dup2(fdout, STDOUT_FILENO);
-		close(fdin);
-		close(fdout);
-		execl(this->_path.c_str(), this->_path.c_str(), NULL);
-		exit(0);
+		execve(scriptpname.c_str(), pth, env);
+		Logger::error("CGIWorker error: execve failed");
+		write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
 	}
 	else
 	{
@@ -47,8 +107,32 @@ void	CGIWorker::run(void)
 
 		waitpid(pid, NULL, 0);
 		lseek(fdout, 0, SEEK_SET);
-		int len = read(fdout, buffer, CGIWORKER_BUFFER_SIZE);
-		buffer[len] = 0;
-		std::cout << buffer;
+		
+		int r = 1;
+		while (r > 0)
+		{
+			memset(buffer, 0, CGIWORKER_BUFFER_SIZE);
+			r = read(fdout, buffer, CGIWORKER_BUFFER_SIZE);
+			if (r > 0)
+				result += buffer;
+		}
 	}
+
+	dup2(sstdin, STDIN_FILENO);
+	dup2(sstdout, STDOUT_FILENO);
+	fclose(tmpin);
+	fclose(tmpout);
+	close(fdin);
+	close(fdout);
+	close(sstdin);
+	close(sstdout);
+
+	for (size_t i = 0; env[i]; i++)
+		delete[] env[i];
+	delete[] env;
+
+	if (!pid)
+		exit(0);
+
+	return (result);
 }

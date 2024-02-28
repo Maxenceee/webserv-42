@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:21:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 17:27:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ public:
 	Response		&sendNotFound(const int code = 404);
 	// Response		&render(const std::string filename);
 	Response		&redirect(const std::string &path, int status = 302);
+	Response		&sendCGI(const std::string data);
 	Response		&end();
 
 	Response		&setHeader(const std::string header, const std::string value);
@@ -69,12 +70,12 @@ public:
 	Response		&clearBody(void);
 	bool			hasBody(void) const;
 
-	const std::string		getVersion(void) const;
+	const std::string		&getVersion(void) const;
 	const int				getStatus(void) const;
-	const std::string		getSatusName(void) const;
-	const t_mapss			getHeaders(void) const;
-	const t_mapss			getCookies(void) const;
-	const std::string		getBody(void) const;
+	const std::string		&getSatusName(void) const;
+	const t_mapss			&getHeaders(void) const;
+	const t_mapss			&getCookies(void) const;
+	const std::string		&getBody(void) const;
 
 	const bool		canSend(void) const;
 
