@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/29 01:19:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/29 01:36:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,6 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 			}
 			parentTokens.pop_back();
 			parent = join(parentTokens, ".");
-			std::cout << "parent: " << parent << std::endl;
-			std::cout << "exiting block" << std::endl;
 			this->tmp_router = this->tmp_router->getParent();
 		}
 		// Line may not contain '{' ';' '}' symbols at the end
@@ -197,7 +195,6 @@ void	Parser::createNewRouter(const std::string key, const std::string val, const
 	else if (tokens.size() == 2)
 		this->throwError(key, val, raw_line);
 	location.path = tokens[tokens.size() - 1];
-	std::cout << "parent for new router: " << this->tmp_router->getLocation().path << std::endl;
 	Router *tmp = this->tmp_router;
 	this->tmp_router = new Router(tmp, location);
 	if (parent == "server.location")
