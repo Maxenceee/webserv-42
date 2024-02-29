@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 21:19:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/29 13:23:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ void	Logger::error(const std::string &msg, const std::string &color)
     int ret = strftime(buf, 32, "%T", tm);
     buf[ret] = '\0';
 	std::cerr << CYAN << "[" << buf << "] " << RESET;
-	std::cerr << color << msg << RESET;
+	std::cerr << color << W_PREFIX << msg << RESET;
 	std::cerr << "\n";
 }
 
