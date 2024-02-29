@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/26 15:44:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 23:03:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ private:
 	void	processInnerLines(const std::string &lineRaw, std::string &chunkedLine, std::string &parent, int &countOfParents);
 
 	void	switchConfigDirectives(const std::string key, const std::string val, const std::string parent, const std::string raw_line);
-	void	createNewRouter(const std::string key, const std::string val, const std::string raw_line);
+	void	createNewRouter(const std::string key, const std::string val, const std::string parent, const std::string raw_line);
 	void	addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line);
 	bool	isValidModifier(const std::string &modifier) const;
 
