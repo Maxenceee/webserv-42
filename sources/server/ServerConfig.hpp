@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 20:36:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 23:03:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,12 +45,12 @@ public:
 	ServerConfig(Server *server = NULL);
 	~ServerConfig(void);
 
-	void		setServer(Server *server);
+	void			setServer(Server *server);
 
-	void		handleRoutes(Request &req, Response &res);
+	void			handleRoutes(Request &req, Response &res);
 
-	Router							&getDefaultHandler(void);
-	void							use(Router *router);
+	Router			*getDefaultHandler(void);
+	void			use(Router *router);
 
 	void				setAddress(const std::string address);
 	void				setAddress(const uint32_t address);
@@ -63,9 +63,6 @@ public:
 	void								addName(const std::string name);
 	const std::vector<struct s_Name>	&getNames(void) const;
 	bool								evalName(const std::string name, const uint16_t port = 80) const;
-
-	const bool			hasErrorPage(const int code) const;
-	const std::string	&getErrorPage(const int code) const;
 
 	void	print(std::ostream &os) const;
 };

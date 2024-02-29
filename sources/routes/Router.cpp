@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 20:27:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/29 01:21:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,14 +34,23 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(ServerConfig &config, const struct s_Router_Location location, const std::string parent_root): _config(config), _location(location), _autoindex(false)
+Router::Router(Router *parent, const struct s_Router_Location location): _parent(parent), _location(location), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
 	 * changé en appellant la méthode Router::setRoot ou Router::setAlias.
+	 * FIXME:
+	 * Regarer l'heritage de root/alias entre les routers
 	 */
-	this->_root.path = parent_root;
-	this->_root.isAlias = false;
+	if (parent) {
+		this->_root = parent->getRootData();
+	} else {
+		/**
+		 * Le router par défaut n'héritant d'aucun autre router, doit être definit manuellement.
+		 */
+		this->_root.path = "/";
+		this->_root.isAlias = false;
+	}
 	this->_root.set = false;
 	/**
 	 * Nginx definit la valeur par defaut comme étant 1Mo.
@@ -53,6 +62,18 @@ Router::Router(ServerConfig &config, const struct s_Router_Location location, co
 
 Router::~Router(void)
 {
+	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++)
+		delete *it;
+}
+
+const bool	Router::isDefault(void) const
+{
+	return (this->_parent == NULL);
+}
+
+Router		*Router::getParent(void) const
+{
+	return (this->_parent);
 }
 
 void	Router::allowMethod(const std::string method)
@@ -120,9 +141,19 @@ void	Router::setAlias(const std::string path)
 	}
 }
 
+const struct s_Router_Location	&Router::getLocation(void) const
+{
+	return (this->_location);
+}
+
 const std::string	&Router::getRoot(void) const
 {
 	return (this->_root.path);
+}
+
+const struct s_Router_Root	&Router::getRootData(void) const
+{
+	return (this->_root);
 }
 
 void	Router::setRedirection(std::string to, int status)
@@ -165,9 +196,14 @@ void	Router::setErrorPage(const int code, const std::string path)
 	checkLeadingTrailingSlash(this->_error_page[code]);
 }
 
-const std::map<int, std::string>	&Router::getErrorPage(void) const
+const std::string	&Router::getErrorPage(const int status) const
 {
-	return (this->_error_page);
+	return (this->_error_page.at(status));
+}
+
+const bool			Router::hasErrorPage(const int code) const
+{
+	return (this->_error_page.count(code) > 0);
 }
 
 void	Router::setClientMaxBodySize(const std::string &size)
@@ -209,6 +245,15 @@ const std::string	&Router::getCGIPath(void) const
 	return (this->_cgi.path);
 }
 
+void	Router::use(Router *router)
+{
+	/**
+	 * Cette méthode permet d'ajouter un router enfant à ce router.
+	 * Les routes du router enfant seront servies par ce router.
+	 */
+	this->_routes.push_back(router);
+}
+
 void	Router::route(Request &request, Response &response)
 {
 	if (this->handleRoutes(request, response)) {
@@ -219,8 +264,8 @@ void	Router::route(Request &request, Response &response)
 				Logger::debug("router full path: " + fullpath);
 				response.sendFile(fullpath);
 			}
-			else if (this->_config.hasErrorPage(response.getStatus())) {
-				std::string fullpath = this->_config.getDefaultHandler().getLocalFilePath(this->_config.getErrorPage(response.getStatus()));
+			else if (this->_parent->hasErrorPage(response.getStatus())) {
+				std::string fullpath = this->_parent->getLocalFilePath(this->_parent->getErrorPage(response.getStatus()));
 				Logger::debug("server default full path: " + fullpath);
 				response.sendFile(fullpath);
 			}
@@ -239,7 +284,6 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		return (false);
 	/**
 	 * On compare le chemin du router et celui de la requête.
-	 * Pour le moment toutes les requête sont considérées comme GET.
 	 */
 	if (this->matchRoute(request.getPath(), response))
 	{
@@ -258,12 +302,23 @@ bool	Router::handleRoutes(Request &request, Response &response)
 				response.status(413);
 				return (true);
 			}
-		} else if (this->_config.getDefaultHandler().getClientMaxBodySize() > 0) {
-			if (request.getBody().size() > this->_config.getDefaultHandler().getClientMaxBodySize()) {
+		} else if (this->_parent->getClientMaxBodySize() > 0) {
+			if (request.getBody().size() > this->_parent->getClientMaxBodySize()) {
 				response.status(413);
 				return (true);
 			}
 		}
+		
+		/**
+		 * Evaluation des routes enfants.
+		 */
+		Logger::debug("sub-router: " + toString<int>(this->_routes.size()));
+		for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+			(*it)->route(request, response);
+			if (!response.canSend())
+				return (true);
+		}
+		
 		/**
 		 * Nginx n'est pas très clair quant aux priorités entre `root`/`alias` et
 		 * `return`. Nous avons fait le choix de toujours donner la priorité à
@@ -465,6 +520,7 @@ void	Router::handleCGI(Request &request, Response &response)
 			response.status(500).end();
 			return ;
 		}
+		Logger::debug("full path: " + fullpath);
 		
 		if (!isFile(fullpath)) {
 			response.status(404).end();
@@ -531,6 +587,18 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 	return (result == 0);
 }
 
+std::string	cutLastSlash(const std::string &path)
+{
+	std::size_t lastSlashPos = path.find_last_of("/");
+    std::string fileName = path.substr(lastSlashPos);
+    std::size_t dotPos = fileName.find_last_of(".");
+    
+	if (dotPos == std::string::npos) {
+		return ("");
+	}
+	return (fileName);
+}
+
 std::string	Router::getLocalFilePath(const std::string &requestPath)
 {
 	// La directive root consiste simplement à ajouter le chemin de la requête à la directive root
@@ -546,6 +614,11 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 	if (this->_location.modifier == "~" || this->_location.modifier == "~*") {
 		regex_t regex;
 		int result;
+
+		// Dans le cas ou le chemin de localisation est une expression régulière, l'expression 
+		// régulière peut conserner des fichiers, dans ce cas on sauvegarde le dernier segment du chemin
+		// de la requête pour le rajouter après la correspondance.
+		std::string savedBlock = cutLastSlash(requestPath);
 
 		int flags = REG_EXTENDED;
 
@@ -563,10 +636,11 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 
 		// Chercher la correspondance dans le chemin de la requête
 		regmatch_t match;
+
 		result = regexec(&regex, requestPath.c_str(), 1, &match, 0);
 		if (result != 0)
 			return ("");
-		relativePath = requestPath.substr(match.rm_eo);
+		relativePath = requestPath.substr(match.rm_eo) + savedBlock;
 
 		// Libérer la mémoire utilisée par l'expression régulière compilée
 		regfree(&regex);
@@ -656,7 +730,10 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 
 void	Router::print(std::ostream &os) const
 {
-	os << "\t" << B_GREEN"Router: \n";
+	os << "\t" << B_GREEN"Router: " << RESET;
+	if (this->_parent && !this->_parent->isDefault())
+		os << "parent: " << this->_parent->getLocation().path;
+	os << "\n";
 	os << "\t" << B_CYAN"Path: " << RESET << (this->_location.modifier.size() ? this->_location.modifier+" " : "") << this->_location.path << "\n";
 	os << "\t" << B_CYAN"Methods:" << RESET;
 	if (this->_allowed_methods.empty())
@@ -679,4 +756,10 @@ void	Router::print(std::ostream &os) const
 	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
 	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
 		os << "\t" << it->first << " => " << it->second << "\n";
+	if (this->_routes.size()) {
+		os << B_ORANGE << "Sub-Routers of " << this->_location.path << ": " << RESET << "\n";
+		for (std::vector<Router *>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+			os << **it;
+		}
+	}
 }

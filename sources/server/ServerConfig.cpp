@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 20:36:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/28 22:02:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ std::ostream	&operator<<(std::ostream &os, const ServerConfig &config)
 
 ServerConfig::ServerConfig(Server *server): _server(server)
 {
-	this->_default = new Router(*this, s_Router_Location());
+	this->_default = new Router(NULL, s_Router_Location());
 	this->port = 80;
 	this->address = 0;
 }
@@ -64,9 +64,9 @@ void	ServerConfig::handleRoutes(Request &req, Response &res)
 	}
 }
 
-Router	&ServerConfig::getDefaultHandler(void)
+Router	*ServerConfig::getDefaultHandler(void)
 {
-	return (*this->_default);
+	return (this->_default);
 }
 
 void	ServerConfig::use(Router *router)
@@ -146,16 +146,6 @@ bool	ServerConfig::evalName(const std::string name, const uint16_t port) const
 		}
 	}
 	return (false);
-}
-
-const bool			ServerConfig::hasErrorPage(const int code) const
-{
-	return (this->_default->getErrorPage().count(code) > 0);
-}
-
-const std::string	&ServerConfig::getErrorPage(const int code) const
-{
-	return (this->_default->getErrorPage().at(code));
 }
 
 void	ServerConfig::print(std::ostream &os) const

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 20:36:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/29 01:19:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,9 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 			}
 			parentTokens.pop_back();
 			parent = join(parentTokens, ".");
+			std::cout << "parent: " << parent << std::endl;
+			std::cout << "exiting block" << std::endl;
+			this->tmp_router = this->tmp_router->getParent();
 		}
 		// Line may not contain '{' ';' '}' symbols at the end
 		else {
@@ -161,25 +164,25 @@ void	Parser::switchConfigDirectives(const std::string key, const std::string val
 			this->throwError(key, val, raw_line);
 		this->new_server = new ServerConfig();
 		this->configs.push_back(this->new_server);
-		this->tmp_router = &this->new_server->getDefaultHandler();
+		this->tmp_router = this->new_server->getDefaultHandler();
 	}
 	else if (key == "location") {
 		// On empeche l'imbrication des locations
-		if (parent != "server.location")
-			this->throwError(key, val, raw_line);
-		this->createNewRouter(key, val, raw_line);
+		// if (parent != "server.location")
+		// 	this->throwError(key, val, raw_line);
+		this->createNewRouter(key, val, parent, raw_line);
 	}
 	else
 	{
 		if (parent == "server")
-			this->tmp_router = &this->new_server->getDefaultHandler();
+			this->tmp_router = this->new_server->getDefaultHandler();
 		if (val.empty())
 			this->throwError(key, val, raw_line);
 		this->addRule(key, val, parent, raw_line);
 	}
 }
 
-void	Parser::createNewRouter(const std::string key, const std::string val, const std::string raw_line)
+void	Parser::createNewRouter(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
 	struct s_Router_Location	location;
 
@@ -194,8 +197,21 @@ void	Parser::createNewRouter(const std::string key, const std::string val, const
 	else if (tokens.size() == 2)
 		this->throwError(key, val, raw_line);
 	location.path = tokens[tokens.size() - 1];
-	this->tmp_router = new Router(*this->new_server, location, this->new_server->getDefaultHandler().getRoot());
-	this->new_server->use(this->tmp_router);
+	std::cout << "parent for new router: " << this->tmp_router->getLocation().path << std::endl;
+	Router *tmp = this->tmp_router;
+	this->tmp_router = new Router(tmp, location);
+	if (parent == "server.location")
+		this->new_server->use(this->tmp_router);
+	else
+		tmp->use(this->tmp_router);
+	const struct s_Router_Location &parent_l = tmp->getLocation();
+	const struct s_Router_Location &child_l = this->tmp_router->getLocation();
+	if ((!parent_l.modifier.empty() && parent_l.modifier != "^~" && (child_l.modifier.empty() || child_l.modifier == "^~"))
+		|| (((parent_l.modifier.empty() || parent_l.modifier == "^~") && (child_l.modifier.empty() || child_l.modifier == "^~"))
+			&& (child_l.path.size() < parent_l.path.size() || child_l.path.substr(0, parent_l.path.size()) != parent_l.path))) {
+		Logger::error("parser error: location \""+child_l.path+"\" is outside location \""+parent_l.path+"\"", B_RED);
+		this->throwError(key, val, raw_line);
+	}
 }
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
