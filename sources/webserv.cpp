@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 15:51:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/02/29 13:23:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,8 @@ int	main(int argc, char const **argv)
 	print_name();
 	if (argc > 3 || argc < 2)
 	{
-		Logger::error(W_PREFIX"Invalid usage", RESET);
-		Logger::error(W_PREFIX"usage: [configuration file]", RESET);
+		Logger::error("Invalid usage", RESET);
+		Logger::error("usage: [configuration file]", RESET);
 		return (EXIT_FAILURE);
 	}
 	if (argc == 3) {
