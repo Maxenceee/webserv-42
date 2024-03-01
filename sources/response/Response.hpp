@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:27:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 13:43:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ private:
 	std::string			_body;
 	
 	static std::map<int, std::string>		initCodes();
+	static std::map<int, std::string>		http_codes;
 	
 	const std::string	prepareResponse(void);
 	std::string			getTime(void);
@@ -53,7 +54,7 @@ public:
 	Response(const Server &server, int socket, const Request &req);
 	~Response(void);
 
-	static std::map<int, std::string>		http_codes;
+	static bool		isValidStatus(int status);
 
 	Response		&status(const int code);
 	Response		&send(const std::string data);

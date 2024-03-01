@@ -54,11 +54,15 @@ const toJSON = function(conf) {
 				const key = line.slice(0, line.length - 1).trim();
 
 				// If we are already a level deep (or more), add a dot before the key
-				if (parent)
+				if (parent) {
 					parent += '.' + key
+					countOfParentsThatAreArrays += 1
+				}
 				// otherwise just track the key
-				else
+				else {
 					parent = key
+					countOfParentsThatAreArrays = 0
+				}
 				console.log(key, "");
 			}
 			/*

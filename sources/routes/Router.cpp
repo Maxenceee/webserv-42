@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/29 01:21:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 13:40:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,13 +210,16 @@ void	Router::setClientMaxBodySize(const std::string &size)
 {
 	this->_client_max_body_size = parseSize(size);
 	if (this->_client_max_body_size < 0) {
-		Logger::error("router error: Invalid size: " + size);
+		throw std::invalid_argument("router error: Invalid size: "+size);
 	}
 }
 
 void	Router::setClientMaxBodySize(const int size)
 {
 	this->_client_max_body_size = size;
+	if (this->_client_max_body_size < 0) {
+		throw std::invalid_argument("router error: Invalid size: "+toString<int>(size));
+	}
 }
 
 const int	Router::getClientMaxBodySize(void) const
@@ -226,6 +229,8 @@ const int	Router::getClientMaxBodySize(void) const
 
 void	Router::setCGI(const std::string path, const std::string extension)
 {
+	if (!isFile(path))
+		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
 	this->_cgi.path = path;
 	this->_cgi.enabled = true;
 }
