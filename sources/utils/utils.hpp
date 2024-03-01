@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 20:46:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 14:54:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,10 +39,12 @@ std::string					&to_upper(std::string &str);
 std::string					&to_lower(std::string &str);
 std::string					&capitalize(std::string &str);
 std::string					getExtension(const std::string &filename);
-void						replace(std::string &buffer, std::string searchValue, std::string replaceValue);
+std::string					&replace(std::string &buffer, std::string searchValue, std::string replaceValue);
+std::string					&replaceAll(std::string &buffer, char searchValue, char replaceValue);
 
 std::string					getIPAddress(int addr);
 uint32_t					setIPAddress(std::string addr);
+bool						isIPAddress(std::string addr);
 
 int							parseSize(std::string size);
 std::string					getSize(int size);

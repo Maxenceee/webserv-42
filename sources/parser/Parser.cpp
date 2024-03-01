@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/29 01:36:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 15:12:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	Parser::parse(const char *configPath)
 	this->cluster.initConfigs(this->configs);
 }
 
-void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedLine, std::string &parent, int &countOfParents)
+void	Parser::processInnerLines(std::string &lineRaw, std::string &chunkedLine, std::string &parent)
 {
 	std::vector<std::string> innerLines = split(lineRaw, '\n');
 
@@ -101,10 +101,6 @@ void	Parser::processInnerLines(const std::string &lineRaw, std::string &chunkedL
 		else if (line[line.length() - 1] == '}') {
 			chunkedLine = "";
 			std::vector<std::string> parentTokens = split(parent, '.');
-			if (countOfParents > 0 && isdigit(parentTokens.back()[0])) {
-				parentTokens.pop_back();
-				countOfParents -= 1;
-			}
 			parentTokens.pop_back();
 			parent = join(parentTokens, ".");
 			this->tmp_router = this->tmp_router->getParent();
@@ -121,7 +117,6 @@ void	Parser::extract(const std::string &conf)
 	std::vector<std::string> lines = split(conf, '\n');
 	std::string parent = "";
 	std::string chunkedLine = "";
-	int countOfParents = 0;
 
 	for (std::vector<std::string>::iterator lineIt = lines.begin(); lineIt != lines.end(); ++lineIt) {
 		std::string lineRaw = *lineIt;
@@ -133,13 +128,17 @@ void	Parser::extract(const std::string &conf)
 		// Line can contain comments, we need to remove them
 		lineRaw = split(lineRaw, '#')[0];
 		trim(lineRaw);
-		this->processInnerLines(lineRaw, chunkedLine, parent, countOfParents);
+		replace(lineRaw, "\t", " ");
+		replaceAll(lineRaw, ' ', ' ');
+		replace(lineRaw, "{", "{\n");
+		// replace(lineRaw, "}", "\n}");
+		this->processInnerLines(lineRaw, chunkedLine, parent);
 	}
 }
 
 void	Parser::throwError(const std::string key, const std::string val, const std::string raw_line)
 {
-	std::string	tmp(B_RED"parser error: invalid directive found");
+	std::string	tmp("parser error: invalid directive found");
 	if (raw_line.size() > 0) {
 		tmp += RESET;
 		tmp += "\n\t" + raw_line;
@@ -152,7 +151,7 @@ void	Parser::throwError(const std::string key, const std::string val, const std:
 	throw std::invalid_argument(tmp.c_str());
 }
 
-void	Parser::switchConfigDirectives(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
+void	Parser::switchConfigDirectives(std::string key, std::string val, const std::string parent, const std::string raw_line)
 {
 	if (!this->new_server && key != "server")
 		this->throwError(key, val, raw_line);
@@ -165,9 +164,6 @@ void	Parser::switchConfigDirectives(const std::string key, const std::string val
 		this->tmp_router = this->new_server->getDefaultHandler();
 	}
 	else if (key == "location") {
-		// On empeche l'imbrication des locations
-		// if (parent != "server.location")
-		// 	this->throwError(key, val, raw_line);
 		this->createNewRouter(key, val, parent, raw_line);
 	}
 	else
@@ -180,13 +176,14 @@ void	Parser::switchConfigDirectives(const std::string key, const std::string val
 	}
 }
 
-void	Parser::createNewRouter(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
+void	Parser::createNewRouter(std::string key, std::string val, const std::string parent, const std::string raw_line)
 {
 	struct s_Router_Location	location;
 
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() > 2 || tokens.size() < 1)
 		this->throwError(key, val, raw_line);
+	trim(tokens[0]);
 	if (tokens.size() == 2 && this->isValidModifier(tokens[0])) {
 		location.modifier = tokens[0];
 		if (location.modifier == "=")
@@ -194,7 +191,7 @@ void	Parser::createNewRouter(const std::string key, const std::string val, const
 	}
 	else if (tokens.size() == 2)
 		this->throwError(key, val, raw_line);
-	location.path = tokens[tokens.size() - 1];
+	location.path = trim(tokens[tokens.size() - 1]);
 	Router *tmp = this->tmp_router;
 	this->tmp_router = new Router(tmp, location);
 	if (parent == "server.location")
@@ -206,14 +203,14 @@ void	Parser::createNewRouter(const std::string key, const std::string val, const
 	if ((!parent_l.modifier.empty() && parent_l.modifier != "^~" && (child_l.modifier.empty() || child_l.modifier == "^~"))
 		|| (((parent_l.modifier.empty() || parent_l.modifier == "^~") && (child_l.modifier.empty() || child_l.modifier == "^~"))
 			&& (child_l.path.size() < parent_l.path.size() || child_l.path.substr(0, parent_l.path.size()) != parent_l.path))) {
-		Logger::error("parser error: location \""+child_l.path+"\" is outside location \""+parent_l.path+"\"", B_RED);
+		Logger::error("parser error: location \""+child_l.path+"\" is outside location \""+parent_l.path+"\"");
 		this->throwError(key, val, raw_line);
 	}
 }
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
-	/**
+	/**`
 	 * Directive Listen
 	 */
 	if (key == "listen" && parent != "server")
@@ -221,10 +218,14 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	else if (key == "listen") {
 		// check if there is a column in the value
 		if (val.find(':') == std::string::npos) {
+			if (!isDigit(val))
+				this->throwError(key, val);
 			this->new_server->setPort(std::atoi(val.c_str()));
 		} else {
 			std::vector<std::string> tokens = split(val, ':');
 			if (tokens.size() == 2) {
+				if (!isIPAddress(tokens[0]) || !isDigit(tokens[1]))
+					this->throwError(key, val);
 				this->new_server->setAddress(tokens[0]);
 				this->new_server->setPort(std::atoi(tokens[1].c_str()));
 			}
@@ -252,7 +253,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		this->tmp_router->setRoot(val);
 		return ;
 	}
-	else if (key == "alias" && parent == "server.location") {
+	else if (key == "alias" && parent != "server") {
 		this->tmp_router->setAlias(val);
 		return ;
 	} else if (key == "alias") {
@@ -275,6 +276,8 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "autoindex") {
 		if (val == "on")
 			this->tmp_router->setAutoIndex(true);
+		else if (val != "off")
+			this->throwError(key, val);
 		return ;
 	}
 
@@ -287,6 +290,8 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		if (val.find(' ') != std::string::npos) {
 			std::vector<std::string> tokens = split(val, ' ');
 			if (tokens.size() == 2) {
+				if (!isDigit(tokens[0]))
+					this->throwError(key, val);
 				status = std::atoi(tokens[0].c_str());
 				loc = tokens[1];
 			}
@@ -296,7 +301,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			status = std::atoi(val.c_str());
 			loc = "";
 		}
-		if (Response::http_codes.count(status) == 0) {
+		if (!Response::isValidStatus(status)) {
 			Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
 		}
 		this->tmp_router->setRedirection(loc, status);
@@ -309,6 +314,8 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "allow_methods") {
 		std::vector<std::string> tokens = split(val, ' ');
 		for (size_t i = 0; i < tokens.size(); i++) {
+			if (!Server::isValidMethod(tokens[i]))
+				this->throwError(key, val);
 			this->tmp_router->allowMethod(tokens[i]);
 		}
 		return ;
@@ -322,6 +329,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		if (tokens.size() < 2)
 			this->throwError(key, val);
 		for (size_t i = 0; i < tokens.size() - 1; i++) {
+			if (!isDigit(tokens[i])) {
+				this->throwError(key, val);
+			}
 			this->tmp_router->setErrorPage(std::atoi(tokens[i].c_str()), tokens[tokens.size() - 1]);
 		}
 		return ;
@@ -349,9 +359,6 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Directive fastcgi_pass
 	 */
 	if (key == "fastcgi_pass") {
-		// std::vector<std::string> tokens = split(val, ' ');
-		// if (tokens.size() < 2)
-		// 	this->throwError(key, val);
 		this->tmp_router->setCGI(val);
 		return ;
 	}

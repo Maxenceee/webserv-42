@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/29 01:34:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 13:44:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,11 @@ std::map<int, std::string>	Response::initCodes()
 	codes[510] = "Not extended";
 	codes[511] = "Network authentication required";
 	return (codes);
+}
+
+bool	Response::isValidStatus(int status)
+{
+	return (http_codes.count(status) != 0);
 }
 
 Response::~Response(void)
@@ -285,7 +290,6 @@ const std::string	Response::prepareResponse(void)
 	 */
 	if (!this->http_codes.count(this->_status))
 	{
-		std::cout << "status code: " << this->_status << std::endl;
 		Logger::error("Response error: invalid status code");
 		this->_status = 500;
 	}

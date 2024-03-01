@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 18:27:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 14:53:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,23 @@ uint32_t	setIPAddress(std::string addr)
 	return (res);
 }
 
-void	replace(std::string &buffer, std::string searchValue, std::string replaceValue)
+bool	isIPAddress(std::string addr)
+{
+	if (addr == "localhost")
+		return (true);
+
+	std::vector<std::string>	tokens = split(addr, '.');
+	if (tokens.size() != 4)
+		return (false);
+	for (size_t i = 0; i < tokens.size(); i++)
+	{
+		if (!isDigit(tokens[i]))
+			return (false);
+	}
+	return (true);
+}
+
+std::string		&replace(std::string &buffer, std::string searchValue, std::string replaceValue)
 {
 	std::string	sv(searchValue);
 	std::string	rv(replaceValue);
@@ -185,9 +201,25 @@ void	replace(std::string &buffer, std::string searchValue, std::string replaceVa
 	{
 		buffer.erase(found_place, sv.length());
 		buffer.insert(found_place, replaceValue);
-		std::size_t last_found = found_place;
 		found_place = buffer.find(sv, found_place + 1);
 	}
+	return (buffer);
+}
+
+std::string &replaceAll(std::string &buffer, char searchValue, char replaceValue)
+{
+    size_t pos = 0;
+    while ((pos = buffer.find(searchValue, pos)) != std::string::npos) {
+        size_t end_pos = pos;
+        // Find the end of the successive occurrences
+        while (end_pos < buffer.size() && buffer[end_pos] == searchValue) {
+            ++end_pos;
+        }
+        // Replace all occurrences with a single one
+        buffer.replace(pos, end_pos - pos, 1, replaceValue);
+        pos += 1; // Move past the replaced character
+    }
+    return buffer;
 }
 
 int	parseSize(std::string size)
