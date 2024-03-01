@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 13:40:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 20:43:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,6 +273,9 @@ void	Router::route(Request &request, Response &response)
 				std::string fullpath = this->_parent->getLocalFilePath(this->_parent->getErrorPage(response.getStatus()));
 				Logger::debug("server default full path: " + fullpath);
 				response.sendFile(fullpath);
+			} else {
+				Logger::debug("router default response");
+				response.sendDefault();
 			}
 		}
 		response.end();
@@ -335,7 +338,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 				return (true);
 			}
 			Logger::debug("redirect to: " + this->_redirection.path);
-			response.redirect(this->_redirection.path, this->_redirection.status).end();
+			response.redirect(this->_redirection.path, this->_redirection.status);
 			return (true);
 		}
 		

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 20:24:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 20:27:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ t_mapss		CGIWorker::init(const Request &req, t_mapss &params, const std::string 
 	env["REDIRECT_STATUS"] = "200";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	env["SERVER_SOFTWARE"] = "webserv/1.0";
+	env["SERVER_SOFTWARE"] = W_SERVER_NAME;
 	env["REQUEST_METHOD"] = req.getMethod();
 	env["REQUEST_URI"] = req.getRawPath();
 	env["SCRIPT_NAME"] = req.getPath();
