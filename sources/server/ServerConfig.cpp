@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 22:02:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 20:46:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,11 @@ void	ServerConfig::handleRoutes(Request &req, Response &res)
 		 * la requête vers le chemin spécifié.
 		 */
 		if (this->_default->getRedirection().enabled) {
+			if (this->_default->getRedirection().path.empty()) {
+				res.status(this->_default->getRedirection().status);
+				res.sendDefault().end();
+				return ;
+			}
 			res.redirect(this->_default->getRedirection().path, this->_default->getRedirection().status).end();
 			return ;
 		}
