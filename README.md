@@ -80,4 +80,6 @@ Ajouter le parser pour le fichier config :
 - client body max size ✅
 
 Gerer les CGI ✅
-Gerer les inclusions en cascade de blocs "location" ?! 
+Gerer les inclusions en cascade de blocs "location" ?! ✅
+
+ajouter "add_header key value" pour gerer les cookies

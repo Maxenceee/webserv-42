@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 23:03:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:41:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ private:
 
 	// les comportements par default du serveur sont stocké dans un router spécifique
 	Router						*_default;
-	std::vector<Router*>		_routes;
 
 public:
 	ServerConfig(Server *server = NULL);
