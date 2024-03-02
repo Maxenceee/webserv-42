@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:09:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 21:08:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -321,7 +321,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	Response response = Response(*this, request.getClientSocket(), request);
 
 	/**
-	 * On cherche la configuration du serveur correspondant au nom de domaine de la requête.
+	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
 	 * la configuration par défaut.
 	 */
