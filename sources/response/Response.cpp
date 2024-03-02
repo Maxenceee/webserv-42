@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 20:58:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:32:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -332,6 +332,22 @@ Response	&Response::setHeader(const std::string header, const std::string value)
 	else
 		Logger::error("Response error: cannot set header after it was sent");
 	return (*this);
+}
+
+bool	Response::canAddHeader() const
+{
+	return (
+		this->_status == 200 ||
+		this->_status == 201 ||
+		this->_status == 204 ||
+		this->_status == 206 ||
+		this->_status == 301 ||
+		this->_status == 302 ||
+		this->_status == 303 ||
+		this->_status == 304 ||
+		this->_status == 307 ||
+		this->_status == 308
+	);
 }
 
 Response	&Response::setCookie(const std::string name, const std::string value, const CookieOptions &options)

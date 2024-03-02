@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 15:12:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:07:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -372,6 +372,25 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			this->throwError(key, val);
 		this->tmp_router->addCGIParam(tokens[0], tokens[1]);
 	}
+
+	/**
+	 * Default
+	 */
+	if (key == "add_header") {
+		std::vector<std::string> tokens = split(val, ' ');
+		bool always = false;
+		if (tokens.size() < 2 || tokens.size() > 3)
+			this->throwError(key, val);
+		if (tokens.size() == 3) {
+			if (tokens[2] != "always")
+				this->throwError(key, val);
+			always = true;
+		}
+		this->tmp_router->addHeader(tokens[0], tokens[1], always);
+		return ;
+	
+	}
+
 	/**
 	 * Default
 	 */
