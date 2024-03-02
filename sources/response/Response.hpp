@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:31:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:53:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ public:
 	Response		&clearBody(void);
 	bool			hasBody(void) const;
 
-	bool			canAddHeader() const;
+	bool			canAddHeader(void) const;
 
 	const std::string		&getVersion(void) const;
 	const int				getStatus(void) const;
