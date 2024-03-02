@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:32:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:53:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -334,7 +334,7 @@ Response	&Response::setHeader(const std::string header, const std::string value)
 	return (*this);
 }
 
-bool	Response::canAddHeader() const
+bool	Response::canAddHeader(void) const
 {
 	return (
 		this->_status == 200 ||
