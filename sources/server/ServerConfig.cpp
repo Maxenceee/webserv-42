@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:41:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/03 12:38:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ ServerConfig::ServerConfig(Server *server): _server(server)
 {
 	this->_default = new Router(NULL, s_Router_Location());
 	this->port = 80;
-	this->address = 0;
+	this->address = INADDR_ANY;
 }
 
 ServerConfig::~ServerConfig(void)
