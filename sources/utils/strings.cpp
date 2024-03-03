@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 14:53:21 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/03 12:55:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,8 +145,9 @@ std::string		getExtension(const std::string &filename)
 	return ("");
 }
 
-std::string	getIPAddress(int addr)
+std::string		getIPAddress(int addr)
 {
+	// Similaire à inet_ntoa, renvoie une std::string et non un char *.
 	std::string	res;
 
 	res += toString((addr & 0xFF000000) >> 24);
@@ -161,6 +162,7 @@ std::string	getIPAddress(int addr)
 
 uint32_t	setIPAddress(std::string addr)
 {
+	// Similaire à inet_addr, mais prend une std::string et non un char *, accepte localhost.
 	if (addr == "localhost")
 		return (INADDR_LOOPBACK);
 
