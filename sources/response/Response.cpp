@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 13:44:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:53:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Response::Response(const Server &server, int socket, const Request &req): _serve
 	this->_status = req.getStatus();
 	this->_path = req.getPath();
 	this->initCodes();
-	this->setHeader("Server", "webserv/1.0");
+	this->setHeader("Server", W_SERVER_NAME);
 	/**
 	 * On vérifie si la requête n'a renvoyé aucune erreur de parsing.
 	 */
@@ -178,7 +178,18 @@ Response	&Response::sendNotFound(const int code)
 {
 	this->status(code);
 	this->setHeader("Content-Type", "text/html; charset=utf-8");
-	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Error</title></head><body><pre>Cannot "+this->_method+" "+this->_path+"</pre></body></html>");
+	std::string st("Cannot "+this->_method+" "+this->_path);
+	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>"+st+"</title></head><body><pre>"+st+"</pre></body></html>");
+	return (*this);
+}
+
+Response	&Response::sendDefault(const int code)
+{
+	if (code != -1)
+		this->status(code);
+	this->setHeader("Content-Type", "text/html; charset=utf-8");
+	std::string st(toString<int>(this->_status)+" "+this->getSatusName());
+	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>"+st+"</title></head><body><center><h1>"+st+"</h1></center><hr><center>"+W_SERVER_NAME+"</center></body></html>");
 	return (*this);
 }
 
@@ -321,6 +332,22 @@ Response	&Response::setHeader(const std::string header, const std::string value)
 	else
 		Logger::error("Response error: cannot set header after it was sent");
 	return (*this);
+}
+
+bool	Response::canAddHeader(void) const
+{
+	return (
+		this->_status == 200 ||
+		this->_status == 201 ||
+		this->_status == 204 ||
+		this->_status == 206 ||
+		this->_status == 301 ||
+		this->_status == 302 ||
+		this->_status == 303 ||
+		this->_status == 304 ||
+		this->_status == 307 ||
+		this->_status == 308
+	);
 }
 
 Response	&Response::setCookie(const std::string name, const std::string value, const CookieOptions &options)

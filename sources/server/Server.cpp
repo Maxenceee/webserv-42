@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:09:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/03 12:56:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ const int	Server::init(void)
 	if (this->port == 0)
 		throw Server::ServerInvalidPort();
 
-	FD_ZERO(&this->_fd_set); // reset la liste de fildes
 	Logger::print("Initiating server " + toString<int>(this->_id), B_GREEN);
 	/**
 	 * La fonction socket() permet de créer un point de terminaison (end-point) pour
@@ -113,7 +112,6 @@ const int	Server::init(void)
 	 * La fonction renvoie un descripteur de fichiers.
 	 */
 	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	FD_SET(this->socket_fd, &this->_fd_set); // permet d'ajouter à l'ensemble `fdset` (inutilisé pour le moment)
 	if (this->socket_fd == -1)
 	{
 		Logger::error("server error: Could not create socket");
@@ -138,9 +136,10 @@ const int	Server::init(void)
 	}
 
 	/**
-	 * Lorsque je le met plus rien de fonctionne, et lorsque j'accepte les requêtes recv()
-	 * renvoie que le descripteur n'est pas prêt.
-	 * Les decriprteurs non bloquants sont uniquement necessaire pour MacOS
+	 * Lorsque présent plus rien de fonctionne, et lorsque les requêtes sont accéptées recv()
+	 * renvoie que le descripteur n'est pas prêt. A voir si en mode non bloquant poll ne pose pas
+	 * problème et peut être que select() serait plus adapté.
+	 * Les decriprteurs non bloquants étant uniquement necessaire pour MacOS, on oublie :)
 	 */
 	// if (fcntl(this->socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
 	// 	perror("fcntl");
@@ -169,8 +168,8 @@ const int	Server::init(void)
 	 * d'octet (endianness) entre le réseau et la machine hôte. Le réseau utilisant un Big-Endian
 	 * cette fonction s'assure que la valeur passé soit convertie en conséquence. Cette conversion
 	 * est éssentielle pour éviter les problèmes de compatibilités.
-	 * - En enfin le champs sin_addr permet de spécifier l'adresse IP que nous voulons associer, 
-	 * dans nôtre cas nous utilisons INADDR_ANY afin d'indiquer que le socket peut être associé à
+	 * - En enfin le champs sin_addr permet de spécifier l'adresse IP que nous voulons associer,
+	 * dans nôtre cas nous utilisons INADDR_ANY par defaut afin d'indiquer que le socket peut être associé à
 	 * n'importe quelle adresse IP disponible sur la machine.
 	 */
 	int ret_conn = bind(this->socket_fd, (sockaddr *)&this->socket_addr, sizeof(this->socket_addr));
@@ -286,13 +285,9 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 {
 	char buffer[RECV_SIZE] = {0};
 
-	// std::stringstream stringstream;
-	
-	// std::string buffer = readBinaryfile(client, stringstream).str();
-	// std::cout << B_RED << buffer << RESET << std::endl;
 	/**
 	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
-	 * le descripteur du client. À la difference de read, la fonction recv est
+	 * le descripteur du client. À la difference de read(), la fonction recv() est
 	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
 	 * gestion de la lecture dans un contexte de travaille en réseau.
 	 */
@@ -321,7 +316,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	Response response = Response(*this, request.getClientSocket(), request);
 
 	/**
-	 * On cherche la configuration du serveur correspondant au nom de domaine de la requête.
+	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
 	 * la configuration par défaut.
 	 */

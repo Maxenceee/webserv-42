@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/29 01:21:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:20:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,20 @@ struct s_CGI_Data {
 	t_mapss			params;
 };
 
+struct s_Router_Headers {
+	bool			enabled;
+
+	struct s_Router_Header {
+		std::string		key;
+		std::string		value;
+		bool			always;
+	};
+
+	std::vector<struct s_Router_Header>	list;
+};
+
+typedef struct s_Router_Headers::s_Router_Header	Router_Header_t;
+
 class Router
 {
 private:
@@ -64,6 +78,7 @@ private:
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
 	int								_client_max_body_size; // in bytes
+	struct s_Router_Headers			_headers;
 
 	std::vector<Router *>			_routes;
 
@@ -74,8 +89,11 @@ private:
 	static std::map<std::string, void (Router::*)(Request &, Response &)>	_method_handlers;
 	static std::map<std::string, void (Router::*)(Request &, Response &)>	initMethodHandlers();
 
+	void	reloadChildren(void);
+
 	bool	handleRoutes(Request &request, Response &response);
 	void	call(std::string method, Request &request, Response &response);
+
 	void	handleGETMethod(Request &request, Response &response);
 	void	handleHEADMethod(Request &request, Response &response);
 	void	handlePOSTMethod(Request &request, Response &response);
@@ -91,9 +109,12 @@ public:
 	Router(Router *parent, const struct s_Router_Location location);
 	~Router(void);
 
+	void	reload(void);
+
 	void	route(Request &request, Response &response);
 
-	void	use(Router *router);
+	void					use(Router *router);
+	std::vector<Router *>	&getRoutes(void);
 
 	void	allowMethod(const std::string method);
 	void	allowMethod(const std::vector<std::string> method);
@@ -118,6 +139,9 @@ public:
 
 	void	setIndex(const std::vector<std::string> index);
 	void	addIndex(const std::string index);
+
+	void	addHeader(const std::string key, const std::string value, const bool always = false);
+	const std::vector<Router_Header_t>	&getHeaders(void) const;
 
 	void					setErrorPage(const int code, const std::string path);
 	const std::string		&getErrorPage(const int status) const;

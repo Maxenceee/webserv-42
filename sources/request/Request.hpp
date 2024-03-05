@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:08:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 13:58:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,9 @@ public:
 	const int				getPort(void) const;
 	const std::string		&getHost(void) const;
 	const t_mapss			&getQueries(void) const;
+	const std::string		getQueryString(void) const;
 	const t_mapss			&getHeaders(void) const;
+	const std::string		&getHeader(const std::string name) const;
 	const t_mapss			&getCookies(void) const;
 	const std::string		&getBody(void) const;
 	const int				getStatus(void) const;
