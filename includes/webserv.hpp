@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 16:45:13 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/01 20:27:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@
 
 #include "pcolors.hpp"
 #include "utils/utils.hpp"
+
+#define W_SERVER_NAME "webserv/1.0"
 
 /* text */
 

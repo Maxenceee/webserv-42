@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 22:02:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/03 12:38:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,11 @@ ServerConfig::ServerConfig(Server *server): _server(server)
 {
 	this->_default = new Router(NULL, s_Router_Location());
 	this->port = 80;
-	this->address = 0;
+	this->address = INADDR_ANY;
 }
 
 ServerConfig::~ServerConfig(void)
 {
-	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++)
-		delete *it;
 	delete this->_default;
 }
 
@@ -40,7 +38,8 @@ void	ServerConfig::setServer(Server *server)
 
 void	ServerConfig::handleRoutes(Request &req, Response &res)
 {
-	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+	std::vector<Router *>	&routes = this->_default->getRoutes();
+	for (std::vector<Router *>::iterator it = routes.begin(); it != routes.end(); it++) {
 		(*it)->route(req, res);
 		if (!res.canSend())
 			break;
@@ -57,6 +56,11 @@ void	ServerConfig::handleRoutes(Request &req, Response &res)
 		 * la requête vers le chemin spécifié.
 		 */
 		if (this->_default->getRedirection().enabled) {
+			if (this->_default->getRedirection().path.empty()) {
+				res.status(this->_default->getRedirection().status);
+				res.sendDefault().end();
+				return ;
+			}
 			res.redirect(this->_default->getRedirection().path, this->_default->getRedirection().status).end();
 			return ;
 		}
@@ -71,7 +75,7 @@ Router	*ServerConfig::getDefaultHandler(void)
 
 void	ServerConfig::use(Router *router)
 {
-	this->_routes.push_back(router);
+	this->_default->use(router);
 }
 
 void	ServerConfig::setAddress(const std::string address)
@@ -165,8 +169,4 @@ void	ServerConfig::print(std::ostream &os) const
 	os << "\n";
 	os << B_ORANGE << "Default router: " << RESET << "\n";
 	os << *this->_default;
-	os << B_ORANGE << "Routers: " << RESET << "\n";
-	for (std::vector<Router *>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
-		os << **it;
-	}
 }

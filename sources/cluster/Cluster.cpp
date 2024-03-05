@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 18:24:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/03 12:25:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,10 +68,9 @@ Server	*Cluster::addConfig(ServerConfig *config)
 
 const int Cluster::start(void)
 {
-	v_servers::iterator it;
-	// std::vector<pollfd>	poll_fds;
 	pollfd	poll_fds[this->_servers.size()];
 	const int			timeout = 100;
+	v_servers::iterator it;
 
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
@@ -129,17 +128,19 @@ const int Cluster::start(void)
 		 * une écriture (I/O) ou s'ils ont généré une exception.
 		 * 
 		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
-		 * pour chaque élément, le descripteur de fichiers et l'événements à surveiller.
+		 * pour chaque élément, le descripteur de fichiers (pollfd::fd) et l'événements à
+		 * surveiller (pollfd::events).
 		 * 
 		 * La fonction attend que l'un des événements spécifiés se produise pour l'un
-		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire.
+		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire. L'évènement detecté
+		 * est ecrit dans pollfd::revents.
 		 * 
-		 * Dans ce cas elle permet de s'assurer que le descripteur de fichiers du socket est
+		 * Dans ce cas elle permet de s'assurer que le descripteur du socket est
 		 * prêt pour la lecture.
 		 */
-		// if (poll(&poll_fds[0], poll_fds.size(), timeout) == -1)
 		if (poll(poll_fds, this->_servers.size(), timeout) == -1)
 		{
+			// Si le signal d'interruption est reçu, on sort de la boucle
 			if (errno == EINTR) {
 				break ;
 			}
@@ -178,8 +179,8 @@ const int Cluster::start(void)
 				// 	continue;
 				// }
 
-				client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr);
-				client_addr.sin_port = ntohs(client_addr.sin_port);
+				client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Converti l'adresse IP en notation décimale
+				client_addr.sin_port = ntohs(client_addr.sin_port); // Converti le port en notation décimale
 				// Traitement de la nouvelle connexion
 				this->_servers[i]->handleRequest(newClient, client_addr);
 			}

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:08:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 17:38:51 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,9 +77,26 @@ const t_mapss		&Request::getQueries(void) const
 	return (this->_query);
 }
 
+const std::string	Request::getQueryString(void) const
+{
+	std::string		query;
+	for (t_mapss::const_iterator it = this->_query.begin(); it != this->_query.end(); it++)
+	{
+		query += it->first + "=" + it->second;
+		if (it != --this->_query.end())
+			query += "&";
+	}
+	return (query);
+}
+
 const t_mapss		&Request::getHeaders(void) const
 {
 	return (this->_headers);
+}
+
+const std::string		&Request::getHeader(const std::string name) const
+{
+	return (this->_headers.at(name));
 }
 
 const t_mapss		&Request::getCookies(void) const

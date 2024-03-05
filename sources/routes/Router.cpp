@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 13:40:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/02 18:54:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,8 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 Router::Router(Router *parent, const struct s_Router_Location location): _parent(parent), _location(location), _autoindex(false)
 {
 	/**
-	 * Par défault le router hérite du chemin de son parent. Celui-ci peut être
-	 * changé en appellant la méthode Router::setRoot ou Router::setAlias.
-	 * FIXME:
-	 * Regarer l'heritage de root/alias entre les routers
+	 * Par défault le router hérite de la racine de son parent. Celui-ci peut être
+	 * changé en appellant la méthode Router::setRoot() ou Router::setAlias().
 	 */
 	if (parent) {
 		this->_root = parent->getRootData();
@@ -52,6 +50,16 @@ Router::Router(Router *parent, const struct s_Router_Location location): _parent
 		this->_root.isAlias = false;
 	}
 	this->_root.set = false;
+
+	/**
+	 * Par défaut le router hérite des en-têtes de son parent. Celles-ci peuvent être
+	 * changées en appellant la méthode Router::addHeader().
+	 */
+	if (parent) {
+		this->_headers.enabled = false;
+		this->_headers.list = parent->getHeaders();
+	}
+	
 	/**
 	 * Nginx definit la valeur par defaut comme étant 1Mo.
 	 */
@@ -113,8 +121,10 @@ void	Router::setRoot(const std::string path)
 	} else if (!isDirectory(path)) {
 		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
 	} else {
+		this->_root.set = true;
 		this->_root.path = path;
 		this->_root.isAlias = false;
+		this->reloadChildren();
 	}
 }
 
@@ -136,8 +146,10 @@ void	Router::setAlias(const std::string path)
 	} else {
 		if (this->_root.set)
 			Logger::info("router info: Overriding `root` directive.");
+		this->_root.set = true;
 		this->_root.path = path;
 		this->_root.isAlias = true;
+		this->reloadChildren();
 	}
 }
 
@@ -185,6 +197,27 @@ void	Router::setIndex(const std::vector<std::string> index)
 void	Router::addIndex(const std::string index)
 {
 	this->_index.push_back(index);
+}
+
+void	Router::addHeader(const std::string key, const std::string value, const bool always)
+{
+	/**
+	 * Cette méthode permet d'ajouter des en-têtes à la réponse du router.
+	 * Si `always` est vrai, l'en-tête sera ajouté quelque soit le code de réponse.
+	 * Les en-têtes sont héritées des niveaux de configuration précédents si et seulement si
+	 * aucun n'est définie au niveau de configuration actuel. 
+	 */
+	if (!this->_headers.enabled) {
+		this->_headers.enabled = true;
+		this->_headers.list.clear();
+	}
+	this->_headers.list.push_back((Router_Header_t){key, value, always});
+	this->reloadChildren();
+}
+
+const std::vector<Router_Header_t>	&Router::getHeaders(void) const
+{
+	return (this->_headers.list);
 }
 
 void	Router::setErrorPage(const int code, const std::string path)
@@ -259,9 +292,20 @@ void	Router::use(Router *router)
 	this->_routes.push_back(router);
 }
 
+std::vector<Router *>	&Router::getRoutes(void)
+{
+	return (this->_routes);
+}
+
 void	Router::route(Request &request, Response &response)
 {
 	if (this->handleRoutes(request, response)) {
+		if (response.canSend()) {
+			for (std::vector<Router_Header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
+				if (response.canAddHeader() || it->always)
+					response.setHeader(it->key, it->value);
+			}
+		}
 		if (response.canSend() && !response.hasBody())
 		{
 			if (this->_error_page.count(response.getStatus())) {
@@ -273,6 +317,9 @@ void	Router::route(Request &request, Response &response)
 				std::string fullpath = this->_parent->getLocalFilePath(this->_parent->getErrorPage(response.getStatus()));
 				Logger::debug("server default full path: " + fullpath);
 				response.sendFile(fullpath);
+			} else {
+				Logger::debug("router default response");
+				response.sendDefault();
 			}
 		}
 		response.end();
@@ -335,7 +382,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 				return (true);
 			}
 			Logger::debug("redirect to: " + this->_redirection.path);
-			response.redirect(this->_redirection.path, this->_redirection.status).end();
+			response.redirect(this->_redirection.path, this->_redirection.status);
 			return (true);
 		}
 		
@@ -548,6 +595,11 @@ void	Router::handleCGI(Request &request, Response &response)
 	response.sendCGI(CGIWorker::run(request, this->_cgi.params, this->_cgi.path, body)).end();
 }
 
+void	Router::call(std::string method, Request &request, Response &response)
+{
+	(this->*Router::_method_handlers[method])(request, response);
+}
+
 bool Router::matchRoute(const std::string& route, Response &response) const
 {
 	regex_t	regex;
@@ -659,11 +711,6 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 	return (fullPath);
 }
 
-void	Router::call(std::string method, Request &request, Response &response)
-{
-	(this->*Router::_method_handlers[method])(request, response);
-}
-
 std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 {
 	/**
@@ -698,6 +745,24 @@ std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 		str.resize(str.size() - 1);
 	}
 	return (str);
+}
+
+void	Router::reloadChildren(void)
+{
+	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+		(*it)->reload();
+	}
+}
+
+void	Router::reload(void)
+{
+	if (!this->_root.set) {
+		this->_root = this->_parent->getRootData();
+	}
+	if (!this->_headers.enabled) {
+		this->_headers.list = this->_parent->getHeaders();
+	}
+	this->reloadChildren();
 }
 
 const std::string	Router::getDirList(const std::string dirpath, std::string reqPath)
@@ -758,11 +823,20 @@ void	Router::print(std::ostream &os) const
 		os << "\t" << B_CYAN"CGI path: " << RESET << this->_cgi.path << "\n";
 	}
 	os << "\t" << B_CYAN"Client max body size: " << RESET << getSize(this->_client_max_body_size) << "\n";
+	if (this->_headers.list.size()) {
+		os << "\t" << B_CYAN"Response headers: " << RESET << "\n";
+		for (std::vector<struct s_Router_Headers::s_Router_Header>::const_iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++)
+			os << "\t" << it->key << ": " << it->value << (it->always ? " (always)" : "") << "\n";
+	}
 	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
 	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
 		os << "\t" << it->first << " => " << it->second << "\n";
 	if (this->_routes.size()) {
-		os << B_ORANGE << "Sub-Routers of " << this->_location.path << ": " << RESET << "\n";
+		if (!this->isDefault())
+			os << B_ORANGE << "Sub-Routers of " << this->_location.path << ": " << RESET;
+		else
+			os << B_ORANGE << "Routers: " << RESET;
+		os << "\n";
 		for (std::vector<Router *>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
 			os << **it;
 		}
