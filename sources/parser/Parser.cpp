@@ -6,14 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:07:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/05 14:29:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
 
-#define PARSER_ERR		RED"parser error: invalid file path"RESET
+#define PARSER_ERR		"parser error: invalid file path"
 
 Parser::Parser(Cluster &c): cluster(c)
 {
