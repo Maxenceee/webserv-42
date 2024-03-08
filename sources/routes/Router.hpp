@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:20:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/08 12:24:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ struct s_Router_Root {
 	bool			set;
 	bool			isAlias;
 	std::string		path;
+	std::string		nearest_root;
 };
 
 struct s_Router_Redirection {
@@ -63,6 +64,11 @@ struct s_Router_Headers {
 	std::vector<struct s_Router_Header>	list;
 };
 
+struct s_Router_Client_Body {
+	bool			set;
+	int				size; // in bytes
+};
+
 typedef struct s_Router_Headers::s_Router_Header	Router_Header_t;
 
 class Router
@@ -74,11 +80,11 @@ private:
 	struct s_Router_Root			_root;
 	struct s_Router_Redirection		_redirection;
 	struct s_CGI_Data				_cgi;
+	struct s_Router_Headers			_headers;
+	struct s_Router_Client_Body		_client_body;
 	std::vector<std::string>		_allowed_methods;
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
-	int								_client_max_body_size; // in bytes
-	struct s_Router_Headers			_headers;
 
 	std::vector<Router *>			_routes;
 

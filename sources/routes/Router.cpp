@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/08 10:21:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/08 12:28:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ Router::Router(Router *parent, const struct s_Router_Location location): _parent
 		 * Le router par défaut n'héritant d'aucun autre router, doit être definit manuellement.
 		 */
 		this->_root.path = "/";
+		this->_root.nearest_root = this->_root.path;
 		this->_root.isAlias = false;
 	}
 	this->_root.set = false;
@@ -59,11 +60,24 @@ Router::Router(Router *parent, const struct s_Router_Location location): _parent
 		this->_headers.enabled = false;
 		this->_headers.list = parent->getHeaders();
 	}
+
+	/**
+	 * Par défaut le router hérite des pages d'erreur de son parent.
+	 */
+	if (parent) {
+		this->_error_page = parent->_error_page;
+	}
 	
 	/**
 	 * Nginx definit la valeur par defaut comme étant 1Mo.
 	 */
-	this->_client_max_body_size = 1024 * 1024; // 1MB
+	if (parent) {
+		this->_client_body.size = parent->getClientMaxBodySize();
+	} else {
+		this->_client_body.size = 1024 * 1024; // 1MB
+	}
+
+	this->_client_body.set = false;
 	this->_redirection.enabled = false;
 	this->_cgi.enabled = false;
 }
@@ -123,6 +137,7 @@ void	Router::setRoot(const std::string path)
 	} else {
 		this->_root.set = true;
 		this->_root.path = path;
+		this->_root.nearest_root = this->_root.path;
 		this->_root.isAlias = false;
 		this->reloadChildren();
 	}
@@ -227,6 +242,7 @@ void	Router::setErrorPage(const int code, const std::string path)
 	}
 	this->_error_page[code] = path;
 	checkLeadingTrailingSlash(this->_error_page[code]);
+	this->reloadChildren();
 }
 
 const std::string	&Router::getErrorPage(const int status) const
@@ -241,23 +257,27 @@ const bool			Router::hasErrorPage(const int code) const
 
 void	Router::setClientMaxBodySize(const std::string &size)
 {
-	this->_client_max_body_size = parseSize(size);
-	if (this->_client_max_body_size < 0) {
+	this->_client_body.size = parseSize(size);
+	if (this->_client_body.size < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+size);
 	}
+	this->_client_body.set = true;
+	this->reloadChildren();
 }
 
 void	Router::setClientMaxBodySize(const int size)
 {
-	this->_client_max_body_size = size;
-	if (this->_client_max_body_size < 0) {
+	this->_client_body.size = size;
+	if (this->_client_body.size < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+toString<int>(size));
 	}
+	this->_client_body.set = true;
+	this->reloadChildren();
 }
 
 const int	Router::getClientMaxBodySize(void) const
 {
-	return (this->_client_max_body_size);
+	return (this->_client_body.size);
 }
 
 void	Router::setCGI(const std::string path, const std::string extension)
@@ -306,22 +326,11 @@ void	Router::route(Request &request, Response &response)
 					response.setHeader(it->key, it->value);
 			}
 		}
-		/**
-		 * FIXME:
-		 * Avec plusieurs blocs location imbriqués, les pages d'erreur son mal verifiées.
-		 * Peut etre, un enfant devrait heriter des pages d'erreur de son parent, et le parent devrait recharger
-		 * l'enfant lorsqu'il a une nouvelle page d'erreur afin de le garder a jour.
-		 */
 		if (response.canSend() && !response.hasBody())
 		{
 			if (this->_error_page.count(response.getStatus())) {
-				std::string fullpath = this->_root.path + this->_error_page[response.getStatus()];
+				std::string fullpath = this->_root.nearest_root + this->_error_page[response.getStatus()];
 				Logger::debug("router full path: " + fullpath);
-				response.sendFile(fullpath);
-			}
-			else if (this->_parent->hasErrorPage(response.getStatus())) {
-				std::string fullpath = this->_parent->getLocalFilePath(this->_parent->getErrorPage(response.getStatus()));
-				Logger::debug("server default full path: " + fullpath);
 				response.sendFile(fullpath);
 			} else {
 				Logger::debug("router default response");
@@ -354,19 +363,19 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		/**
 		 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
 		 * desactive la verification de la limite de taille du corps de la requête.
-		 * TODO: gerer l'heritage de _client_max_body_size et refaire ca proprement.
 		 */
-		if (this->_client_max_body_size > 0) {
-			if (request.getBody().size() > this->_client_max_body_size) {
-				response.status(413);
-				return (true);
-			}
-		} else if (this->_parent->getClientMaxBodySize() > 0) {
-			if (request.getBody().size() > this->_parent->getClientMaxBodySize()) {
+		if (this->_client_body.size > 0) {
+			if (request.getBody().size() > this->_client_body.size) {
 				response.status(413);
 				return (true);
 			}
 		}
+		// else if (this->_parent->getClientMaxBodySize() > 0) {
+		// 	if (request.getBody().size() > this->_parent->getClientMaxBodySize()) {
+		// 		response.status(413);
+		// 		return (true);
+		// 	}
+		// }
 		
 		/**
 		 * Evaluation des routes enfants.
@@ -767,8 +776,19 @@ void	Router::reload(void)
 	if (!this->_root.set) {
 		this->_root = this->_parent->getRootData();
 	}
+	if (!this->_root.set || (this->_root.set && this->_root.isAlias)) {
+		this->_root.nearest_root = this->_parent->getRootData().nearest_root;
+	}
 	if (!this->_headers.enabled) {
 		this->_headers.list = this->_parent->getHeaders();
+	}
+	for (std::map<int, std::string>::iterator it = this->_parent->_error_page.begin(); it != this->_parent->_error_page.end(); it++) {
+		if (!this->_error_page.count(it->first)) {
+			this->_error_page[it->first] = it->second;
+		}
+	}
+	if (!this->_client_body.set) {
+		this->_client_body = this->_parent->_client_body;
 	}
 	this->reloadChildren();
 }
@@ -820,6 +840,7 @@ void	Router::print(std::ostream &os) const
 		os << " " << *it;
 	os << "\n";
 	os << "\t" << B_CYAN"Root: " << RESET << this->_root.path << (this->_root.isAlias ? " (alias)" : "") << "\n";
+	os << "\t" << B_CYAN"Nearest Root: " << RESET << this->_root.nearest_root << "\n";
 	os << "\t" << B_CYAN"Redirection: " << RESET << (this->_redirection.enabled ? this->_redirection.path + " status: " + toString(this->_redirection.status) : "none") << "\n";
 	os << "\t" << B_CYAN"Autoindex: " << RESET << (this->_autoindex ? "enabled" : "disabled") << "\n";
 	os << "\t" << B_CYAN"Index: " << RESET;
@@ -830,7 +851,7 @@ void	Router::print(std::ostream &os) const
 	if (this->_cgi.enabled) {
 		os << "\t" << B_CYAN"CGI path: " << RESET << this->_cgi.path << "\n";
 	}
-	os << "\t" << B_CYAN"Client max body size: " << RESET << getSize(this->_client_max_body_size) << "\n";
+	os << "\t" << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
 	if (this->_headers.list.size()) {
 		os << "\t" << B_CYAN"Response headers: " << RESET << "\n";
 		for (std::vector<struct s_Router_Headers::s_Router_Header>::const_iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++)

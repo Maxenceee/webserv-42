@@ -78,9 +78,12 @@ Ajouter le parser pour le fichier config :
 - autoindex (on/off) ✅
 - error_page ✅
 - client body max size ✅
+- cgi ✅
+- fastcgi_pass ✅
 
 bonus :
 - add_header ✅
+- fastcgi_param ✅
 
 Gerer les CGI ✅
 Gerer les inclusions en cascade de blocs "location" ?! ✅
