@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:54:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/08 10:21:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,6 +306,12 @@ void	Router::route(Request &request, Response &response)
 					response.setHeader(it->key, it->value);
 			}
 		}
+		/**
+		 * FIXME:
+		 * Avec plusieurs blocs location imbriqués, les pages d'erreur son mal verifiées.
+		 * Peut etre, un enfant devrait heriter des pages d'erreur de son parent, et le parent devrait recharger
+		 * l'enfant lorsqu'il a une nouvelle page d'erreur afin de le garder a jour.
+		 */
 		if (response.canSend() && !response.hasBody())
 		{
 			if (this->_error_page.count(response.getStatus())) {
@@ -348,6 +354,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		/**
 		 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
 		 * desactive la verification de la limite de taille du corps de la requête.
+		 * TODO: gerer l'heritage de _client_max_body_size et refaire ca proprement.
 		 */
 		if (this->_client_max_body_size > 0) {
 			if (request.getBody().size() > this->_client_max_body_size) {
@@ -665,7 +672,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		return (this->_root.path + requestPath);
 	}
 
-	std::string relativePath;
+	std::string relativePath = requestPath;
 
 	// Vérifier si le modificateur est une expression régulière
 	if (this->_location.modifier == "~" || this->_location.modifier == "~*") {
@@ -703,7 +710,8 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		regfree(&regex);
 	} else {
 		// Si ce n'est pas une expression régulière, extraire simplement la partie de chemin après this->_location.path
-		relativePath = requestPath.substr(this->_location.path.size());
+		if (this->_location.path != "/")
+			relativePath = requestPath.substr(this->_location.path.size());
 	}
 
 	std::string fullPath = this->_root.path + relativePath;;

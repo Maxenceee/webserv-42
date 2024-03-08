@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 14:03:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/04 19:48:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ std::string		CGIWorker::run(const Request &req, t_mapss &params, const std::stri
 	catch(const std::exception& e)
 	{
 		Logger::error("CGIWorker error: " + std::string(e.what()));
+		return ("Status: 500\r\n\r\n");
 	}
 
 	Logger::debug("CGIWorker: running: " + scriptpname);
@@ -97,11 +98,9 @@ std::string		CGIWorker::run(const Request &req, t_mapss &params, const std::stri
 	}
 	if (pid == 0)
 	{
-		char * const * pth = NULL;
-
 		dup2(fdin, STDIN_FILENO);
 		dup2(fdout, STDOUT_FILENO);
-		execve(scriptpname.c_str(), pth, env);
+		execve(scriptpname.c_str(), (char * const *)NULL, env);
 		Logger::error("CGIWorker error: execve failed");
 		write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
 	}
