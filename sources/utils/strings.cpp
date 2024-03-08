@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/07 14:22:55 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/08 12:35:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,7 +236,9 @@ int	parseSize(std::string size)
 	}
 	if (i < size.size())
 	{
-		if (size[i] == 'k' || size[i] == 'K')
+		if (size[i] == 'b' || size[i] == 'B')
+			ret *= 1;
+		else if (size[i] == 'k' || size[i] == 'K')
 			ret *= 1024;
 		else if (size[i] == 'm' || size[i] == 'M')
 			ret *= 1024 * 1024;

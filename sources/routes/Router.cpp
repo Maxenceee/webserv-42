@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/08 12:28:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/08 12:30:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -370,12 +370,6 @@ bool	Router::handleRoutes(Request &request, Response &response)
 				return (true);
 			}
 		}
-		// else if (this->_parent->getClientMaxBodySize() > 0) {
-		// 	if (request.getBody().size() > this->_parent->getClientMaxBodySize()) {
-		// 		response.status(413);
-		// 		return (true);
-		// 	}
-		// }
 		
 		/**
 		 * Evaluation des routes enfants.
