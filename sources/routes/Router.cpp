@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/09 02:01:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/09 02:07:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -767,6 +767,9 @@ void	Router::reloadChildren(void)
 
 void	Router::reload(void)
 {
+	/**
+	 * Cette fonction sert à mettre à jour les données héritées des niveaux de configuration précédents (des routers parents).
+	 */
 	if (!this->_root.set) {
 		this->_root = this->_parent->getRootData();
 	}
