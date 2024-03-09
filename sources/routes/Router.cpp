@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/08 12:30:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/09 02:01:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,7 @@ void	Router::setRoot(const std::string path)
 	} else if (this->_root.set) {
 		Logger::info("router info: Root is already set, abording.");
 	} else if (!isDirectory(path)) {
-		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
+		throw std::invalid_argument("router error: Not a directory: "+path);
 	} else {
 		this->_root.set = true;
 		this->_root.path = path;
@@ -157,7 +157,7 @@ void	Router::setAlias(const std::string path)
 	if (!this->_root.isAlias && this->_root.set) {
 		Logger::info("router info: Root is already set, abording.");
 	} else if (!isDirectory(path)) {
-		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
+		throw std::invalid_argument("router error: Not a directory: "+path);
 	} else {
 		if (this->_root.set)
 			Logger::info("router info: Overriding `root` directive.");
@@ -220,7 +220,7 @@ void	Router::addHeader(const std::string key, const std::string value, const boo
 	 * Cette méthode permet d'ajouter des en-têtes à la réponse du router.
 	 * Si `always` est vrai, l'en-tête sera ajouté quelque soit le code de réponse.
 	 * Les en-têtes sont héritées des niveaux de configuration précédents si et seulement si
-	 * aucun n'est définie au niveau de configuration actuel. 
+	 * aucun n'est défini au niveau de configuration actuel. 
 	 */
 	if (!this->_headers.enabled) {
 		this->_headers.enabled = true;
@@ -283,7 +283,7 @@ const int	Router::getClientMaxBodySize(void) const
 void	Router::setCGI(const std::string path, const std::string extension)
 {
 	if (!isFile(path))
-		throw std::invalid_argument(B_RED"router error: Not a directory: "+path+RESET);
+		throw std::invalid_argument("router error: Not a directory: "+path);
 	this->_cgi.path = path;
 	this->_cgi.enabled = true;
 }
@@ -839,7 +839,7 @@ void	Router::print(std::ostream &os) const
 	os << "\t" << B_CYAN"Autoindex: " << RESET << (this->_autoindex ? "enabled" : "disabled") << "\n";
 	os << "\t" << B_CYAN"Index: " << RESET;
 	for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++)
-		os << "" << *it;
+		os << *it << " ";
 	os << "\n";
 	os << "\t" << B_CYAN"CGI: " << RESET << (this->_cgi.enabled ? "enabled" : "disabled") << "\n";
 	if (this->_cgi.enabled) {
@@ -855,10 +855,10 @@ void	Router::print(std::ostream &os) const
 	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
 		os << "\t" << it->first << " => " << it->second << "\n";
 	if (this->_routes.size()) {
-		if (!this->isDefault())
-			os << B_ORANGE << "Sub-Routers of " << this->_location.path << ": " << RESET;
-		else
+		if (this->isDefault())
 			os << B_ORANGE << "Routers: " << RESET;
+		else
+			os << B_ORANGE << "Sub-Routers of " << this->_location.path << ": " << RESET;
 		os << "\n";
 		for (std::vector<Router *>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
 			os << **it;

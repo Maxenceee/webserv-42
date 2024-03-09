@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/27 20:46:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/09 01:57:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,11 +61,6 @@ void listFilesInDirectory(const std::string &path, std::map<std::string, std::st
 {
 	DIR				*dir;
 	struct dirent	*ent;
-
-	// if (!isDirectory(path.c_str()))
-	// {
-	// 	throw std::invalid_argument(B_RED"server error: Invalid static dir: "+path+RESET);
-	// }
 
 	if ((dir = opendir(path.c_str())) != NULL)
 	{
