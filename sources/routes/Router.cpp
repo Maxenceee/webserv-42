@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/09 02:07:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/09 11:44:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -717,9 +717,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 			relativePath = requestPath.substr(this->_location.path.size());
 	}
 
-	std::string fullPath = this->_root.path + relativePath;;
-
-	return (fullPath);
+	return (this->_root.path + relativePath);
 }
 
 std::string	&Router::checkLeadingTrailingSlash(std::string &str)
