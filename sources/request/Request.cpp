@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 17:07:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/10 19:02:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ Request::~Request(void)
 
 int	Request::parse(void)
 {
-	size_t	i;
+	size_t	i = 0;
 
 	/**
 	 * La norme RFC impose que chaque requête HTTP suive un modèle strict.
@@ -150,7 +150,10 @@ int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
 		this->_headers[key] = value;
 	}
 	this->getRequestHostname(this->_headers["Host"]);
-	this->_body = str.substr(i, std::string::npos);
+	if (i != std::string::npos)
+		this->_body = str.substr(i, std::string::npos);
+	else
+		Logger::warning("RFC warning: missing empty line after headers");
 	return (REQ_SUCCESS);
 }
 
