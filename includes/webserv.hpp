@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 20:27:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/12 01:38:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef WEBSERV_HPP
+#define WEBSERV_HPP
 
 // CPP Includes
 #include <iostream>
@@ -80,3 +81,5 @@
 
 /* typedef */
 typedef std::map<std::string, std::string> t_mapss;
+
+#endif /* WEBSERV_HPP */

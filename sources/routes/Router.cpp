@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/09 11:44:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/18 10:19:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	std::map<std::string, void (Router::*)(Request &, Response &)>	map;
 
 	map["GET"]		= &Router::handleGETMethod;
-	map["HEAD"] 	= &Router::handleHEADMethod;
-	map["POST"] 	= &Router::handlePOSTMethod;
+	map["HEAD"]		= &Router::handleHEADMethod;
+	map["POST"]		= &Router::handlePOSTMethod;
 	map["PUT"]		= &Router::handlePUTMethod;
 	map["DELETE"]	= &Router::handleDELETEMethod;
 	map["TRACE"]	= &Router::handleTRACEMethod;
@@ -322,7 +322,7 @@ void	Router::route(Request &request, Response &response)
 	if (this->handleRoutes(request, response)) {
 		if (response.canSend()) {
 			for (std::vector<Router_Header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
-				if (response.canAddHeader() || it->always)
+				if (it->always || response.canAddHeader())
 					response.setHeader(it->key, it->value);
 			}
 		}
@@ -392,7 +392,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 				return (true);
 			}
 			Logger::debug("redirect to: " + this->_redirection.path);
-			response.redirect(this->_redirection.path, this->_redirection.status);
+			response.redirect(this->_redirection.path, this->_redirection.status).end();
 			return (true);
 		}
 		

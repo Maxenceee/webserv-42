@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/05 14:29:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/18 10:36:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,6 +153,10 @@ void	Parser::throwError(const std::string key, const std::string val, const std:
 
 void	Parser::switchConfigDirectives(std::string key, std::string val, const std::string parent, const std::string raw_line)
 {
+	/**
+	 * Directive server
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#server)
+	 */
 	if (!this->new_server && key != "server")
 		this->throwError(key, val, raw_line);
 	else if (key == "server") {
@@ -163,6 +167,10 @@ void	Parser::switchConfigDirectives(std::string key, std::string val, const std:
 		this->configs.push_back(this->new_server);
 		this->tmp_router = this->new_server->getDefaultHandler();
 	}
+	/**
+	 * Directive location
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
+	 */
 	else if (key == "location") {
 		this->createNewRouter(key, val, parent, raw_line);
 	}
@@ -212,6 +220,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 {
 	/**`
 	 * Directive Listen
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
 	 */
 	if (key == "listen" && parent != "server")
 		this->throwError(key, val);
@@ -237,6 +246,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive server_name
+	 * (https://nginx.org/en/docs/http/server_names.html)
 	 */
 	if (key == "server_name" && parent != "server")
 		this->throwError(key, val);
@@ -248,6 +258,8 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive root/alias
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#root)
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#alias)
 	 */
 	if (key == "root") {
 		this->tmp_router->setRoot(val);
@@ -263,8 +275,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive index
+	 * (https://nginx.org/en/docs/http/ngx_http_index_module.html#index)
 	 */
 	if (key == "index") {
+		/**
+		 */
 		std::vector<std::string> index = split(val, ' ');
 		this->tmp_router->setIndex(index);
 		return ;
@@ -272,6 +287,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive autoindex
+	 * (https://nginx.org/en/docs/http/ngx_http_autoindex_module.html#autoindex)
 	 */
 	if (key == "autoindex") {
 		if (val == "on")
@@ -283,6 +299,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive return
+	 * (https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return)
 	 */
 	if (key == "return") {
 		int status = 302;
@@ -323,8 +340,13 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive error_page
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
 	 */
 	if (key == "error_page") {
+		/**
+		 * TODO:
+		 * regarder commment fonctionne le paramettre [=[response]]
+		 */
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() < 2)
 			this->throwError(key, val);
@@ -339,6 +361,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive client_max_body_size
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
 	 */
 	if (key == "client_max_body_size") {
 		this->tmp_router->setClientMaxBodySize(val);
@@ -348,15 +371,15 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	/**
 	 * Directive cgi_extension
 	 */
-
-	if (key == "cgi") {
-		if (val == "on")
-			this->tmp_router->enableCGI();
-		return ;
-	}
+	// if (key == "cgi") {
+	// 	if (val == "on")
+	// 		this->tmp_router->enableCGI();
+	// 	return ;
+	// }
 
 	/**
 	 * Directive fastcgi_pass
+	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass)
 	 */
 	if (key == "fastcgi_pass") {
 		this->tmp_router->setCGI(val);
@@ -365,8 +388,13 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive fastcgi_param
+	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
+		/**
+		 * TODO:
+		 * tester avec des sockets unix
+		 */
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() < 2)
 			this->throwError(key, val);
@@ -374,7 +402,8 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	}
 
 	/**
-	 * Default
+	 * Directive add_header
+	 * (https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)
 	 */
 	if (key == "add_header") {
 		std::vector<std::string> tokens = split(val, ' ');

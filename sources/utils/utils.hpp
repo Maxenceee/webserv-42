@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/03 12:47:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/12 01:39:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
 #include <iostream>
 #include <vector>
@@ -87,3 +88,5 @@ std::string	decodeURIComponent(std::string encoded);
 double	getTimestamp();
 
 #include "list.tpp"
+
+#endif /* UTILS_HPP */
