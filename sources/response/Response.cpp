@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:53:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/18 10:18:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -336,6 +336,12 @@ Response	&Response::setHeader(const std::string header, const std::string value)
 
 bool	Response::canAddHeader(void) const
 {
+	/**
+	 * Nginx offre la possibilité d'ajouter des en-têtes de réponses personnalisés
+	 * en fonction du code de statut de la réponse.
+	 * Cette fonction permet de vérifier si l'ajout d'en-tête est possible.
+	 * (https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)
+	 */
 	return (
 		this->_status == 200 ||
 		this->_status == 201 ||

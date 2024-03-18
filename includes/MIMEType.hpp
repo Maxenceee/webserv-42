@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/07 15:51:01 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 21:00:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/12 01:38:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef MIMETYPES_HPP
+#define MIMETYPES_HPP
 
 #include <iostream>
 #include <map>
@@ -218,3 +219,5 @@ public:
 };
 
 std::map<std::string, std::string> MimeTypes::mimeTypeMapping = MimeTypes::initMappings();
+
+#endif /* MIMETYPES_HPP */
