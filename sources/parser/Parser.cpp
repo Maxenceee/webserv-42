@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/18 10:36:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/19 14:13:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -370,6 +370,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive cgi_extension
+	 * see fastcgi_pass
 	 */
 	// if (key == "cgi") {
 	// 	if (val == "on")
