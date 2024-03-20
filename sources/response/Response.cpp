@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/18 10:18:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 00:19:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,10 +249,12 @@ Response	&Response::sendCGI(const std::string data)
 		
 		if (line.find("Status: ") == 0) {
 			this->status(std::atoi(line.substr(8, 3).c_str()));
-		} else if (line.find("Content-Type: ") == 0) {
-			this->setHeader("Content-Type", line.substr(14));
+		} else {
+			size_t pos = line.find(": ");
+			if (pos != std::string::npos) {
+				this->setHeader(line.substr(0, pos), line.substr(pos + 2));
+			}
 		}
-		
 		i = pos + 2;
 	}
 
