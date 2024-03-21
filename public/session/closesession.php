@@ -4,10 +4,11 @@ unset($_SESSION);
 session_destroy();
 ?>
 <html>
-<head></head>
+<head>
+	<link rel="stylesheet" href="/style/style.css">
+</head>
 <body>
 	<section class="notFound">
-		<link rel="stylesheet" href="/style/style.css">
 		<div class="text">
 			<h1>
 				<a href="/">HomePage</a>

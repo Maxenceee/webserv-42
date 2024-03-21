@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/08 12:35:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 14:12:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,13 @@ std::string		&to_upper(std::string &str)
 {
 	std::transform(str.begin(), str.end(),str.begin(), ::toupper);
 	return (str);
+}
+
+std::string		to_upper(const std::string &str)
+{
+	std::string tmp = str;
+	std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::toupper);
+	return (tmp);
 }
 
 std::string		&to_lower(std::string &str)

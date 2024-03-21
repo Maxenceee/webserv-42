@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/18 10:19:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 14:56:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -564,6 +564,7 @@ void	Router::handleCGI(Request &request, Response &response)
 	Logger::debug("<------------ "B_BLUE"CGI"B_GREEN" handler"RESET" ------------>");
 
 	std::string	body = request.getBody();
+	std::string fullpath;
 
 	if (this->_cgi.path.empty()) {
 		Logger::error("router error: CGI path is empty");
@@ -577,7 +578,7 @@ void	Router::handleCGI(Request &request, Response &response)
 	 * méthodes envoient directement le corps de la requête.
 	 */
 	if (request.getMethod() == "GET") {
-		std::string fullpath = this->getLocalFilePath(request.getPath());
+		fullpath = this->getLocalFilePath(request.getPath());
 		if (!fullpath.size()) {
 			response.status(500).end();
 			return ;
@@ -602,7 +603,7 @@ void	Router::handleCGI(Request &request, Response &response)
 		file.close();
 		body = buffer.str();
 	}
-	response.sendCGI(CGIWorker::run(request, this->_cgi.params, this->_cgi.path, body)).end();
+	response.sendCGI(CGIWorker::run(request, fullpath, this->_cgi.params, this->_cgi.path, body)).end();
 }
 
 void	Router::call(std::string method, Request &request, Response &response)

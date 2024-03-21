@@ -6,21 +6,33 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/10 19:02:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 15:36:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _socket(socket), _clientAddr(clientAddr), _status(200), _host(""), _body(""), _port(80)
+// Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _socket(socket), _clientAddr(clientAddr), _status(200), _host(""), _body(""), _port(80)
+Request::Request(const Server &server, int socket, sockaddr_in clientAddr): _server(server), _socket(socket), _clientAddr(clientAddr), _status(200), _raw(""), _host(""), _body(""), _port(80)
 {
 	this->request_time = getTimestamp();
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
-	this->parse();
 }
 
 Request::~Request(void)
 {
+}
+
+void	Request::pushData(char *data, size_t len)
+{
+	std::cout << "push: " << data << std::endl;
+	this->_raw.append(data, len);
+}
+
+void	Request::processRequest(void)
+{
+	// this->parse();
+	std::cout << "process: " << this->_raw << std::endl;
 }
 
 int	Request::parse(void)
