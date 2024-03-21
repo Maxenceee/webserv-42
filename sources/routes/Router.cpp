@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 14:56:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 18:22:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Router *parent, const struct s_Router_Location location): _parent(parent), _location(location), _autoindex(false)
+Router::Router(Router *parent, const struct s_Router_Location location, int level): _parent(parent), level(level), _location(location), _autoindex(false)
 {
 	/**
 	 * Par défault le router hérite de la racine de son parent. Celui-ci peut être
@@ -629,11 +629,6 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 		regexPattern = "^" + this->_location.path; // Prefix Match
 	}
 
-	// if (this->_location.strict) {
-		// Si ce n'est pas strict, ajouter .* à la fin pour correspondre à n'importe quelle fin
-		// regexPattern += ".*";
-	// }
-
 	Logger::debug("location pattern: " + regexPattern);
 
 	// Compiler l'expression régulière
@@ -824,43 +819,46 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 
 void	Router::print(std::ostream &os) const
 {
-	os << "\t" << B_GREEN"Router: " << RESET;
+	std::string space = std::string(this->level + this->isDefault(), '\t');
+
+	os << space << B_GREEN"Router: " << RESET;
 	if (this->_parent && !this->_parent->isDefault())
 		os << "parent: " << this->_parent->getLocation().path;
 	os << "\n";
-	os << "\t" << B_CYAN"Path: " << RESET << (this->_location.modifier.size() ? this->_location.modifier+" " : "") << this->_location.path << "\n";
-	os << "\t" << B_CYAN"Methods:" << RESET;
+	os << space << B_CYAN"Path: " << RESET << (this->_location.modifier.size() ? this->_location.modifier+" " : "") << this->_location.path << "\n";
+	os << space << B_CYAN"Methods:" << RESET;
 	if (this->_allowed_methods.empty())
 		os << " all";
 	for (std::vector<std::string>::const_iterator it = this->_allowed_methods.begin(); it != this->_allowed_methods.end(); it++)
 		os << " " << *it;
 	os << "\n";
-	os << "\t" << B_CYAN"Root: " << RESET << this->_root.path << (this->_root.isAlias ? " (alias)" : "") << "\n";
-	os << "\t" << B_CYAN"Nearest Root: " << RESET << this->_root.nearest_root << "\n";
-	os << "\t" << B_CYAN"Redirection: " << RESET << (this->_redirection.enabled ? this->_redirection.path + " status: " + toString(this->_redirection.status) : "none") << "\n";
-	os << "\t" << B_CYAN"Autoindex: " << RESET << (this->_autoindex ? "enabled" : "disabled") << "\n";
-	os << "\t" << B_CYAN"Index: " << RESET;
+	os << space << B_CYAN"Root: " << RESET << this->_root.path << (this->_root.isAlias ? " (alias)" : "") << "\n";
+	os << space << B_CYAN"Nearest Root: " << RESET << this->_root.nearest_root << "\n";
+	os << space << B_CYAN"Redirection: " << RESET << (this->_redirection.enabled ? this->_redirection.path + " status: " + toString(this->_redirection.status) : "none") << "\n";
+	os << space << B_CYAN"Autoindex: " << RESET << (this->_autoindex ? "enabled" : "disabled") << "\n";
+	os << space << B_CYAN"Index: " << RESET;
 	for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++)
 		os << *it << " ";
 	os << "\n";
-	os << "\t" << B_CYAN"CGI: " << RESET << (this->_cgi.enabled ? "enabled" : "disabled") << "\n";
+	os << space << B_CYAN"CGI: " << RESET << (this->_cgi.enabled ? "enabled" : "disabled") << "\n";
 	if (this->_cgi.enabled) {
-		os << "\t" << B_CYAN"CGI path: " << RESET << this->_cgi.path << "\n";
+		os << space << B_CYAN"CGI path: " << RESET << this->_cgi.path << "\n";
 	}
-	os << "\t" << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
+	os << space << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
 	if (this->_headers.list.size()) {
-		os << "\t" << B_CYAN"Response headers: " << RESET << "\n";
+		os << space << B_CYAN"Response headers: " << RESET << "\n";
 		for (std::vector<struct s_Router_Headers::s_Router_Header>::const_iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++)
-			os << "\t" << it->key << ": " << it->value << (it->always ? " (always)" : "") << "\n";
+			os << space << it->key << ": " << it->value << (it->always ? " (always)" : "") << "\n";
 	}
-	os << "\t" << B_CYAN"Error pages: " << RESET << "\n";
+	os << space << B_CYAN"Error pages: " << RESET << "\n";
 	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
-		os << "\t" << it->first << " => " << it->second << "\n";
+		os << space << it->first << " => " << it->second << "\n";
 	if (this->_routes.size()) {
+		os << "\n";
 		if (this->isDefault())
-			os << B_ORANGE << "Routers: " << RESET;
+			os << std::string(this->level, '\t') << B_ORANGE << "Routers: " << RESET;
 		else
-			os << B_ORANGE << "Sub-Routers of " << this->_location.path << ": " << RESET;
+			os << space << B_ORANGE << "Sub-Routers of " << this->_location.path << ": " << RESET;
 		os << "\n";
 		for (std::vector<Router *>::const_iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
 			os << **it;

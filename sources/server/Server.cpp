@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 15:37:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 18:27:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,92 +281,59 @@ const std::vector<std::string>	&Server::getMethods(void) const
 //     return stream;
 // }
 
-// void	Server::handleRequest(const int client, sockaddr_in clientAddr)
-// {
-// 	char buffer[RECV_SIZE] = {0};
-
-// 	/**
-// 	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
-// 	 * le descripteur du client. À la difference de read(), la fonction recv() est
-// 	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
-// 	 * gestion de la lecture dans un contexte de travaille en réseau.
-// 	 */
-// 	int valread = recv(client, buffer, sizeof(buffer), 0);
-// 	if (valread == -1) {
-// 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-// 			Logger::error("Client not ready to read");
-// 			return ;
-// 		} else {
-// 			Logger::error("server error: an error occurred while reading from client");
-// 			perror("recv");
-// 		}
-// 		return ;
-// 	} else if (valread == 0) {
-// 		Logger::error("Connection closed by the client");
-// 		return ;
-// 	}
-// 	/**
-// 	 * Pour chaque requête entrante, on créer une instance des classes Request et Response
-// 	 * qui se chargent de l'interprétation des données de la requête et de la génération
-// 	 * de la réponse.
-// 	 */
-// 	Request	request = Request(*this, std::string(buffer), client, clientAddr);
-// 	if (Logger::_debug)
-// 		std::cout << request << std::endl;
-// 	Response response = Response(*this, request.getClientSocket(), request);
-
-// 	/**
-// 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
-// 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
-// 	 * la configuration par défaut.
-// 	 */
-// 	ServerConfig *clientConfig = this->_default;
-// 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-// 		if ((*it)->evalName(request.getHost(), request.getPort())) {
-// 			clientConfig = *it;
-// 			break;
-// 		}
-// 	}
-// 	clientConfig->handleRoutes(request, response);
-
-// 	if (Logger::_debug)
-// 		std::cout << response << std::endl;
-// 	this->printResponse(request, response);
-// 	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
-// 	close(client);
-// }
-
 void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 {
 	char buffer[RECV_SIZE] = {0};
 
-    // Création de l'instance de Request
-    Request request = Request(*this, client, clientAddr);
-    
-    // Boucle pour lire les données de la requête
-    while (true) {
-        int valread = recv(client, buffer, sizeof(buffer), 0);
-        if (valread == -1) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                Logger::error("Client not ready to read");
-                break;
-            } else {
-                Logger::error("server error: an error occurred while reading from client");
-                perror("recv");
-                break;
-            }
-        } else if (valread == 0) {
-            Logger::error("Connection closed by the client");
-            break;
-        }
-		std::cout << "Received: " << valread << std::endl;
-        
-        // Ajout des données lues à la requête
-        request.pushData(buffer, valread);
-    }
-    
-    // Une fois toutes les données reçues, laisser la classe Request traiter la requête
-    request.processRequest();
+	/**
+	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
+	 * le descripteur du client. À la difference de read(), la fonction recv() est
+	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
+	 * gestion de la lecture dans un contexte de travaille en réseau.
+	 */
+	int valread = recv(client, buffer, sizeof(buffer), 0);
+	if (valread == -1) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			Logger::error("Client not ready to read");
+			return ;
+		} else {
+			Logger::error("server error: an error occurred while reading from client");
+			perror("recv");
+		}
+		return ;
+	} else if (valread == 0) {
+		Logger::error("Connection closed by the client");
+		return ;
+	}
+	/**
+	 * Pour chaque requête entrante, on créer une instance des classes Request et Response
+	 * qui se chargent de l'interprétation des données de la requête et de la génération
+	 * de la réponse.
+	 */
+	Request	request = Request(*this, std::string(buffer), client, clientAddr);
+	if (Logger::_debug)
+		std::cout << request << std::endl;
+	Response response = Response(*this, request.getClientSocket(), request);
+
+	/**
+	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
+	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
+	 * la configuration par défaut.
+	 */
+	ServerConfig *clientConfig = this->_default;
+	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+		if ((*it)->evalName(request.getHost(), request.getPort())) {
+			clientConfig = *it;
+			break;
+		}
+	}
+	clientConfig->handleRoutes(request, response);
+
+	if (Logger::_debug)
+		std::cout << response << std::endl;
+	this->printResponse(request, response);
+	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
+	close(client);
 }
 
 void	Server::printResponse(const Request &req, const Response &res) const
@@ -425,7 +392,7 @@ void	Server::print(std::ostream &os) const
 	os << B_BLUE << "<--- Server " << this->_id << " --->" << RESET << "\n";
 	os << B_CYAN << "Initiated: " << RESET << (this->_init ? "true" : "false") << "\n";
 	os << B_CYAN << "Address: " << RESET << getIPAddress(this->_address) << "\n";
-	os << B_CYAN << "Port: " << RESET << this->port << "\n";
+	os << B_CYAN << "Port: " << RESET << this->port << "\n\n";
 	os << B_ORANGE << "Configurations: " << RESET << "\n";
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
 		os << **it;

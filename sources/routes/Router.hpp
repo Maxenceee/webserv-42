@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/08 12:24:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 18:11:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,8 +112,10 @@ private:
 	bool	matchRoute(const std::string &route, Response &response) const;
 
 public:
-	Router(Router *parent, const struct s_Router_Location location);
+	Router(Router *parent, const struct s_Router_Location location, int level = 0);
 	~Router(void);
+
+	const int	level;
 
 	void	reload(void);
 

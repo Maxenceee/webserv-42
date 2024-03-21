@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 00:19:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 18:06:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,8 +129,9 @@ Response	&Response::send(const std::string data)
 {
 	this->_body = data;
 	/**
-	 * On ajoute l'en-tête 'Content-Length' afin d'indiquer au client la taille de
+	 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille de
 	 * de la ressource.
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
 	 */
 	this->setHeader("Content-Length", toString<int>(this->_body.size()));
@@ -155,14 +156,17 @@ Response	&Response::sendFile(const std::string filepath)
 		this->setHeader("Last-Modified", getLastModifiedDate(filepath));
 		/**
 		 * Lors de l'envoie d'un fichier il est préférable d'envoyer son
-		 * type MIME via l'en-tête 'Content-Type' afin de préciser au client
+		 * type MIME via l'en-tête `Content-Type` afin de préciser au client
 		 * à quel type de fichier/données il a à faire.
+		 * 
+		 * (https://www.rfc-editor.org/rfc/rfc2616#section-14.17)
 		 */
 		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath))); // +"; charset=utf-8"
 		this->_body = buffer.str();
 		/**
-		 * On ajoute l'en-tête 'Content-Length' afin d'indiquer au client la taille de
+		 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille de
 		 * de la ressource.
+		 * 
 		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
 		 */
 		this->setHeader("Content-Length", toString<int>(this->_body.size()));
@@ -202,19 +206,8 @@ Response		&Response::redirect(const std::string &path, int status)
 
 std::string		Response::getTime(void)
 {
-	/**
-	 * Création de l'en-tête `Date` selon la norme. Une valeur de date HTTP
-	 * représente l'heure en tant qu'instance de Universal Time Coordinated (UTC).
-	 * La date indique UTC par l'abréviation de trois lettres pour
-	 * Greenwich Mean Time, "GMT", un prédécesseur du standard UTC.
-	 * Les valeurs au format asctime sont supposées être en UTC.
-	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-7.1.1.1)
-	 */
 	// static const char	*wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 	// static const char	*months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-	time_t		now = time(0);
-	tm			*gmtm = gmtime(&now); // récuperation du temps GMT
-	std::string	date;
 
 	// date += wdays[gmtm->tm_wday];
 	// date += ", ";
@@ -226,7 +219,21 @@ std::string		Response::getTime(void)
 	// date += " ";
     // date += toString(gmtm->tm_hour) + ":" + toString(gmtm->tm_min) + ":" + toString(gmtm->tm_sec);
 	// date += " GMT";
-	char buffer[80];
+	/**
+	 * Création de l'en-tête `Date` selon la norme. Une valeur de date HTTP
+	 * représente l'heure en tant qu'instance de Universal Time Coordinated (UTC).
+	 * La date indique UTC par l'abréviation de trois lettres pour
+	 * Greenwich Mean Time, "GMT", un prédécesseur du standard UTC.
+	 * Les valeurs au format asctime sont supposées être en UTC.
+	 * 
+	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-7.1.1.1)
+	 */
+
+	time_t		now = time(0);
+	tm			*gmtm = gmtime(&now); // récuperation du temps GMT
+	std::string	date;
+	char		buffer[80];
+
 	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", gmtm);
 	date = buffer;
 	return (date);
@@ -272,12 +279,13 @@ Response	&Response::end()
 	{
 		this->setHeader("Date", this->getTime());
 		/**
-		 * On force l'ajout de l'en-tête 'Content-Length' afin d'indiquer au client la taille de
+		 * On force l'ajout de l'en-tête `Content-Length` afin d'indiquer au client la taille de
 		 * de la ressource.
 		 */
 		if (!this->_headers.count("Content-Length"))
 			this->setHeader("Content-Length", toString<int>(this->_body.size()));
 		std::string	res = this->prepareResponse();
+
 		/**
 		 * La fonction send() sert à écrire le contenu d'un descripteur de fichiers, ici
 		 * le descripteur du client. À la difference de write, la fonction send est
@@ -299,6 +307,7 @@ const std::string	Response::prepareResponse(void)
 	/**
 	 * Pour éviter les mauvaises surprises, on vérifie que le code de statut
 	 * de la réponse est bien un code de statut HTTP valide.
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-6)
 	 */
 	if (!this->http_codes.count(this->_status))
@@ -313,6 +322,7 @@ const std::string	Response::prepareResponse(void)
 	 * En-tête de réponse
 	 * [Ligne vide]
 	 * Corps de réponse
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
 	 */
 	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + "\r\n";
@@ -342,6 +352,7 @@ bool	Response::canAddHeader(void) const
 	 * Nginx offre la possibilité d'ajouter des en-têtes de réponses personnalisés
 	 * en fonction du code de statut de la réponse.
 	 * Cette fonction permet de vérifier si l'ajout d'en-tête est possible.
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)
 	 */
 	return (
@@ -360,6 +371,26 @@ bool	Response::canAddHeader(void) const
 
 Response	&Response::setCookie(const std::string name, const std::string value, const CookieOptions &options)
 {
+	/**
+	 * L'en-tête `Set-Cookie` est envoyé par le serveur dans les réponses HTTP pour définir des cookies sur le client. Une
+	 * fois reçu par le client, celui-ci stocke le cookie et l'envoie dans les futures requêtes HTTP vers le même domaine
+	 * conformément aux directives spécifiées.
+	 * Un serveur peut envoyer plusieurs en-têtes `Set-Cookie` dans une seule réponse HTTP pour définir plusieurs cookies
+	 * ou plusieurs attributs pour un même cookie.
+	 * Le cookie est constitué d'un nom et d'une valeur, séparés par le signe égal (=).
+	 * 
+	 * La RFC spécifie plusieurs attributs pouvant être associés à un cookie, tels que :
+	 * - Expires (date d'expiration)
+	 * - Max-Age (durée de validité en secondes)
+	 * - Domain (domaine pour lequel le cookie est valide)
+	 * - Path (chemin de l'URL pour lequel le cookie est valide)
+	 * - Secure (indique si le cookie doit être envoyé uniquement via une connexion sécurisée HTTPS),
+	 * - HttpOnly (indique si le cookie ne doit être accessible que via HTTP et non via des scripts JavaScript)
+	 * - etc.
+	 * 
+	 * (https://www.rfc-editor.org/rfc/rfc6265.html#section-4.1)
+	 */
+
 	if (this->_sent)
 	{
 		Logger::error("Response error: cannot set header after it was sent");

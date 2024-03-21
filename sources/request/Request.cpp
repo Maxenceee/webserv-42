@@ -6,34 +6,35 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 15:36:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 18:06:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-// Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _socket(socket), _clientAddr(clientAddr), _status(200), _host(""), _body(""), _port(80)
-Request::Request(const Server &server, int socket, sockaddr_in clientAddr): _server(server), _socket(socket), _clientAddr(clientAddr), _status(200), _raw(""), _host(""), _body(""), _port(80)
+Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _socket(socket), _clientAddr(clientAddr), _status(200), _host(""), _body(""), _port(80)
+// Request::Request(const Server &server, int socket, sockaddr_in clientAddr): _server(server), _socket(socket), _clientAddr(clientAddr), _status(200), _raw(""), _host(""), _body(""), _port(80)
 {
 	this->request_time = getTimestamp();
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
+	this->parse();
 }
 
 Request::~Request(void)
 {
 }
 
-void	Request::pushData(char *data, size_t len)
-{
-	std::cout << "push: " << data << std::endl;
-	this->_raw.append(data, len);
-}
+// void	Request::pushData(char *data, size_t len)
+// {
+// 	std::cout << "push: " << data << std::endl;
+// 	this->_raw.append(data, len);
+// }
 
-void	Request::processRequest(void)
-{
-	// this->parse();
-	std::cout << "process: " << this->_raw << std::endl;
-}
+// void	Request::processRequest(void)
+// {
+// 	this->parse();
+// 	std::cout << "process: " << this->_raw << std::endl;
+// }
 
 int	Request::parse(void)
 {
@@ -45,6 +46,7 @@ int	Request::parse(void)
 	 * En-tête de requête
 	 * [Ligne vide]
 	 * Corps de requête
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3)
 	 */
 	if ((this->_status = this->getRequestLine(this->_raw, i)) != 200)
@@ -66,6 +68,7 @@ int	Request::getRequestLine(const std::string &str, size_t &i)
 	 * Une requête HTTP commmence par une ligne de commande
 	 * (Commande, URL, Version de protocole), on s'assure qu'elle est correctement
 	 * formée.
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.1)
 	 */
 	i = str.find_first_of('\n');
@@ -103,10 +106,10 @@ int	Request::getRequestVersion(const std::string &str)
 	if (str.compare(0, 5, http) == 0)
 	{
 		this->_version.assign(str, 5, 3); // on extrait la version du protocole de la requête
-		// le serveur n'accepte que le version 1.1 du protocole HTTP.
+		// Le serveur n'accepte que la version 1.1 du protocole HTTP.
 		// Cette version date du début des années 2000 et offre moins de
-		// fonctionnalitées que les versions plus récentes (2023, HTTP/3) mais sont, de fait,
-		// plus facilement implémentables.
+		// fonctionnalitées que les versions plus récentes (HTTP/2 et HTTP/3) mais est, de fait,
+		// plus facilement implémentable.
 		if (this->_version != "1.1")
 		{
 			Logger::error("request error: unsupported HTTP version");
@@ -120,6 +123,7 @@ int	Request::getRequestVersion(const std::string &str)
 	}
 	/**
 	 * On vérifie que la méthode de la requête n'est pas éronée.
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7231#section-4)
 	 */
 	if (!contains(this->_server.getMethods(), this->_method))
@@ -151,8 +155,9 @@ int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
 	/**
 	 * Selon la norme RFC les en-têtes doivent suivrent un modèle précis (Nom-Du-Champs: [espace?] valeur [espace?])
 	 * Le nom de l'en-tête doit avoir une majuscule, s'il contient plusieurs mots, ils
-	 * doivent aussi avoir une majuscule et être liés par un tiré '-'. Les en-têtes sont sensibles à
+	 * doivent aussi avoir une majuscule et être liés par un tiré (-). Les en-têtes sont sensibles à
 	 * la case et chaque type d'en-tête a son format spécifique pour ses différentes valeurs.
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2)
 	 */
 	while ((line = nextLine(str, i)) != "\r" && line != "")
@@ -162,11 +167,59 @@ int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
 		this->_headers[key] = value;
 	}
 	this->getRequestHostname(this->_headers["Host"]);
-	if (i != std::string::npos)
+	if (i != std::string::npos) {
 		this->_body = str.substr(i, std::string::npos);
+		// On verifie si l'en-tête 'Transfer-Encoding' est présent afin de traiter le contenu du corps de la
+		// requête correctement.
+		if (this->_headers.count("Transfer-Encoding") && this->_headers["Transfer-Encoding"] == "chunked")
+			this->processChunk();
+	}
 	else
 		Logger::warning("RFC warning: missing empty line after headers");
 	return (REQ_SUCCESS);
+}
+
+void	Request::processChunk(void)
+{
+	/**
+	 * Le codage `chunked` modifie le corps du la requête afin de le transféré sous frome d'une serie fragments,
+	 * chacun avec son propre indicateur de taille, suivi d'une partie facultative de fin (trailer) contenant
+	 * des champs d'en-tête d'entité. Cela permet de transférer du contenu produit dynamiquement avec les
+	 * informations nécessaires pour que le destinataire puisse vérifier qu'il a reçu le message complet.
+	 * 
+	 * *fragment
+	 * dernier-fragment
+	 * trailer
+	 * 
+	 * fragment = taille-du-fragment (1*HEX)
+	 * 			  données-du-fragment
+	 * 
+	 * dernier-fragment = 1*("0")
+	 * 
+	 * Le champ taille-du-fragment est une chaîne de chiffres hexadécimaux indiquant la taille du fragment. Le codage
+	 * `chunked` se termine par n'importe quel fragment dont la taille est zéro, suivi du trailer, qui est terminé
+	 * par une ligne vide.
+	 * Le trailer permet à l'expéditeur d'inclure des champs d'en-tête HTTP supplémentaires à la fin du message. Le
+	 * champ d'en-tête Trailer peut être utilisé pour indiquer quels champs d'en-tête sont inclus dans un trailer.
+	 * 
+	 * (https://www.rfc-editor.org/rfc/rfc2616#section-3.6.1)
+	 */
+
+	std::string	chunks = this->_body;
+	std::string	subchunk = chunks.substr(0, 100);
+	std::string	body = "";
+	int			chunksize = strtol(subchunk.c_str(), NULL, 16);
+	size_t		i = 0;
+
+	while (chunksize)
+	{
+		i = chunks.find("\r\n", i) + 2;
+		body += chunks.substr(i, chunksize);
+		i += chunksize + 2;
+		subchunk = chunks.substr(i, 100);
+		chunksize = strtol(subchunk.c_str(), NULL, 16);
+	}
+	this->_body = body;
 }
 
 int	Request::getRequestQuery(void)
@@ -187,6 +240,7 @@ int	Request::getRequestQuery(void)
 	 * - La chaine de requête (Query) est une partie optionnelle séparée par un point d'interrogation (?) qui contient
 	 * des informations complémentaires qui ne sont pas de nature hiérarchique, mais est souvent formée
 	 * d'une suite de paires <clef>=<valeur> séparées par des points virgules ou par des esperluettes.
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc6920.html#section-3)
 	 */
 	i = this->_path.find_first_of('?');
@@ -238,6 +292,7 @@ int	Request::getRequestHostname(const std::string &host)
 	 * 
 	 * Sachant qu'une seule machine hôte peut héberger plusieurs serveurs, l'en-tête
 	 * permet au serveur de savoir à quel domaine (nom d'hôte) et port vous souhaitez accéder.
+	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-5.4)
 	 */
 	if (!host.size())
@@ -260,14 +315,18 @@ int	Request::getRequestHostname(const std::string &host)
 
 int	Request::getRequestCookies(void)
 {
+	/**
+	 * L'en-tête Cookie est utilisé pour envoyer des cookies du client vers le serveur. Il est composé
+	 * de paires nom-valeur séparées par des points-virgules et des espaces.
+	 * 
+	 * (https://www.rfc-editor.org/rfc/rfc6265.html#section-5.4)
+	 */
 	std::vector<std::string>::iterator	it;
 
-	std::string	cookies_string = this->_headers["Cookie"];
-	if (!cookies_string.size())
+	if (!this->_headers.count("Cookie"))
 		return (REQ_SUCCESS);
 
-	std::vector<std::string> cookies = split(cookies_string, ';');
-	
+	std::vector<std::string> cookies = split(this->_headers["Cookie"], ';');
 	for (it = cookies.begin(); it != cookies.end(); it++)
 	{
 		std::string c = trim(*it, ' ');
