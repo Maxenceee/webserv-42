@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 18:27:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 18:35:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -332,8 +332,8 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	if (Logger::_debug)
 		std::cout << response << std::endl;
 	this->printResponse(request, response);
-	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
 	close(client);
+	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
 }
 
 void	Server::printResponse(const Request &req, const Response &res) const
