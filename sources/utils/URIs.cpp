@@ -6,23 +6,23 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 19:11:27 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/23 19:52:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 17:41:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
 
 /**
-* Le mécanisme d'encodage en pourcentage (%-encoding) est utilisé pour représenter un
-* octet de données dans un composant d'URI lorsque le caractère correspondant est en
-* dehors de l'ensemble autorisé ou sert de délimiteur. Il consiste à représenter un octet
-* par trois caractères, débutant par le caractère pourcentage (%) suivi des deux chiffres
-* hexadécimaux représentant la valeur numérique de l'octet. Les lettres hexadécimales 
-* majuscules et minuscules sont équivalentes, mais il est recommandé d'utiliser des
-* majuscules pour l'encodage en pourcentage des URIs.
-* 
-* (https://www.rfc-editor.org/rfc/rfc3986.html#section-2.1)
-*/
+ * Le mécanisme d'encodage en pourcentage (%-encoding) est utilisé pour représenter un
+ * octet de données dans un composant d'URI lorsque le caractère correspondant est en
+ * dehors de l'ensemble autorisé ou sert de délimiteur. Il consiste à représenter un octet
+ * par trois caractères, débutant par le caractère pourcentage (%) suivi des deux chiffres
+ * hexadécimaux représentant la valeur numérique de l'octet. Les lettres hexadécimales 
+ * majuscules et minuscules sont équivalentes, mais il est recommandé d'utiliser des
+ * majuscules pour l'encodage en pourcentage des URIs.
+ * 
+ * (https://www.rfc-editor.org/rfc/rfc3986.html#section-2.1)
+ */
 std::string	decodeURIComponent(std::string encoded)
 {
 	std::string decoded = encoded;

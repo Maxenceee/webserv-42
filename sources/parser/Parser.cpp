@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 13:56:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 18:28:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ void	Parser::parse(const char *configPath)
 	this->open_and_read_file(configPath);
 	this->extract(this->buffer);
 	this->cluster.initConfigs(this->configs);
+	Logger::debug("\n");
 }
 
 void	Parser::processInnerLines(std::string &lineRaw, std::string &chunkedLine, std::string &parent)
@@ -201,7 +202,7 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 		this->throwError(key, val, raw_line);
 	location.path = trim(tokens[tokens.size() - 1]);
 	Router *tmp = this->tmp_router;
-	this->tmp_router = new Router(tmp, location);
+	this->tmp_router = new Router(tmp, location, tmp->level + 1);
 	if (parent == "server.location")
 		this->new_server->use(this->tmp_router);
 	else

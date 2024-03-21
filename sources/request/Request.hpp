@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 15:35:21 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 16:54:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ class Request
 private:
 	const Server				&_server;
 	int							_status;
-	std::string					_raw;
+	// std::string					_raw;
+	const std::string			&_raw;
 	const int					_socket;
 	std::string					_version;
 	std::string					_method;
@@ -54,13 +55,15 @@ private:
 
 	std::string	nextLine(const std::string &str, size_t& i);
 
+	void	processChunk(void);
+
 public:
-	// Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr);
-	Request(const Server &server, int socket, sockaddr_in clientAddr);
+	Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr);
+	// Request(const Server &server, int socket, sockaddr_in clientAddr);
 	~Request(void);
 
-	void				pushData(char *data, size_t len);
-	void				processRequest(void);
+	// void				pushData(char *data, size_t len);
+	// void				processRequest(void);
 
 	const std::string		&getMethod(void) const;
 	const std::string		&getVersion(void) const;
