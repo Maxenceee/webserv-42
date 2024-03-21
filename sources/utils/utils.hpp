@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/12 01:39:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 14:12:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ std::string					&shift(std::string &str);
 std::string					&trim(std::string &str, char c = ' ');
 std::string					readKey(const std::string &line);
 std::string					readValue(const std::string &line);
+std::string					to_upper(const std::string &str);
 std::string					&to_upper(std::string &str);
 std::string					&to_lower(std::string &str);
 std::string					&capitalize(std::string &str);

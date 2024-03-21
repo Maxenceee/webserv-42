@@ -1,8 +1,15 @@
+<?php
+var_dump($_COOKIE)
+?>
+<?php
+var_dump($_GET)
+?>
 <html>
-<head></head>
+<head>
+	<link rel="stylesheet" href="/style/style.css">
+</head>
 <body>
 	<section class="notFound">
-		<link rel="stylesheet" href="/style/style.css">
 		<div class="text">
 			<h1><a href="/">HomePage</a></h1>
 			<h3>WEBSERV 1.0</h3>

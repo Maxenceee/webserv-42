@@ -6,13 +6,20 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/04 19:48:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 14:58:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGIWorker.hpp"
 
-t_mapss		CGIWorker::init(const Request &req, t_mapss &params, const std::string &body)
+std::string	formatHeaderKey(const std::string &key)
+{
+	std::string res = "HTTP_";
+	res += to_upper(key);
+	return (replaceAll(res, '-', '_'));
+}
+
+t_mapss		CGIWorker::init(const Request &req, const std::string &scriptpath, t_mapss &params, const std::string &body)
 {
 	t_mapss headers = req.getHeaders();
 	t_mapss env;
@@ -24,14 +31,14 @@ t_mapss		CGIWorker::init(const Request &req, t_mapss &params, const std::string 
 	env["REQUEST_METHOD"] = req.getMethod();
 	env["REQUEST_URI"] = req.getRawPath();
 	env["SCRIPT_NAME"] = req.getPath();
+	env["SCRIPT_FILENAME"] = scriptpath;
 	env["PATH_TRANSLATED"] = req.getPath();
 	env["PATH_INFO"] = req.getPath();
 	env["QUERY_STRING"] = req.getQueryString();
 	env["CONTENT_LENGTH"] = toString<int>(body.length());
-	env["CONTENT_TYPE"] = headers["Content-Type"];
-	if (headers.count("Authorization"))
-		env["HTTP_AUTHORIZATION"] = headers["Authorization"];
-	env["HTTP_COOKIE"] = req.getHeader("Cookie");
+	if (headers.count("Content-Type") && headers["Content-Type"].size() > 0)
+		env["CONTENT_TYPE"] = headers["Content-Type"];
+	env["COOKIE"] = req.getHeader("Cookie");
 	env["SERVER_PORT"] = toString<int>(req.getPort());
 	env["REMOTE_ADDR"] = req.getIP();
 	env["REMOTE_PORT"] = toString<int>(req.getPort());
@@ -40,7 +47,18 @@ t_mapss		CGIWorker::init(const Request &req, t_mapss &params, const std::string 
 	else
 		env["SERVER_NAME"] = env["REMOTE_ADDR"];
 	env["SERVER_HOST"] = req.getHost();
+	/**
+	 * Ajout des en-tête HTTP au CGI
+	 */
 	for (t_mapss::iterator it = headers.begin(); it != headers.end(); it++)
+	{
+		if (it->second.size() > 0)
+			env[formatHeaderKey(it->first)] = it->second;
+	}
+	/**
+	 * Ajout des paramètres de la requête au CGI
+	 */
+	for (t_mapss::iterator it = params.begin(); it != params.end(); it++)
 	{
 		env[it->first] = it->second;
 	}
@@ -55,6 +73,7 @@ char	**CGIWorker::getEnv(const t_mapss &_env)
 	for (t_mapss::const_iterator it = _env.begin(); it != _env.end(); it++)
 	{
 		std::string tmp = it->first + "=" + it->second;
+		std::cout << tmp << std::endl;
 		env[i] = strdup(tmp.c_str());
 		i++;
 	}
@@ -62,7 +81,7 @@ char	**CGIWorker::getEnv(const t_mapss &_env)
 	return env;
 }
 
-std::string		CGIWorker::run(const Request &req, t_mapss &params, const std::string &scriptpname, const std::string &body)
+std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t_mapss &params, const std::string &scriptpname, const std::string &body)
 {
 	int		sstdin = dup(STDIN_FILENO);
 	int		sstdout = dup(STDOUT_FILENO);
@@ -70,7 +89,7 @@ std::string		CGIWorker::run(const Request &req, t_mapss &params, const std::stri
 
 	try
 	{
-		env = CGIWorker::getEnv(CGIWorker::init(req, params, body));
+		env = CGIWorker::getEnv(CGIWorker::init(req, scriptpath, params, body));
 	}
 	catch(const std::exception& e)
 	{

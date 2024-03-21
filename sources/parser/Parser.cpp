@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/19 14:13:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 13:56:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -400,6 +400,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		if (tokens.size() < 2)
 			this->throwError(key, val);
 		this->tmp_router->addCGIParam(tokens[0], tokens[1]);
+		return ;
 	}
 
 	/**

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/03 12:25:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/21 15:39:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,11 +173,11 @@ const int Cluster::start(void)
 					continue;
 				}
 
-				// if (fcntl(newClient, F_SETFL, O_NONBLOCK) == -1) {
-				// 	perror("fcntl");
-				// 	close(newClient);
-				// 	continue;
-				// }
+				if (fcntl(newClient, F_SETFL, O_NONBLOCK) == -1) {
+					perror("fcntl");
+					close(newClient);
+					continue;
+				}
 
 				client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Converti l'adresse IP en notation décimale
 				client_addr.sin_port = ntohs(client_addr.sin_port); // Converti le port en notation décimale
