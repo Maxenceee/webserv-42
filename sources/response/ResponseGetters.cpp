@@ -33,7 +33,7 @@ std::ostream	&operator<<(std::ostream &os, const Response &res)
 	return os;
 }
 
-const bool	Response::canSend(void) const
+bool	Response::canSend(void) const
 {
 	return (!this->_sent);
 }
@@ -43,7 +43,7 @@ const std::string	&Response::getVersion(void) const
 	return (this->_version);
 }
 
-const int			Response::getStatus(void) const
+int		Response::getStatus(void) const
 {
 	return (this->_status);
 }

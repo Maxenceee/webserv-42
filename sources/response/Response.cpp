@@ -265,7 +265,8 @@ Response	&Response::sendCGI(const std::string data)
 		i = pos + 2;
 	}
 
-	while (j > 0 && data[j - 1] == '\r' || data[j - 1] == '\n') {
+	// TODO: check parentesis
+	while (j > 0 && (data[j - 1] == '\r' || data[j - 1] == '\n')) {
 		j -= 1;
 	}
 

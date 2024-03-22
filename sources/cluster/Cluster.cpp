@@ -66,7 +66,7 @@ Server	*Cluster::addConfig(ServerConfig *config)
 	return (server);
 }
 
-const int Cluster::start(void)
+int		Cluster::start(void)
 {
 	pollfd	poll_fds[this->_servers.size()];
 	const int			timeout = 100;

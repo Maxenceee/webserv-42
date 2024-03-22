@@ -30,11 +30,10 @@ class Server
 private:
 	int							_id;
 	bool						_init;
-	uint32_t					_address;
 	uint16_t					port;
+	uint32_t					_address;
 	int							socket_fd;
 	struct sockaddr_in			socket_addr;
-	fd_set						_fd_set;
 
 	ServerConfig				*_default;
 	std::vector<ServerConfig *>	_configs;
@@ -52,17 +51,17 @@ public:
 	Server(int id, uint16_t port = 80, uint32_t address = 0);
 	~Server(void);
 
-	const int	init(void);
+	int			init(void);
 	void		kill(void);
 
-	const bool		isInit(void) const;
-	const int		getSocketFD(void) const;
+	bool			isInit(void) const;
+	int				getSocketFD(void) const;
 
 	void			addConfig(ServerConfig *config);
 	ServerConfig	*getDefault(void) const;
 
-	const uint16_t	getPort(void) const;
-	const uint32_t	getAddress(void) const;
+	uint16_t		getPort(void) const;
+	uint32_t		getAddress(void) const;
 	
 	const std::vector<std::string>	&getMethods(void) const;
 	

@@ -34,7 +34,7 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Router *parent, const struct s_Router_Location location, int level): _parent(parent), level(level), _location(location), _autoindex(false)
+Router::Router(Router *parent, const struct s_Router_Location location, int level): _parent(parent), _location(location), _autoindex(false), level(level)
 {
 	/**
 	 * Par défault le router hérite de la racine de son parent. Celui-ci peut être
@@ -88,7 +88,7 @@ Router::~Router(void)
 		delete *it;
 }
 
-const bool	Router::isDefault(void) const
+bool	Router::isDefault(void) const
 {
 	return (this->_parent == NULL);
 }
@@ -250,7 +250,7 @@ const std::string	&Router::getErrorPage(const int status) const
 	return (this->_error_page.at(status));
 }
 
-const bool			Router::hasErrorPage(const int code) const
+bool			Router::hasErrorPage(const int code) const
 {
 	return (this->_error_page.count(code) > 0);
 }
@@ -275,12 +275,12 @@ void	Router::setClientMaxBodySize(const int size)
 	this->reloadChildren();
 }
 
-const int	Router::getClientMaxBodySize(void) const
+int	Router::getClientMaxBodySize(void) const
 {
 	return (this->_client_body.size);
 }
 
-void	Router::setCGI(const std::string path, const std::string extension)
+void	Router::setCGI(const std::string path)
 {
 	if (!isFile(path))
 		throw std::invalid_argument("router error: Not a directory: "+path);

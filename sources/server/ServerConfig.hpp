@@ -53,10 +53,10 @@ public:
 
 	void				setAddress(const std::string address);
 	void				setAddress(const uint32_t address);
-	const uint32_t		getAddress(void) const;
+	uint32_t			getAddress(void) const;
 
 	void				setPort(const uint16_t port);
-	const uint16_t		getPort(void) const;
+	uint16_t			getPort(void) const;
 	
 	void								addNames(const std::vector<std::string> name);
 	void								addName(const std::string name);

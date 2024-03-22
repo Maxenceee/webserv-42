@@ -67,7 +67,7 @@ const std::string	&Request::getHost(void) const
 	return (this->_host);
 }
 
-const int			Request::getPort(void) const
+int			Request::getPort(void) const
 {
 	return (this->_port);
 }
@@ -109,12 +109,12 @@ const std::string	&Request::getBody(void) const
 	return (this->_body);
 }
 
-const int			Request::getStatus(void) const
+int			Request::getStatus(void) const
 {
 	return (this->_status);
 }
 
-const int			Request::getClientSocket(void) const
+int			Request::getClientSocket(void) const
 {
 	return (this->_socket);
 }
@@ -129,7 +129,7 @@ const std::string	&Request::getIP(void) const
 	return (this->_ip);
 }
 
-const time_t		Request::getRequestTime(void) const
+time_t		Request::getRequestTime(void) const
 {
 	return (this->request_time);
 }

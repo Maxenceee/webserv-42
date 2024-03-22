@@ -86,7 +86,7 @@ std::vector<std::string>	Server::initMethods()
 	return methods;
 }
 
-const int	Server::init(void)
+int	Server::init(void)
 {
 	int	option = 1;
 
@@ -187,12 +187,12 @@ void	Server::kill(void)
 	close(this->socket_fd);
 }
 
-const bool		Server::isInit(void) const
+bool		Server::isInit(void) const
 {
 	return (this->_init);
 }
 
-const int		Server::getSocketFD(void) const
+int		Server::getSocketFD(void) const
 {
 	return (this->socket_fd);
 }
@@ -215,12 +215,12 @@ ServerConfig	*Server::getDefault(void) const
 	return (this->_default);
 }
 
-const uint32_t	Server::getAddress(void) const
+uint32_t	Server::getAddress(void) const
 {
 	return (this->_address);
 }
 
-const uint16_t	Server::getPort(void) const
+uint16_t	Server::getPort(void) const
 {
 	return (this->port);
 }

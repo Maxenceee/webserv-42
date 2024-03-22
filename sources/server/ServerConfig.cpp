@@ -94,7 +94,7 @@ void	ServerConfig::setAddress(const uint32_t address)
 		Logger::error("server error: could not set address after server startup");
 }
 
-const uint32_t	ServerConfig::getAddress(void) const
+uint32_t	ServerConfig::getAddress(void) const
 {
 	return (this->address);
 }
@@ -107,7 +107,7 @@ void	ServerConfig::setPort(const uint16_t port)
 		Logger::error("server error: could not set port after server startup");
 }
 
-const uint16_t	ServerConfig::getPort(void) const
+uint16_t	ServerConfig::getPort(void) const
 {
 	return (this->port);
 }

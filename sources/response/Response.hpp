@@ -74,13 +74,13 @@ public:
 	bool			canAddHeader(void) const;
 
 	const std::string		&getVersion(void) const;
-	const int				getStatus(void) const;
+	int						getStatus(void) const;
 	const std::string		&getSatusName(void) const;
 	const t_mapss			&getHeaders(void) const;
 	const t_mapss			&getCookies(void) const;
 	const std::string		&getBody(void) const;
 
-	const bool		canSend(void) const;
+	bool					canSend(void) const;
 
 	static std::string	formatMethods(const std::vector<std::string> methods);
 };
