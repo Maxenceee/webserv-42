@@ -38,7 +38,8 @@ t_mapss		CGIWorker::init(const Request &req, const std::string &scriptpath, t_ma
 	env["CONTENT_LENGTH"] = toString<int>(body.length());
 	if (headers.count("Content-Type") && headers["Content-Type"].size() > 0)
 		env["CONTENT_TYPE"] = headers["Content-Type"];
-	env["COOKIE"] = req.getHeader("Cookie");
+	if (headers.count("Cookie"))
+		env["COOKIE"] = req.getHeader("Cookie");
 	env["SERVER_PORT"] = toString<int>(req.getPort());
 	env["REMOTE_ADDR"] = req.getIP();
 	env["REMOTE_PORT"] = toString<int>(req.getPort());
@@ -117,9 +118,10 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t
 	}
 	if (pid == 0)
 	{
+		char * const * null = NULL;
 		dup2(fdin, STDIN_FILENO);
 		dup2(fdout, STDOUT_FILENO);
-		execve(scriptpname.c_str(), (char * const *)NULL, env);
+		execve(scriptpname.c_str(), null, env);
 		Logger::error("CGIWorker error: execve failed");
 		write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
 	}

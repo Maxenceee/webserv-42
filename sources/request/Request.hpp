@@ -25,9 +25,9 @@ class Request
 {
 private:
 	const Server				&_server;
-	int							_status;
 	// std::string					_raw;
 	const std::string			&_raw;
+	int							_status;
 	const int					_socket;
 	std::string					_version;
 	std::string					_method;
@@ -38,8 +38,8 @@ private:
 	t_mapss						_query;
 	t_mapss						_headers;
 	t_mapss						_cookie;
-	std::string					_body;
 	const sockaddr_in			_clientAddr;
+	std::string					_body;
 	std::string					_ip;
 
 	long long					request_time;
@@ -69,7 +69,7 @@ public:
 	const std::string		&getVersion(void) const;
 	const std::string		&getPath(void) const;
 	const std::string		&getRawPath(void) const;
-	const int				getPort(void) const;
+	int						getPort(void) const;
 	const std::string		&getHost(void) const;
 	const t_mapss			&getQueries(void) const;
 	const std::string		getQueryString(void) const;
@@ -77,11 +77,11 @@ public:
 	const std::string		&getHeader(const std::string name) const;
 	const t_mapss			&getCookies(void) const;
 	const std::string		&getBody(void) const;
-	const int				getStatus(void) const;
-	const int				getClientSocket(void) const;
+	int						getStatus(void) const;
+	int						getClientSocket(void) const;
 	const sockaddr_in		&getClientAddr(void) const;
 	const std::string		&getIP(void) const;
-	const time_t			getRequestTime(void) const;
+	time_t					getRequestTime(void) const;
 };
 
 std::ostream	&operator<<(std::ostream &os, const Request &req);

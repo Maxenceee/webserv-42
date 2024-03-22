@@ -12,8 +12,7 @@
 
 #include "Request.hpp"
 
-Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _socket(socket), _clientAddr(clientAddr), _status(200), _host(""), _body(""), _port(80)
-// Request::Request(const Server &server, int socket, sockaddr_in clientAddr): _server(server), _socket(socket), _clientAddr(clientAddr), _status(200), _raw(""), _host(""), _body(""), _port(80)
+Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _status(200), _socket(socket), _host(""), _port(80), _clientAddr(clientAddr), _body("")
 {
 	this->request_time = getTimestamp();
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
@@ -23,18 +22,6 @@ Request::Request(const Server &server, const std::string &str, int socket, socka
 Request::~Request(void)
 {
 }
-
-// void	Request::pushData(char *data, size_t len)
-// {
-// 	std::cout << "push: " << data << std::endl;
-// 	this->_raw.append(data, len);
-// }
-
-// void	Request::processRequest(void)
-// {
-// 	this->parse();
-// 	std::cout << "process: " << this->_raw << std::endl;
-// }
 
 int	Request::parse(void)
 {

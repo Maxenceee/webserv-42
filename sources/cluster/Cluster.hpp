@@ -34,7 +34,7 @@ public:
 
 	static bool		exit;
 
-	const int	start(void);
+	int		start(void);
 
 	void	initConfigs(std::vector<ServerConfig *> configs);
 	Server	*addConfig(ServerConfig *config);

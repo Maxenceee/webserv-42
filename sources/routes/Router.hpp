@@ -66,7 +66,7 @@ struct s_Router_Headers {
 
 struct s_Router_Client_Body {
 	bool			set;
-	int				size; // in bytes
+	size_t			size; // in bytes
 };
 
 typedef struct s_Router_Headers::s_Router_Header	Router_Header_t;
@@ -75,7 +75,6 @@ class Router
 {
 private:
 	Router							*_parent;
-	bool							_autoindex;
 	struct s_Router_Location		_location;
 	struct s_Router_Root			_root;
 	struct s_Router_Redirection		_redirection;
@@ -83,6 +82,7 @@ private:
 	struct s_Router_Headers			_headers;
 	struct s_Router_Client_Body		_client_body;
 	std::vector<std::string>		_allowed_methods;
+	bool							_autoindex;
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
 
@@ -130,8 +130,8 @@ public:
 	void	setRoot(const std::string path);
 	void	setAlias(const std::string path);
 
-	const bool 			isDefault(void) const;
-	Router 				*getParent(void) const;
+	bool 			isDefault(void) const;
+	Router 			*getParent(void) const;
 
 	const struct s_Router_Location	&getLocation(void) const;
 
@@ -153,13 +153,13 @@ public:
 
 	void					setErrorPage(const int code, const std::string path);
 	const std::string		&getErrorPage(const int status) const;
-	const bool				hasErrorPage(const int code) const;
+	bool					hasErrorPage(const int code) const;
 
 	void 		setClientMaxBodySize(const std::string &size);
 	void 		setClientMaxBodySize(const int size);
-	const int 	getClientMaxBodySize(void) const;
+	int 		getClientMaxBodySize(void) const;
 
-	void				setCGI(const std::string path, const std::string extension = "");
+	void				setCGI(const std::string path);
 	void				enableCGI(void);
 	void				addCGIParam(const std::string key, const std::string value);
 	const std::string	&getCGIPath() const;
