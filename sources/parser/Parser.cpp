@@ -22,6 +22,11 @@ Parser::Parser(Cluster &c): cluster(c)
 
 Parser::~Parser(void)
 {
+	Logger::debug("Parser destroyed");
+	for (std::vector<ServerConfig *>::iterator it = this->configs.begin(); it != this->configs.end(); it++) {
+		if ((*it)->used == false)
+			delete *it;
+	}
 }
 
 int		Parser::open_and_read_file(const char *file_name)
@@ -40,6 +45,7 @@ int		Parser::open_and_read_file(const char *file_name)
 		tmp.push_back(line);
 	}
 	this->buffer = join(tmp, "\n");
+	this->file.close();
 	return (EXIT_SUCCESS);
 }
 

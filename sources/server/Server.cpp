@@ -33,6 +33,7 @@ Server::~Server(void)
 {
 	for (std::vector<ServerConfig *>::iterator it = this->_configs.begin(); it != this->_configs.end(); it++)
 		delete *it;
+	Logger::debug("Server destroyed");
 }
 
 std::vector<std::string>	Server::initMethods()
@@ -207,6 +208,7 @@ void	Server::addConfig(ServerConfig *config)
 		Logger::warning("server warning: multiple default configurations, only the first one will be used.");
 	}
 	config->setServer(this);
+	config->used = true;
 	this->_configs.push_back(config);
 }
 

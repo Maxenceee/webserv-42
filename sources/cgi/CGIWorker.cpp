@@ -75,7 +75,8 @@ char	**CGIWorker::getEnv(const t_mapss &_env)
 	{
 		std::string tmp = it->first + "=" + it->second;
 		std::cout << tmp << std::endl;
-		env[i] = strdup(tmp.c_str());
+		env[i] = new char[tmp.length() + 1];
+		env[i] = std::strcpy(env[i], tmp.c_str());
 		i++;
 	}
 	env[i] = NULL;

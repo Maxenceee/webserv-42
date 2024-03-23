@@ -44,6 +44,8 @@ public:
 	ServerConfig(Server *server = NULL);
 	~ServerConfig(void);
 
+	bool			used;
+
 	void			setServer(Server *server);
 
 	void			handleRoutes(Request &req, Response &res);

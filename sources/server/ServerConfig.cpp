@@ -19,7 +19,7 @@ std::ostream	&operator<<(std::ostream &os, const ServerConfig &config)
 	return os;
 }
 
-ServerConfig::ServerConfig(Server *server): _server(server)
+ServerConfig::ServerConfig(Server *server): _server(server), used(false)
 {
 	this->_default = new Router(NULL, s_Router_Location());
 	this->port = 80;
@@ -29,6 +29,7 @@ ServerConfig::ServerConfig(Server *server): _server(server)
 ServerConfig::~ServerConfig(void)
 {
 	delete this->_default;
+	Logger::debug("ServerConfig destroyed");
 }
 
 void	ServerConfig::setServer(Server *server)

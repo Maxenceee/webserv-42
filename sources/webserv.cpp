@@ -52,9 +52,10 @@ int	main(int argc, char const **argv)
 			Logger::_debug = true;
 		}
 	}
+	Cluster	cluster;
 	try
 	{
-		Cluster	cluster(argv[1]);
+		cluster.parse(argv[1]);
 		cluster.start();
 	}
 	catch(const std::exception& e)
