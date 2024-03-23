@@ -152,9 +152,6 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t
 	close(sstdin);
 	close(sstdout);
 
-	/**
-	 * TODO: test leaks when using cgi
-	 */
 	for (size_t i = 0; env[i]; i++)
 		delete[] env[i];
 	delete[] env;
