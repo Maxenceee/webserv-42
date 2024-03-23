@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 18:35:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/23 11:52:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -295,16 +295,12 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	 */
 	int valread = recv(client, buffer, sizeof(buffer), 0);
 	if (valread == -1) {
-		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			Logger::error("Client not ready to read");
-			return ;
-		} else {
-			Logger::error("server error: an error occurred while reading from client");
-			perror("recv");
-		}
+		Logger::error("server error: an error occurred while reading from client");
+		close(client);
 		return ;
 	} else if (valread == 0) {
 		Logger::error("Connection closed by the client");
+		close(client);
 		return ;
 	}
 	/**
