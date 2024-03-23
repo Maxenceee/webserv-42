@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include <algorithm>
 
 std::string		to_upper(const std::string &str)
 {
