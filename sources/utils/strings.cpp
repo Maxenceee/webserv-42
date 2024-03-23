@@ -253,6 +253,8 @@ int	parseSize(std::string size)
 			ret *= 1024 * 1024 * 1024;
 		else
 			return (-1);
+		if (i + 1 < size.size())
+			return (-1);
 	}
 	return (ret);
 }

@@ -20,17 +20,10 @@ static void interruptHandler(int sig_int) {
 	Cluster::exit = false;
 }
 
-Cluster::Cluster(const char *configPath)
+Cluster::Cluster(void)
 {
 	this->exit = false;
 	this->parser = new Parser(*this);
-	this->parser->parse(configPath);
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
-	{
-		(*it)->init();
-		if (Logger::_debug)
-			std::cout << *(*it) << std::endl;
-	}
 }
 
 Cluster::~Cluster()
@@ -38,7 +31,22 @@ Cluster::~Cluster()
 	Logger::print("Shutting down webserv", B_GREEN);
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		delete *it;
+	if (this->parser)
+		delete this->parser;
+	Logger::debug("Cluster destroyed");
+}
+
+void	Cluster::parse(const char *configPath)
+{
+	this->parser->parse(configPath);
+	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	{
+		(*it)->init();
+		if (Logger::_debug)
+			std::cout << *(*it) << std::endl;
+	}
 	delete this->parser;
+	this->parser = NULL;
 }
 
 void	Cluster::initConfigs(std::vector<ServerConfig *> configs)

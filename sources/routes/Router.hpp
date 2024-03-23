@@ -157,7 +157,7 @@ public:
 
 	void 		setClientMaxBodySize(const std::string &size);
 	void 		setClientMaxBodySize(const int size);
-	int 		getClientMaxBodySize(void) const;
+	size_t 		getClientMaxBodySize(void) const;
 
 	void				setCGI(const std::string path);
 	void				enableCGI(void);

@@ -56,8 +56,8 @@ Router::Router(Router *parent, const struct s_Router_Location location, int leve
 	 * Par défaut le router hérite des en-têtes de son parent. Celles-ci peuvent être
 	 * changées en appellant la méthode Router::addHeader().
 	 */
+	this->_headers.enabled = false;
 	if (parent) {
-		this->_headers.enabled = false;
 		this->_headers.list = parent->getHeaders();
 	}
 
@@ -86,6 +86,7 @@ Router::~Router(void)
 {
 	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++)
 		delete *it;
+	Logger::debug("Router destroyed");
 }
 
 bool	Router::isDefault(void) const
@@ -257,25 +258,26 @@ bool			Router::hasErrorPage(const int code) const
 
 void	Router::setClientMaxBodySize(const std::string &size)
 {
-	this->_client_body.size = parseSize(size);
-	if (this->_client_body.size < 0) {
+	int ts = parseSize(size);
+	if (ts < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+size);
 	}
+	this->_client_body.size = ts;
 	this->_client_body.set = true;
 	this->reloadChildren();
 }
 
 void	Router::setClientMaxBodySize(const int size)
 {
-	this->_client_body.size = size;
-	if (this->_client_body.size < 0) {
+	if (size < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+toString<int>(size));
 	}
+	this->_client_body.size = size;
 	this->_client_body.set = true;
 	this->reloadChildren();
 }
 
-int	Router::getClientMaxBodySize(void) const
+size_t	Router::getClientMaxBodySize(void) const
 {
 	return (this->_client_body.size);
 }

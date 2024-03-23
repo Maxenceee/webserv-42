@@ -29,13 +29,14 @@ private:
 	std::vector<Server*>	_servers;
 
 public:
-	Cluster(const char *configPath);
+	Cluster(void);
 	~Cluster();
 
 	static bool		exit;
 
 	int		start(void);
 
+	void	parse(const char *configPath);
 	void	initConfigs(std::vector<ServerConfig *> configs);
 	Server	*addConfig(ServerConfig *config);
 };
