@@ -350,10 +350,6 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
 	 */
 	if (key == "error_page") {
-		/**
-		 * TODO:
-		 * regarder commment fonctionne le paramettre [=[response]]
-		 */
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() < 2)
 			this->throwError(key, val);
@@ -401,7 +397,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "fastcgi_param") {
 		/**
 		 * TODO:
-		 * tester avec des sockets unix
+		 * Implementer les sockets unix (unix:)
 		 */
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() < 2)
