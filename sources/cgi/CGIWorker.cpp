@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 14:58:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/23 10:27:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,6 +152,9 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t
 	close(sstdin);
 	close(sstdout);
 
+	/**
+	 * TODO: test leaks when using cgi
+	 */
 	for (size_t i = 0; env[i]; i++)
 		delete[] env[i];
 	delete[] env;
