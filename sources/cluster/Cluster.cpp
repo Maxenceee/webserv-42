@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 16:52:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/27 23:04:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,10 @@ Cluster::Cluster(void)
 Cluster::~Cluster()
 {
 	Logger::print("Shutting down webserv", B_GREEN);
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
-		delete *it;
 	if (this->parser)
 		delete this->parser;
+	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+		delete *it;
 	Logger::debug("Cluster destroyed");
 }
 
@@ -49,7 +49,7 @@ void	Cluster::parse(const char *configPath)
 	this->parser = NULL;
 }
 
-void	Cluster::initConfigs(std::vector<ServerConfig *> configs)
+void	Cluster::initConfigs(std::vector<ServerConfig *> &configs)
 {
 	for (std::vector<ServerConfig *>::iterator it = configs.begin(); it != configs.end(); it++)
 	{
