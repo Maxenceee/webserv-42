@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 18:22:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/03/28 03:58:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,14 @@ Router::Router(Router *parent, const struct s_Router_Location location, int leve
 	if (parent) {
 		this->_error_page = parent->_error_page;
 	}
+
+	/**
+	 * Par défaut le router hérite des méthodes HTTP autorisées de son parent.
+	 */
+	this->_allowed_methods.enabled = false;
+	if (parent) {
+		this->_allowed_methods.methods = parent->_allowed_methods.methods;
+	}
 	
 	/**
 	 * Nginx definit la valeur par defaut comme étant 1Mo.
@@ -105,9 +113,14 @@ void	Router::allowMethod(const std::string method)
 	 * Router::allowMethod() indique au router qu'elle méthode HTTP il doit servir. Si aucune méthode
 	 * n'est spécifiée le router les accepte toutes.
 	 */
-	if (Server::isValidMethod(method))
-		this->_allowed_methods.push_back(method);
-	else
+	if (Server::isValidMethod(method)) {
+		if (!this->_allowed_methods.enabled) {
+			this->_allowed_methods.enabled = true;
+			this->_allowed_methods.methods.clear();
+		}
+		this->_allowed_methods.methods.push_back(method);
+		this->reloadChildren();
+	} else
 		Logger::error("router error: Invalid method found. No such `" + method + "`");
 }
 
@@ -190,7 +203,11 @@ void	Router::setRedirection(std::string to, int status)
 	 * Définit le chemin de redirection du router, le statut par défaut est 302 (Found).
 	 * Si le chemin est vide alors le statut est retourné sans redirection.
 	 */
-	this->_redirection.path = to;
+	if (status % 300 < 100) {
+		this->_redirection.path = to;
+	} else {
+		this->_redirection.data = to;
+	}
 	this->_redirection.status = status;
 	this->_redirection.enabled = true;
 }
@@ -356,12 +373,13 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 */
 	if (this->matchRoute(request.getPath(), response))
 	{
-		if (this->_allowed_methods.size() && !contains(this->_allowed_methods, request.getMethod()))
+		if (this->_allowed_methods.methods.size() && !contains(this->_allowed_methods.methods, request.getMethod()))
 		{
-			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods));
+			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods.methods));
 			response.status(405);
 			return (true);
 		}
+
 		/**
 		 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
 		 * desactive la verification de la limite de taille du corps de la requête.
@@ -384,17 +402,21 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		}
 		
 		/**
-		 * Nginx n'est pas très clair quant aux priorités entre `root`/`alias` et
-		 * `return`. Nous avons fait le choix de toujours donner la priorité à
-		 * return.
+		 * Nginx execute la directive `return` avant toutes les autres.
+		 * Si le code de retour est de type 3xx (redirect) alors la redirection est effectuée, sinon
+		 * le code de retour est envoyé avec le corps de la réponse.
 		 */
 		if (this->_redirection.enabled) {
-			if (this->_redirection.path.empty()) {
+			if (this->_redirection.path.empty() && this->_redirection.data.empty()) {
 				response.status(this->_redirection.status);
 				return (true);
 			}
 			Logger::debug("redirect to: " + this->_redirection.path);
-			response.redirect(this->_redirection.path, this->_redirection.status).end();
+			if (this->_redirection.status % 300 < 100) {
+				response.redirect(this->_redirection.path, this->_redirection.status).end();
+			} else {
+				response.status(this->_redirection.status).send(this->_redirection.data).end();
+			}
 			return (true);
 		}
 		
@@ -439,14 +461,18 @@ void	Router::handleGETMethod(Request &request, Response &response)
 			if (this->_autoindex) {
 				response.setHeader("Content-Type", "text/html; charset=utf-8");
 				response.send(this->getDirList(fullpath, request.getPath()));
-			} else {
+			} else if (!this->_error_page.count(404)) {
 				response.sendNotFound();
+			} else {
+				response.status(404);
 			}
 		}
 	} else if (isFile(fullpath)) {
 		response.sendFile(fullpath);
-	} else {
+	} else if (!this->_error_page.count(404)) {
 		response.sendNotFound();
+	} else {
+		response.status(404);
 	}
 }
 
@@ -775,6 +801,9 @@ void	Router::reload(void)
 	if (!this->_headers.enabled) {
 		this->_headers.list = this->_parent->getHeaders();
 	}
+	if (!this->_allowed_methods.enabled) {
+		this->_allowed_methods.methods = this->_parent->_allowed_methods.methods;
+	}
 	for (std::map<int, std::string>::iterator it = this->_parent->_error_page.begin(); it != this->_parent->_error_page.end(); it++) {
 		if (!this->_error_page.count(it->first)) {
 			this->_error_page[it->first] = it->second;
@@ -829,14 +858,14 @@ void	Router::print(std::ostream &os) const
 	os << "\n";
 	os << space << B_CYAN"Path: " << RESET << (this->_location.modifier.size() ? this->_location.modifier+" " : "") << this->_location.path << "\n";
 	os << space << B_CYAN"Methods:" << RESET;
-	if (this->_allowed_methods.empty())
+	if (this->_allowed_methods.methods.empty())
 		os << " all";
-	for (std::vector<std::string>::const_iterator it = this->_allowed_methods.begin(); it != this->_allowed_methods.end(); it++)
+	for (std::vector<std::string>::const_iterator it = this->_allowed_methods.methods.begin(); it != this->_allowed_methods.methods.end(); it++)
 		os << " " << *it;
 	os << "\n";
 	os << space << B_CYAN"Root: " << RESET << this->_root.path << (this->_root.isAlias ? " (alias)" : "") << "\n";
 	os << space << B_CYAN"Nearest Root: " << RESET << this->_root.nearest_root << "\n";
-	os << space << B_CYAN"Redirection: " << RESET << (this->_redirection.enabled ? this->_redirection.path + " status: " + toString(this->_redirection.status) : "none") << "\n";
+	os << space << B_CYAN"Redirection: " << RESET << (this->_redirection.enabled ? this->_redirection.path + " status: " + toString(this->_redirection.status) + (this->_redirection.data.size() ? " data: " + this->_redirection.data : "") : "none") << "\n";
 	os << space << B_CYAN"Autoindex: " << RESET << (this->_autoindex ? "enabled" : "disabled") << "\n";
 	os << space << B_CYAN"Index: " << RESET;
 	for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++)

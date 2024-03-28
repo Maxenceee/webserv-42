@@ -8,18 +8,23 @@
 </head>
 <body>
 	<nav>
+		<a href="/">
+			<p>Home</p>
+		</a>
 		<a href="/page1.html">
 			<p>Page 1</p>
 		</a>
 		<a href="/page2.html">
 			<p>Page 2</p>
 		</a>
-		<a href="/page3.html">
-			<p>Page 3</p>
-		</a>
 	</nav>
 	<main>
-		<h1>Thanks for using Webserv</h1>
+		<h1>Page 3</h1>
+		<p>From here you can upload files to the server</p>
+		<form action="/uploads/file" method="post">
+			<input type="file" name="file">
+			<button type="submit">Upload</button>
+		</form>
 	</main>
 </body>
 </html>
