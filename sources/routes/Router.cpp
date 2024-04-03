@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/03 13:29:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/03 19:03:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -687,7 +687,7 @@ std::string	cutLastSlash(const std::string &path)
 	if (dotPos == std::string::npos) {
 		return ("");
 	}
-	return ("");
+	return (fileName);
 }
 
 std::string	Router::getLocalFilePath(const std::string &requestPath)
@@ -731,10 +731,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		result = regexec(&regex, requestPath.c_str(), 1, &match, 0);
 		if (result != 0)
 			return ("");
-		/**
-		 * FIXME: Fix le probleme de resolution lorsque le regex se base sur l'exention du fichier
-		 * 
-		 */
+
 		relativePath = resolve(requestPath.substr(match.rm_eo), savedBlock);
 
 		// Libérer la mémoire utilisée par l'expression régulière compilée
