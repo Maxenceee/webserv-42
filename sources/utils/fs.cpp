@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/09 01:57:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/03 13:12:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,4 +148,12 @@ int	deleteFile(const std::string &path)
 		return (W_ERR);
 	}
 	return (W_NOERR);
+}
+
+std::string		resolve(std::string root, std::string path)
+{
+	if (root.back() == '/' && path.front() == '/') {
+		root.pop_back();
+	}
+	return (root += path);
 }

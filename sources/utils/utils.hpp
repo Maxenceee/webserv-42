@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 14:12:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/03 13:12:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,8 @@ std::string	getLastModifiedDate(const std::string filepath);
 int	createFile(const std::string &path, const std::string &content);
 int	appendFile(const std::string &path, const std::string &content);
 int	deleteFile(const std::string &path);
+
+std::string		resolve(std::string root, std::string path);
 
 /* URIs */
 
