@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/28 03:58:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/03 13:29:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -348,7 +348,7 @@ void	Router::route(Request &request, Response &response)
 		if (response.canSend() && !response.hasBody())
 		{
 			if (this->_error_page.count(response.getStatus())) {
-				std::string fullpath = this->_root.nearest_root + this->_error_page[response.getStatus()];
+				std::string fullpath = resolve(this->_root.nearest_root, this->_error_page[response.getStatus()]);
 				Logger::debug("router full path: " + fullpath);
 				response.sendFile(fullpath);
 			} else {
@@ -687,7 +687,7 @@ std::string	cutLastSlash(const std::string &path)
 	if (dotPos == std::string::npos) {
 		return ("");
 	}
-	return (fileName);
+	return ("");
 }
 
 std::string	Router::getLocalFilePath(const std::string &requestPath)
@@ -731,7 +731,11 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		result = regexec(&regex, requestPath.c_str(), 1, &match, 0);
 		if (result != 0)
 			return ("");
-		relativePath = requestPath.substr(match.rm_eo) + savedBlock;
+		/**
+		 * FIXME: Fix le probleme de resolution lorsque le regex se base sur l'exention du fichier
+		 * 
+		 */
+		relativePath = resolve(requestPath.substr(match.rm_eo), savedBlock);
 
 		// Libérer la mémoire utilisée par l'expression régulière compilée
 		regfree(&regex);
@@ -741,7 +745,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 			relativePath = requestPath.substr(this->_location.path.size());
 	}
 
-	return (this->_root.path + relativePath);
+	return (resolve(this->_root.path, relativePath));
 }
 
 std::string	&Router::checkLeadingTrailingSlash(std::string &str)
