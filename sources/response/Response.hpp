@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:53:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 17:06:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ struct CookieOptions {
 class Response
 {
 private:
-	const Server		&_server;
 	int					_socket;
 	bool				_sent;
 	int					_status;
@@ -51,7 +50,7 @@ private:
 	std::string			getTime(void);
 
 public:
-	Response(const Server &server, int socket, const Request &req);
+	Response(int socket, const Request &req);
 	~Response(void);
 
 	static bool		isValidStatus(int status);

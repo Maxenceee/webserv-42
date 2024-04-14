@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/23 11:52:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 16:55:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,11 +227,6 @@ uint16_t	Server::getPort(void) const
 	return (this->port);
 }
 
-const std::vector<std::string>	&Server::getMethods(void) const
-{
-	return (this->methods);
-}
-
 // std::stringstream &readMultipart(const int client, std::stringstream &stream)
 // {
 //     // Read the initial part of the request to find the boundary
@@ -299,7 +294,7 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 		close(client);
 		return ;
 	} else if (valread == 0) {
-		Logger::error("Connection closed by the client");
+		Logger::debug("Connection closed by the client");
 		close(client);
 		return ;
 	}
@@ -308,10 +303,10 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	 * qui se chargent de l'interprétation des données de la requête et de la génération
 	 * de la réponse.
 	 */
-	Request	request = Request(*this, std::string(buffer), client, clientAddr);
+	Request	request = Request(client, clientAddr);
 	if (Logger::_debug)
 		std::cout << request << std::endl;
-	Response response = Response(*this, request.getClientSocket(), request);
+	Response response = Response(request.getClientSocket(), request);
 
 	/**
 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.

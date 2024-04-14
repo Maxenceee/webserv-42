@@ -9,7 +9,7 @@ HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.hpp") $(shell find $(SOURCES_DI
 
 RM				=	rm -f
 CC				=	clang++
-CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR) -Wall -Wextra -Werror
+CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR) #-Wall -Wextra -Werror
 NAME			=	webserv
 
 GREEN			=	\033[1;32m
