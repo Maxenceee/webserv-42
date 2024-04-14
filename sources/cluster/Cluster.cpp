@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 19:44:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 19:50:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,8 +192,8 @@ int		Cluster::start(void)
 						perror("accept");
 						continue;
 					}
-					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Converti l'adresse IP en notation décimale
-					client_addr.sin_port = ntohs(client_addr.sin_port); // Converti le port en notation décimale
+					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)
+					client_addr.sin_port = ntohs(client_addr.sin_port); // Corrige l'ordre des octets du port (endianness)
 					/**
 					 * On ajoute le nouveau client à la liste des descripteurs à surveiller
 					 */
