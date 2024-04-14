@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 19:32:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 21:24:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,13 @@ int	Request::processLine(const std::string &line)
 	}
 	else
 	{
+		/**
+		 * TODO:
+		 * Handle body properly
+		 * see (https://www.rfc-editor.org/rfc/rfc7230#section-3.3)
+		 * (https://datatracker.ietf.org/doc/html/rfc7230#section-3.3)
+		 * 
+		 */
 		if (!this->_body_detected)
 		{
 			if (line == "\r\n" || line == "\n" || line.empty())
