@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 16:54:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 19:17:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,11 @@ class Server;
 class Request
 {
 private:
-	const Server				&_server;
 	// std::string					_raw;
-	const std::string			&_raw;
+	// const std::string			&_raw;
+	bool						_has_request_line;
+	// bool						_header_detected;
+	bool						_body_detected;
 	int							_status;
 	const int					_socket;
 	std::string					_version;
@@ -45,22 +47,26 @@ private:
 	long long					request_time;
 
 	int		parse(void);
-	int		getRequestLine(const std::string &str, size_t &i);
+	int		getRequestLine(const std::string &str);
 	int		getRequestPath(const std::string &str);
 	int		getRequestVersion(const std::string &str);
-	int		getRequestHeadersAndBody(const std::string &str, size_t &i);
+	int		getRequestHeadersAndBody(const std::string &str);
 	int		getRequestQuery(void);
 	int		getRequestHostname(const std::string &host);
 	int		getRequestCookies(void);
+
+	bool	isValidHeader(const std::string& line);
 
 	std::string	nextLine(const std::string &str, size_t& i);
 
 	void	processChunk(void);
 
 public:
-	Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr);
-	// Request(const Server &server, int socket, sockaddr_in clientAddr);
+	// Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr);
+	Request(int socket, sockaddr_in clientAddr);
 	~Request(void);
+
+	int						processLine(const std::string &line);
 
 	// void				pushData(char *data, size_t len);
 	// void				processRequest(void);

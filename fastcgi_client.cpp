@@ -50,6 +50,7 @@ public:
 		request += body;
 
 		// Envoyer la requête HTTP au serveur
+        std::cout << "Request: " << request << std::endl;
 		send(sockfd, request.c_str(), request.length(), 0);
 	}
 
@@ -76,3 +77,4 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+// POST /oui HTTP/1.1\r\nHost: localhost\r\nContent-Length: 8\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\nreq.body

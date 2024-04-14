@@ -6,5 +6,8 @@ express_test/node_modules
 express_test/package-lock.json
 
 out
+client
+server
 static
 test_res
+express.tmp

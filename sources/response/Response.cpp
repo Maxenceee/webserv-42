@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 18:06:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 18:42:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,13 @@
 
 std::map<int, std::string>	Response::http_codes = Response::initCodes();
 
-Response::Response(const Server &server, int socket, const Request &req): _server(server), _sent(false)
+Response::Response(int socket, const Request &req): _sent(false)
 {
 	this->_socket = socket;
 	this->_version = req.getVersion();
 	this->_method = req.getMethod();
 	this->_status = req.getStatus();
 	this->_path = req.getPath();
-	this->initCodes();
 	this->setHeader("Server", W_SERVER_NAME);
 	/**
 	 * On vérifie si la requête n'a renvoyé aucune erreur de parsing.
@@ -317,6 +316,18 @@ const std::string	Response::prepareResponse(void)
 	}
 
 	/**
+	 * Une réponse HTTP doit obligatoirement contenir une version HTTP valide.
+	 * Dans le cas ou la requête n'a pas été parsée correctement, la version
+	 * par défaut est la version 1.1.
+	 * 
+	 */
+	if (this->_version.empty())
+	{
+		Logger::error("Response error: invalid HTTP version");
+		this->_version = "1.1";
+	}
+
+	/**
 	 * La norme RFC impose que chaque réponse HTTP suive un modèle strict.
 	 * Ligne de statut (Version, Code-réponse, Texte-réponse)
 	 * En-tête de réponse
@@ -333,7 +344,8 @@ const std::string	Response::prepareResponse(void)
 		res += "Set-Cookie: " + it->second + "\r\n";
 	}
 	res += "\r\n";
-	res += this->_body + "\r\n";
+	if (this->hasBody())
+		res += this->_body + "\r\n";
 	return (res);
 }
 

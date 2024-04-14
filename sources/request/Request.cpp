@@ -6,21 +6,75 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 18:06:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 19:32:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _status(200), _socket(socket), _host(""), _port(80), _clientAddr(clientAddr), _body("")
+// Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _status(200), _socket(socket), _host(""), _port(80), _clientAddr(clientAddr), _body("")
+Request::Request(int socket, sockaddr_in clientAddr): _has_request_line(false), _body_detected(false), _status(200), _socket(socket), _host(""), _port(80), _clientAddr(clientAddr), _body("")
 {
 	this->request_time = getTimestamp();
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
-	this->parse();
+	// this->parse();
 }
 
 Request::~Request(void)
 {
+}
+
+int	Request::processLine(const std::string &line)
+{
+	if (!this->_has_request_line)
+	{
+		/**
+		 * La norme RFC impose que chaque requête HTTP suive un modèle strict.
+		 * Ligne de commande (Commande, URL, Version de protocole)
+		 * En-tête de requête
+		 * [Ligne vide]
+		 * Corps de requête
+		 * 
+		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3)
+		 */
+		std::cout << "command line: " << line << std::endl;
+		if ((this->_status = this->getRequestLine(line)) == 200)
+		{
+			this->_has_request_line = true;
+		}
+	}
+	else
+	{
+		if (!this->_body_detected)
+		{
+			if (line == "\r\n" || line == "\n" || line.empty())
+			{
+				if (this->getRequestHostname(this->_headers["Host"]))
+				{
+					this->_status = 400;
+					return (REQ_ERROR);
+				}
+				this->_body_detected = true;
+				return (REQ_SUCCESS);
+			}
+			
+			std::cout << "header line: " << line << std::endl;
+			std::string	key = readKey(line);
+			if (key.empty())
+			{
+				std::cout << "error parsing header line" << std::endl;
+				return (REQ_ERROR);
+			}
+			std::string	value = readValue(line);
+			this->_headers[key] = value;
+		}
+		else
+		{
+			std::cout << "body line: " << line << std::endl;
+			this->_body += line;
+		}
+	}
+	return (REQ_SUCCESS);
 }
 
 int	Request::parse(void)
@@ -36,20 +90,19 @@ int	Request::parse(void)
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3)
 	 */
-	if ((this->_status = this->getRequestLine(this->_raw, i)) != 200)
-	{
-		return (REQ_ERROR);
-	}
-	this->getRequestHeadersAndBody(this->_raw, i);
-	this->getRequestQuery();
-	this->getRequestCookies();
+	// if ((this->_status = this->getRequestLine(this->_raw, i)) != 200)
+	// {
+	// 	return (REQ_ERROR);
+	// }
+	// this->getRequestHeadersAndBody(this->_raw, i);
+	// this->getRequestQuery();
+	// this->getRequestCookies();
 	return (REQ_SUCCESS);
 }
 
-int	Request::getRequestLine(const std::string &str, size_t &i)
+int	Request::getRequestLine(const std::string &req_line)
 {
 	size_t		j;
-	std::string	req_line;
 
 	/**
 	 * Une requête HTTP commmence par une ligne de commande
@@ -58,9 +111,6 @@ int	Request::getRequestLine(const std::string &str, size_t &i)
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.1)
 	 */
-	i = str.find_first_of('\n');
-	req_line = str.substr(0, i);
-	i += 1;
 	j = req_line.find_first_of(' ');
 	if (j == std::string::npos)
 	{
@@ -83,6 +133,7 @@ int	Request::getRequestPath(const std::string &str)
 	}
 	this->_path = decodeURIComponent(req_tokens[1]); // on extrait le chemin de la requête
 	this->_raw_path = this->_path;
+	this->getRequestQuery();
 	return (this->getRequestVersion(req_tokens[2]));
 }
 
@@ -113,7 +164,7 @@ int	Request::getRequestVersion(const std::string &str)
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7231#section-4)
 	 */
-	if (!contains(this->_server.getMethods(), this->_method))
+	if (!contains(Server::methods, this->_method))
 		return (405);
 	return (200);
 }
@@ -133,11 +184,12 @@ std::string			Request::nextLine(const std::string &str, size_t &i)
 	return (ret);
 }
 
-int	Request::getRequestHeadersAndBody(const std::string &str, size_t &i)
+int	Request::getRequestHeadersAndBody(const std::string &str)
 {
 	std::string	key;
 	std::string	value;
 	std::string	line;
+	size_t		i = 0;
 
 	/**
 	 * Selon la norme RFC les en-têtes doivent suivrent un modèle précis (Nom-Du-Champs: [espace?] valeur [espace?])
