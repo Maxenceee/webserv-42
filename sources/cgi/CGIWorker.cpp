@@ -6,11 +6,20 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 03:33:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGIWorker.hpp"
+
+/**
+ * TODO:
+ * 
+ * Support des fastcgi_pass via http (and maybe unix sockets)
+ * ex: fastcgi_pass http://localhost:9000;
+ * see https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass
+ * and see fastcgi_client.cpp
+ */
 
 std::string	formatHeaderKey(const std::string &key)
 {
