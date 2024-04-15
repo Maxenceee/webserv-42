@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/03 19:03:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Router *parent, const struct s_Router_Location location, int level): _parent(parent), _location(location), _autoindex(false), level(level)
+Router::Router(Router *parent, const struct wbs_router_location location, int level): _parent(parent), _location(location), _autoindex(false), level(level)
 {
 	/**
 	 * Par défault le router hérite de la racine de son parent. Celui-ci peut être
@@ -182,7 +182,7 @@ void	Router::setAlias(const std::string path)
 	}
 }
 
-const struct s_Router_Location	&Router::getLocation(void) const
+const struct wbs_router_location	&Router::getLocation(void) const
 {
 	return (this->_location);
 }
@@ -192,7 +192,7 @@ const std::string	&Router::getRoot(void) const
 	return (this->_root.path);
 }
 
-const struct s_Router_Root	&Router::getRootData(void) const
+const struct wbs_router_root	&Router::getRootData(void) const
 {
 	return (this->_root);
 }
@@ -212,7 +212,7 @@ void	Router::setRedirection(std::string to, int status)
 	this->_redirection.enabled = true;
 }
 
-const struct s_Router_Redirection	&Router::getRedirection(void) const
+const struct wbs_router_redirection	&Router::getRedirection(void) const
 {
 	return (this->_redirection);
 }
@@ -244,11 +244,11 @@ void	Router::addHeader(const std::string key, const std::string value, const boo
 		this->_headers.enabled = true;
 		this->_headers.list.clear();
 	}
-	this->_headers.list.push_back((Router_Header_t){key, value, always});
+	this->_headers.list.push_back((wp_router_header_t){key, value, always});
 	this->reloadChildren();
 }
 
-const std::vector<Router_Header_t>	&Router::getHeaders(void) const
+const std::vector<wp_router_header_t>	&Router::getHeaders(void) const
 {
 	return (this->_headers.list);
 }
@@ -340,7 +340,7 @@ void	Router::route(Request &request, Response &response)
 {
 	if (this->handleRoutes(request, response)) {
 		if (response.canSend()) {
-			for (std::vector<Router_Header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
+			for (std::vector<wp_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
 				if (it->always || response.canAddHeader())
 					response.setHeader(it->key, it->value);
 			}
@@ -486,7 +486,7 @@ void	Router::handleHEADMethod(Request &request, Response &response)
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ "B_BLUE"POST"B_GREEN" handler"RESET" ------------>");
-	Logger::debug("post request: " + request.getBody());
+	Logger::debug("post request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
@@ -517,7 +517,7 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 void	Router::handlePUTMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ "B_BLUE"PUT"B_GREEN" handler"RESET" ------------>");
-	Logger::debug("put request: " + request.getBody());
+	Logger::debug("put request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
@@ -879,7 +879,7 @@ void	Router::print(std::ostream &os) const
 	os << space << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
 	if (this->_headers.list.size()) {
 		os << space << B_CYAN"Response headers: " << RESET << "\n";
-		for (std::vector<struct s_Router_Headers::s_Router_Header>::const_iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++)
+		for (std::vector<struct wbs_router_headers::wbs_router_header>::const_iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++)
 			os << space << it->key << ": " << it->value << (it->always ? " (always)" : "") << "\n";
 	}
 	os << space << B_CYAN"Error pages: " << RESET << "\n";

@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/27 23:04:55 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:54:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
+#include "client/Client.hpp"
 
 bool Cluster::exit = true;
 
@@ -76,9 +77,10 @@ Server	*Cluster::addConfig(ServerConfig *config)
 
 int		Cluster::start(void)
 {
-	pollfd	poll_fds[this->_servers.size()];
-	const int			timeout = 100;
-	v_servers::iterator it;
+	std::vector<pollfd>			poll_fds;
+	std::map<int, wbs_pollclient>	poll_clients;
+	const int					timeout = 100;
+	v_servers::iterator			it;
 
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
@@ -98,10 +100,11 @@ int		Cluster::start(void)
 		int serverSocket = (*it)->getSocketFD();
 		// if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) == -1) {
         //     perror("fcntl");
-        //     return (W_SOCKET_ERR);
+        //     return (WBS_SOCKET_ERR);
         // }
 		// poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
-		poll_fds[i++] = (pollfd){serverSocket, POLLIN, 0};
+		poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
+		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
 	}
 
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -121,14 +124,21 @@ int		Cluster::start(void)
 		{
 			Logger::error("server error: an error occurred while listening");
 			perror("listen");
-			return (W_SOCKET_ERR);
+			return (WBS_SOCKET_ERR);
 		}
 	}
 
 	sockaddr_in client_addr;
 	socklen_t len = sizeof(client_addr);
+
+	int newClient;
+	Client *client;
+	// Server *server;
+
 	do
 	{
+		std::vector<int>	to_remove;
+
 		/**
 		 * La fonction poll() est utilisée pour surveiller plusieurs descripteurs de
 		 * fichiers en même temps, notamment des sockets, des fichiers, ou d'autres
@@ -146,58 +156,106 @@ int		Cluster::start(void)
 		 * Dans ce cas elle permet de s'assurer que le descripteur du socket est
 		 * prêt pour la lecture.
 		 */
-		if (poll(poll_fds, this->_servers.size(), timeout) == -1)
+		if (poll(poll_fds.data(), poll_fds.size(), timeout) == -1)
 		{
 			// Si le signal d'interruption est reçu, on sort de la boucle
 			if (errno == EINTR) {
-				break ;
+				break;
 			}
 			Logger::error("server error: an error occurred while poll'ing", RESET);
 			perror("poll");
-			return (W_SOCKET_ERR);
+			return (WBS_SOCKET_ERR);
 		}
 
-		// Vérifier chaque serveur pour les connexions entrantes
-		for (size_t i = 0; i < this->_servers.size(); ++i)
+		// Vérifier chaque connexions pour voir si elles sont prêtes pour la lecture
+		for (size_t i = 0; i < poll_fds.size(); ++i)
 		{
+			// Si le client a fermé la connexion ou une erreur s'est produite
+			if (poll_fds[i].revents & POLLHUP)
+			{
+				Logger::debug("Connection closed by the client (event POLLHUP)");
+				to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+			}
 			/**
 			 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
 			 * les faux positifs lorsque timeout expire ou lorsqu'il y a une exception.
 			 */
-			if (poll_fds[i].revents & POLLIN)
+			else if (poll_fds[i].revents & POLLIN)
 			{
-				/**
-				 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
-				 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
-				 * d'une structure `sockaddr` ou seront écrite les informations sur le client (adresse IP, port, etc.).
-				 * 
-				 * La fonction retourne un nouveau descripteur de fichiers vers le client.
-				 */
-				int newClient = accept(this->_servers[i]->getSocketFD(), (sockaddr *)&client_addr, &len);
-				if (newClient == -1)
+				switch (poll_clients[poll_fds[i].fd].type)
 				{
-					Logger::error("server error: an error occurred while accept'ing the client", RESET);
-					perror("accept");
-					continue;
+				case WBS_POLL_SERVER:
+					/**
+					 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
+					 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
+					 * d'une structure `sockaddr` ou seront écrite les informations sur le client (adresse IP, port, etc.).
+					 * 
+					 * La fonction retourne un nouveau descripteur de fichiers vers le client.
+					 */
+					/**
+					 * Etant donné que les serveurs sont ajoutés dans l'ordre dans le tableau des descripteurs
+					 * à surveiller, on peut déduire l'index du serveur à partir de l'index du descripteur.
+					 * D'où l'utilisation de l'index `i` pour récupérer le serveur correspondant dans `this->_servers`
+					 * au lieu de devoir faire un reinterpret_cast<Server *>(poll_clients[poll_fds[i].fd].data) comme
+					 * pour les clients.
+					 */
+					newClient = accept(this->_servers[i]->getSocketFD(), (sockaddr *)&client_addr, &len);
+					if (newClient == -1)
+					{
+						Logger::error("server error: an error occurred while accept'ing the client", RESET);
+						perror("accept");
+						continue;
+					}
+					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)
+					client_addr.sin_port = ntohs(client_addr.sin_port); // Corrige l'ordre des octets du port (endianness)
+					/**
+					 * On ajoute le nouveau client à la liste des descripteurs à surveiller
+					 */
+					poll_fds.push_back((pollfd){newClient, POLLIN, 0});
+					/**
+					 * On crée un nouveau client et on l'ajoute à la liste des clients
+					 */
+					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
+					break;
+
+				case WBS_POLL_CLIENT:
+					if ((client = reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
+						to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+					}
+					break;
 				}
-
-				// if (fcntl(newClient, F_SETFL, O_NONBLOCK) == -1) {
-				// 	perror("fcntl");
-				// 	close(newClient);
-				// 	continue;
-				// }
-
-				client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Converti l'adresse IP en notation décimale
-				client_addr.sin_port = ntohs(client_addr.sin_port); // Converti le port en notation décimale
-				// Traitement de la nouvelle connexion
-				this->_servers[i]->handleRequest(newClient, client_addr);
 			}
+			// Si le descripteur n'est pas prêt pour la lecture et que c'est un client, on
+			// s'assure qu'il ne depasse pas le timeout
+			else if (poll_clients[poll_fds[i].fd].type == WBS_POLL_CLIENT)
+			{
+				if ((reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->timeout())
+					to_remove.push_back(i);
+			}
+		}
+
+		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'index
+		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
+		{
+			// On sauvegarde le descripteur de l'élément à supprimer
+			newClient = poll_fds[*it].fd;
+			poll_fds.erase(poll_fds.begin() + *it);
+			client = reinterpret_cast<Client *>(poll_clients[newClient].data);
+			poll_clients.erase(newClient);
+			delete client;
 		}
 	} while (!this->exit);
 
-	// Ferme les sockets des serveurs
+	// On ferme les sockets des clients et libère la mémoire
+	for (std::map<int, wbs_pollclient>::iterator it = poll_clients.begin(); it != poll_clients.end(); it++)
+	{
+		if (it->second.type == WBS_POLL_CLIENT)
+			delete reinterpret_cast<Client *>(it->second.data);
+	}
+
+	// On eteint les serveurs et libère la mémoire
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->kill();
 
-	return (W_NOERR);
+	return (WBS_NOERR);
 }
