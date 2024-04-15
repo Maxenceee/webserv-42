@@ -44,18 +44,18 @@ public:
 		// Construire la requête HTTP
 		std::string request = method + " " + path + " HTTP/1.1\r\n";
 		request += "Host: localhost\r\n";
-		// request += "Content-Length: " + std::to_string(body.length()) + "\r\n";
+		request += "Content-Length: " + std::to_string(body.length()) + "\r\n";
 		request += "Content-Type: text/plain\r\n";
-		request += "Transfer-Encoding: chunked\r\n";
+		// request += "Transfer-Encoding: chunked\r\n";
 		request += "\r\n"; // Ligne vide pour séparer les en-têtes du corps
-		// request += body;
-		request += "8\r\n";
-		request += "ABCDEFGH\r\n";
-		request += "6\r\n";
-		request += "ABCDEF\r\n";
-		request += "a\r\n";
-		request += "ABCDEFGHIJ\r\n";
-		request += "0\r\n\r\n";
+		request += body;
+		// request += "8\r\n";
+		// request += "ABCDEFGH\r\n";
+		// request += "6\r\n";
+		// request += "ABCDEF\r\n";
+		// request += "a\r\n";
+		// request += "ABCDEFGHIJ\r\n";
+		// request += "0\r\n\r\n";
 
 		// Envoyer la requête HTTP au serveur
 		std::cout << "Request: " << request << std::endl;
@@ -77,7 +77,7 @@ public:
 
 int main(int argc, char **argv) {
 	// Exemple d'utilisation
-	FastCGIClient client("127.0.0.1", 3002);
+	FastCGIClient client("127.0.0.1", 3001);
 	// client.sendRequest("POST", "/oui", "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Demo</title></head><body><h1>Thanks for using Webserv</h1><a href=\"/info.html\"><p>see more</p></a></body></html>");
 	client.sendRequest(argv[1], argv[2], argv[3]);
 	std::string response = client.getResponse();

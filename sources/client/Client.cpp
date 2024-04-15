@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 16:52:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:51:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ int	Client::process(void)
 
 int	Client::processLines(void) {
 	size_t pos;
-	while (!this->request.headerReceived() && (pos = this->_buffer.find(WBS_CRLF)) != std::string::npos)
+	while (!this->request.headersReceived() && (pos = this->_buffer.find(WBS_CRLF)) != std::string::npos)
 	{
 		std::string line = this->_buffer.substr(0, pos); // Extraire une ligne complète du buffer
 		this->_buffer.erase(0, pos + 2); // Supprimer la ligne traitée du buffer (incluant \r\n)
@@ -92,7 +92,17 @@ int	Client::processLines(void) {
 			}
 		}
 	}
-	if (!this->_buffer.empty() && this->request.headerReceived()) {
+
+	if (!this->_buffer.empty() && this->request.headersReceived()) {
+		/**
+		 * Si le client envoie un corps de requête alors que la requête n'en attend pas,
+		 * on envoie une réponse d'erreur.
+		 */
+		if (this->request.bodyReceived() && !this->request.hasContentLength()) {
+			response->status(411).end();
+			return (WBS_ERR);
+		}
+
 		if (request.processLine(this->_buffer))
 		{
 			// Dans le cas d'une erreur on envoie une réponse d'erreur
