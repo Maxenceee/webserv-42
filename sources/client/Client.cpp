@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:53:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 19:59:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ int	Client::process(void)
 	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
 	 * le descripteur du client. À la difference de read(), la fonction recv() est
 	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
-	 * gestion de la lecture dans un contexte de travaille en réseau.
+	 * gestion de la lecture dans un contexte de travail en réseau.
 	 */
 	int valread = recv(this->_client, buffer, sizeof(buffer), 0);
 	if (valread == -1) {

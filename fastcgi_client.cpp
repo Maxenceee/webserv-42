@@ -9,13 +9,13 @@
 #include <netinet/in.h>
 #include <netinet/ip.h> 
 
-class FastCGIClient {
+class Client {
 private:
 	int sockfd;
 	struct sockaddr_in server_addr;
 
 public:
-	FastCGIClient(const std::string& host, int port) {
+	Client(const std::string& host, int port) {
 		// Créer une socket
 		sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1) {
@@ -35,7 +35,7 @@ public:
 		}
 	}
 
-	~FastCGIClient() {
+	~Client() {
 		// Fermer la connexion
 		close(sockfd);
 	}
@@ -77,7 +77,7 @@ public:
 
 int main(int argc, char **argv) {
 	// Exemple d'utilisation
-	FastCGIClient client("127.0.0.1", 3001);
+	Client client("127.0.0.1", 3001);
 	// client.sendRequest("POST", "/oui", "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Demo</title></head><body><h1>Thanks for using Webserv</h1><a href=\"/info.html\"><p>see more</p></a></body></html>");
 	client.sendRequest(argv[1], argv[2], argv[3]);
 	std::string response = client.getResponse();
