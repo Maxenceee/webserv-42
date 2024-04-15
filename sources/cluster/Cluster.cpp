@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 14:34:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:54:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,10 +170,10 @@ int		Cluster::start(void)
 		// Vérifier chaque connexions pour voir si elles sont prêtes pour la lecture
 		for (size_t i = 0; i < poll_fds.size(); ++i)
 		{
-			// Si le client a fermé la connexion ou une erreur s'est produite (à voir si on garde)
+			// Si le client a fermé la connexion ou une erreur s'est produite
 			if (poll_fds[i].revents & POLLHUP)
 			{
-				std::cout << "Connection closed by the client (event POLLHUP)" << std::endl;
+				Logger::debug("Connection closed by the client (event POLLHUP)");
 				to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
 			}
 			/**

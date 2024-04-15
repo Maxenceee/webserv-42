@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:51:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 19:00:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ int	Request::processLine(const std::string &line)
 		 * 
 		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3)
 		 */
-		// std::cout << "command line: " << line << std::endl;
 		if ((this->_status = this->getRequestLine(line)) == 200)
 		{
 			this->_request_line_received = true;
@@ -77,7 +76,6 @@ int	Request::processLine(const std::string &line)
 				 */
 				if (this->_method == "GET" || this->_method == "HEAD" || (!this->_headers.count("Content-Length") && !this->_headers.count("Transfer-Encoding")))
 				{
-					// std::cout << "no body" << std::endl;
 					this->_body_received = true;
 				}
 				else if (this->_headers.count("Transfer-Encoding") && this->_headers["Transfer-Encoding"] == "chunked")
@@ -99,7 +97,6 @@ int	Request::processLine(const std::string &line)
 					{
 						this->_body_received = true;
 					}
-					// std::cout << "body size: " << this->_body_size << std::endl;
 				}
 				return (WBS_REQ_SUCCESS);
 			}
@@ -112,7 +109,6 @@ int	Request::processLine(const std::string &line)
 			 * 
 			 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2)
 			 */
-			// std::cout << "header line: " << line << std::endl;
 			std::string	key = readKey(line);
 			if (key.empty())
 			{
@@ -144,7 +140,6 @@ int	Request::processLine(const std::string &line)
 		}
 		else if (!this->_body_received)
 		{
-			std::cout << "body line: " << line << std::endl;
 			if (this->_transfert_encoding)
 			{
 				switch (this->processChunk(line))
@@ -153,7 +148,6 @@ int	Request::processLine(const std::string &line)
 					return (WBS_REQ_ERROR);
 				case WBS_CHUNK_PROCESS_ZERO:
 					this->_body_received = true;
-					break;
 				case WBS_CHUNK_PROCESS_OK:
 					break;
 				}
@@ -161,7 +155,6 @@ int	Request::processLine(const std::string &line)
 			}
 
 			this->_body += line;
-			// std::cout << "body size: " << this->_body.size() << " >= " << this->_body_size << std::endl;
 			if (this->_body.size() >= this->_body_size)
 			{
 				this->_body_received = true;
@@ -275,8 +268,6 @@ ChunkProcessResult	Request::processChunk(const std::string &chunks)
 	size_t chunksize;
 
 	this->_chunkBuffer.append(chunks);
-
-	std::cout << "this->_chunkBuffer: " << cropoutputs(this->_chunkBuffer) << "(" << this->_chunkBuffer.size() << ", " << chunks.size() << ")" << std::endl;
 
 	while (true) {
 		pos = 0;
