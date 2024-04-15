@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/02 18:41:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Router;
 class Request;
 class Response;
 
-struct s_Name {
+struct wbs_server_name {
 	std::string		name;
 	int				port;	
 };
@@ -35,7 +35,7 @@ private:
 	Server						*_server;
 	uint32_t					address;
 	uint16_t					port;
-	std::vector<struct s_Name>	_server_name;
+	std::vector<struct wbs_server_name>	_server_name;
 
 	// les comportements par default du serveur sont stocké dans un router spécifique
 	Router						*_default;
@@ -62,7 +62,7 @@ public:
 	
 	void								addNames(const std::vector<std::string> name);
 	void								addName(const std::string name);
-	const std::vector<struct s_Name>	&getNames(void) const;
+	const std::vector<struct wbs_server_name>	&getNames(void) const;
 	bool								evalName(const std::string name, const uint16_t port = 80) const;
 
 	void	print(std::ostream &os) const;

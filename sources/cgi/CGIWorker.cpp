@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/23 10:27:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ t_mapss		CGIWorker::init(const Request &req, const std::string &scriptpath, t_ma
 	env["REDIRECT_STATUS"] = "200";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	env["SERVER_SOFTWARE"] = W_SERVER_NAME;
+	env["SERVER_SOFTWARE"] = WBS_SERVER_NAME;
 	env["REQUEST_METHOD"] = req.getMethod();
 	env["REQUEST_URI"] = req.getRawPath();
 	env["SCRIPT_NAME"] = req.getPath();
@@ -128,7 +128,7 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t
 	}
 	else
 	{
-		char buffer[CGIWORKER_BUFFER_SIZE] = {0};
+		char buffer[WBS_CGIWORKER_BUFFER_SIZE] = {0};
 
 		waitpid(pid, NULL, 0);
 		lseek(fdout, 0, SEEK_SET);
@@ -136,8 +136,8 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t
 		int r = 1;
 		while (r > 0)
 		{
-			memset(buffer, 0, CGIWORKER_BUFFER_SIZE);
-			r = read(fdout, buffer, CGIWORKER_BUFFER_SIZE);
+			memset(buffer, 0, WBS_CGIWORKER_BUFFER_SIZE);
+			r = read(fdout, buffer, WBS_CGIWORKER_BUFFER_SIZE);
 			if (r > 0)
 				result += buffer;
 		}

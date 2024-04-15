@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 16:52:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/14 23:24:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ public:
 	
 	static std::vector<std::string>		methods;
 	
-	void		handleRequest(const int client, sockaddr_in clientAddr);
+	void		handleRouting(Request *request, Response *response);
 	
 	void		printResponse(const Request &req, const Response &res) const;
 	void		print(std::ostream &os) const;

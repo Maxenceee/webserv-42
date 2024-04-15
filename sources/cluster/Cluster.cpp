@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 19:50:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ Server	*Cluster::addConfig(ServerConfig *config)
 int		Cluster::start(void)
 {
 	std::vector<pollfd>			poll_fds;
-	std::map<int, pollclient>	poll_clients;
+	std::map<int, wbs_pollclient>	poll_clients;
 	const int					timeout = 100;
 	v_servers::iterator			it;
 
@@ -100,11 +100,11 @@ int		Cluster::start(void)
 		int serverSocket = (*it)->getSocketFD();
 		// if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) == -1) {
         //     perror("fcntl");
-        //     return (W_SOCKET_ERR);
+        //     return (WBS_SOCKET_ERR);
         // }
 		// poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
 		poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
-		poll_clients[serverSocket] = (pollclient){POLL_SERVER, *it};
+		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
 	}
 
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -124,7 +124,7 @@ int		Cluster::start(void)
 		{
 			Logger::error("server error: an error occurred while listening");
 			perror("listen");
-			return (W_SOCKET_ERR);
+			return (WBS_SOCKET_ERR);
 		}
 	}
 
@@ -133,6 +133,7 @@ int		Cluster::start(void)
 
 	int newClient;
 	Client *client;
+	// Server *server;
 
 	do
 	{
@@ -163,7 +164,7 @@ int		Cluster::start(void)
 			}
 			Logger::error("server error: an error occurred while poll'ing", RESET);
 			perror("poll");
-			return (W_SOCKET_ERR);
+			return (WBS_SOCKET_ERR);
 		}
 
 		// Vérifier chaque connexions pour voir si elles sont prêtes pour la lecture
@@ -177,13 +178,20 @@ int		Cluster::start(void)
 			{
 				switch (poll_clients[poll_fds[i].fd].type)
 				{
-				case POLL_SERVER:
+				case WBS_POLL_SERVER:
 					/**
 					 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
 					 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
 					 * d'une structure `sockaddr` ou seront écrite les informations sur le client (adresse IP, port, etc.).
 					 * 
 					 * La fonction retourne un nouveau descripteur de fichiers vers le client.
+					 */
+					/**
+					 * Etant donné que les serveurs sont ajoutés dans l'ordre dans le tableau des descripteurs
+					 * à surveiller, on peut déduire l'index du serveur à partir de l'index du descripteur.
+					 * D'où l'utilisation de l'index `i` pour récupérer le serveur correspondant dans `this->_servers`
+					 * au lieu de devoir faire un reinterpret_cast<Server *>(poll_clients[poll_fds[i].fd].data) comme
+					 * pour les clients.
 					 */
 					newClient = accept(this->_servers[i]->getSocketFD(), (sockaddr *)&client_addr, &len);
 					if (newClient == -1)
@@ -201,11 +209,11 @@ int		Cluster::start(void)
 					/**
 					 * On crée un nouveau client et on l'ajoute à la liste des clients
 					 */
-					poll_clients[newClient] = (pollclient){POLL_CLIENT, new Client(newClient, client_addr)};
+					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
 					break;
 
-				case POLL_CLIENT:
-					if ((client = reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->process() != POLL_CLIENT_OK) {
+				case WBS_POLL_CLIENT:
+					if ((client = reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
 						to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
 					}
 					break;
@@ -226,9 +234,9 @@ int		Cluster::start(void)
 	} while (!this->exit);
 
 	// On ferme les sockets des clients et libère la mémoire
-	for (std::map<int, pollclient>::iterator it = poll_clients.begin(); it != poll_clients.end(); it++)
+	for (std::map<int, wbs_pollclient>::iterator it = poll_clients.begin(); it != poll_clients.end(); it++)
 	{
-		if (it->second.type == POLL_CLIENT)
+		if (it->second.type == WBS_POLL_CLIENT)
 			delete reinterpret_cast<Client *>(it->second.data);
 	}
 
@@ -236,5 +244,5 @@ int		Cluster::start(void)
 	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->kill();
 
-	return (W_NOERR);
+	return (WBS_NOERR);
 }

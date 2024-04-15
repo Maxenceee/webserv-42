@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/28 04:07:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ std::ostream	&operator<<(std::ostream &os, const ServerConfig &config)
 
 ServerConfig::ServerConfig(Server *server): _server(server), used(false)
 {
-	this->_default = new Router(NULL, s_Router_Location());
+	this->_default = new Router(NULL, wbs_router_location());
 	this->port = 80;
 	this->address = INADDR_ANY;
 }
@@ -134,11 +134,11 @@ void	ServerConfig::addName(const std::string name)
 		int port = -1;
 		if (pos != std::string::npos)
 			port = std::atoi(name.substr(pos + 1).c_str());
-		this->_server_name.push_back((struct s_Name){.name = name.substr(0, pos), .port = port});
+		this->_server_name.push_back((struct wbs_server_name){.name = name.substr(0, pos), .port = port});
 	}
 }
 
-const std::vector<struct s_Name>	&ServerConfig::getNames(void) const
+const std::vector<struct wbs_server_name>	&ServerConfig::getNames(void) const
 {
 	return (this->_server_name);
 }
@@ -164,7 +164,7 @@ void	ServerConfig::print(std::ostream &os) const
 		os << B_GREEN << "default" << RESET;
 	os << "\n";
 	os << B_CYAN << "Name: " << RESET;
-	for (std::vector<struct s_Name>::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
+	for (std::vector<struct wbs_server_name>::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{
 		os << it->name;
 		if (it->port > 0)

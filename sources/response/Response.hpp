@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 17:06:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,14 @@
 class Server;
 class Request;
 
-struct CookieOptions {
+struct wbs_cookie_options {
     std::string		path;
     std::string		domain;
     int				maxAge;
     bool			secure;
     bool			httpOnly;
 
-    CookieOptions() : path("/"), domain(""), maxAge(-1), secure(false), httpOnly(false) {}
+    wbs_cookie_options() : path("/"), domain(""), maxAge(-1), secure(false), httpOnly(false) {}
 };
 
 class Response
@@ -65,7 +65,7 @@ public:
 	Response		&end();
 
 	Response		&setHeader(const std::string header, const std::string value);
-	Response		&setCookie(const std::string name, const std::string value, const CookieOptions &options = CookieOptions());
+	Response		&setCookie(const std::string name, const std::string value, const wbs_cookie_options &options = wbs_cookie_options());
 
 	Response		&clearBody(void);
 	bool			hasBody(void) const;

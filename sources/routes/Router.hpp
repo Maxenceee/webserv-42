@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/28 03:43:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,69 +25,69 @@ class Request;
 class Response;
 class ServerConfig;
 
-struct s_Router_Root {
+struct wbs_router_root {
 	bool			set;
 	bool			isAlias;
 	std::string		path;
 	std::string		nearest_root;
 };
 
-struct s_Router_Redirection {
+struct wbs_router_redirection {
 	bool			enabled;
 	int				status;
 	std::string		path;
 	std::string		data;
 };
 
-struct s_Router_Location {
+struct wbs_router_location {
 	std::string		path;
 	std::string		modifier;
 	bool			strict;
 
-	s_Router_Location() : path("/"), modifier(""),  strict(false) {}
+	wbs_router_location() : path("/"), modifier(""),  strict(false) {}
 };
 
-struct s_CGI_Data {
+struct wbs_router_cgi_data {
 	bool			enabled;
 	std::string		path;
 	t_mapss			params;
 };
 
-struct s_Router_Headers {
+struct wbs_router_headers {
 	bool			enabled;
 
-	struct s_Router_Header {
+	struct wbs_router_header {
 		std::string		key;
 		std::string		value;
 		bool			always;
 	};
 
-	std::vector<struct s_Router_Header>	list;
+	std::vector<struct wbs_router_header>	list;
 };
 
-struct s_Router_Client_Body {
+struct wbs_router_client_body {
 	bool			set;
 	size_t			size; // in bytes
 };
 
-struct s_Router_Method {
+struct wbs_router_method {
 	bool						enabled;
 	std::vector<std::string>	methods;
 };
 
-typedef struct s_Router_Headers::s_Router_Header	Router_Header_t;
+typedef struct wbs_router_headers::wbs_router_header	wp_router_header_t;
 
 class Router
 {
 private:
 	Router							*_parent;
-	struct s_Router_Location		_location;
-	struct s_Router_Root			_root;
-	struct s_Router_Redirection		_redirection;
-	struct s_CGI_Data				_cgi;
-	struct s_Router_Headers			_headers;
-	struct s_Router_Client_Body		_client_body;
-	struct s_Router_Method			_allowed_methods;
+	struct wbs_router_location		_location;
+	struct wbs_router_root			_root;
+	struct wbs_router_redirection	_redirection;
+	struct wbs_router_cgi_data		_cgi;
+	struct wbs_router_headers		_headers;
+	struct wbs_router_client_body	_client_body;
+	struct wbs_router_method			_allowed_methods;
 	bool							_autoindex;
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
@@ -118,7 +118,7 @@ private:
 	bool	matchRoute(const std::string &route, Response &response) const;
 
 public:
-	Router(Router *parent, const struct s_Router_Location location, int level = 0);
+	Router(Router *parent, const struct wbs_router_location location, int level = 0);
 	~Router(void);
 
 	const int	level;
@@ -139,23 +139,23 @@ public:
 	bool 			isDefault(void) const;
 	Router 			*getParent(void) const;
 
-	const struct s_Router_Location	&getLocation(void) const;
+	const struct wbs_router_location	&getLocation(void) const;
 
 	const std::string				&getRoot(void) const;
-	const struct s_Router_Root		&getRootData(void) const;
+	const struct wbs_router_root		&getRootData(void) const;
 
 	std::string			getLocalFilePath(const std::string &requestPath);
 
 	void	setRedirection(const std::string to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
 	
-	const struct s_Router_Redirection	&getRedirection(void) const;
+	const struct wbs_router_redirection	&getRedirection(void) const;
 
 	void	setIndex(const std::vector<std::string> index);
 	void	addIndex(const std::string index);
 
 	void	addHeader(const std::string key, const std::string value, const bool always = false);
-	const std::vector<Router_Header_t>	&getHeaders(void) const;
+	const std::vector<wp_router_header_t>	&getHeaders(void) const;
 
 	void					setErrorPage(const int code, const std::string path);
 	const std::string		&getErrorPage(const int status) const;
