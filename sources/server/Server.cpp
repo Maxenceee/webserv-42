@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:10:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 19:40:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,6 +215,8 @@ uint16_t	Server::getPort(void) const
 {
 	return (this->port);
 }
+
+
 
 void	Server::handleRouting(Request *request, Response *response)
 {

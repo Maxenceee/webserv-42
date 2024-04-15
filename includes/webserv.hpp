@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 14:21:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 22:08:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@
 
 #define WBS_RECV_SIZE	2 << 12
 
-#define WBS_REQUEST_TIMEOUT	30000 // 30 secondes in milliseconds
+#define WBS_REQUEST_TIMEOUT	60000 // 1 minute in milliseconds
 
 /* typedef */
 typedef std::map<std::string, std::string> t_mapss;
