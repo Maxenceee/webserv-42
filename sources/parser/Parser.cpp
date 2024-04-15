@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:10:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -395,10 +395,6 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
-		/**
-		 * TODO:
-		 * Implementer les sockets unix (unix:)
-		 */
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() < 2)
 			this->throwError(key, val);

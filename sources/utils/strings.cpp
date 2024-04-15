@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 14:37:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:24:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ std::string		&shift(std::string &str)
 	return str;
 }
 
-std::vector<std::string>		split(const std::string &str, char c)
+std::vector<std::string>	split(const std::string &str, char c)
 {
 	std::vector<std::string>	tokens;
 	std::string					token;
@@ -58,7 +58,7 @@ struct StringConcatenator {
 	}
 };
 
-std::string					join(std::vector<std::string> &list, const std::string &c)
+std::string		join(std::vector<std::string> &list, const std::string &c)
 {
 	if (list.empty()) {
 		return ("");
@@ -295,4 +295,9 @@ std::string	cropoutputs(const std::string &input)
 	if (input.size() > 1000)
 		return (input.substr(0, 1000) + "...");
 	return (input);
+}
+
+bool isNumber(const std::string &str)
+{
+	return ::all_of(str.begin(), str.end(), ::isdigit);
 }

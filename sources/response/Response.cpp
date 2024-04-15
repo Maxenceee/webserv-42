@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 14:33:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:11:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -305,6 +305,9 @@ Response	&Response::end()
 		 * après chaque requête.
 		 */
 		this->setHeader("Connection", "close");
+
+		if (this->_status == 204 || this->_status == 304 || this->_status < 200)
+			this->_body.clear();
 
 		/**
 		 * On formate la réponse HTTP.

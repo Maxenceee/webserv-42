@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 14:16:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:25:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ std::string					&capitalize(std::string &str);
 std::string					getExtension(const std::string &filename);
 std::string					&replace(std::string &buffer, std::string searchValue, std::string replaceValue);
 std::string					&replaceAll(std::string &buffer, char searchValue, char replaceValue);
+
+bool						isNumber(const std::string &str);
 
 struct cropoutput {
 	const std::string &value;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 17:02:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:51:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,8 +70,9 @@ public:
 	int						processLine(const std::string &line);
 	bool					processFinished(void) const;
 
-	bool					headerReceived(void) const;
+	bool					headersReceived(void) const;
 	bool					bodyReceived(void) const;
+	bool					hasContentLength(void) const;
 
 	const std::string		&getMethod(void) const;
 	const std::string		&getVersion(void) const;
