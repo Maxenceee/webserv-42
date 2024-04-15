@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 14:57:13 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,9 @@
 #include "webserv.hpp"
 #include "request/Request.hpp"
 
-#ifndef CGIWORKER_BUFFER_SIZE
-# define CGIWORKER_BUFFER_SIZE 2 << 15
-#endif /* CGIWORKER_BUFFER_SIZE */
+#ifndef WBS_CGIWORKER_BUFFER_SIZE
+# define WBS_CGIWORKER_BUFFER_SIZE 2 << 15
+#endif /* WBS_CGIWORKER_BUFFER_SIZE */
 
 class CGIWorker
 {

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/23 11:52:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 17:06:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ int	Server::init(void)
 	{
 		Logger::error("server error: Could not create socket");
 		perror("socket");
-		return (W_SOCKET_ERR);
+		return (WBS_SOCKET_ERR);
 	}
 	/**
 	 * La fonction setsockopt() permet de configurer notre socket créé précédemment.
@@ -133,7 +133,7 @@ int	Server::init(void)
 	if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
 		Logger::error("server error: Could not set socket options");
 		perror("setsockopt");
-		return (W_SOCKET_ERR);
+		return (WBS_SOCKET_ERR);
 	}
 
 	/**
@@ -144,7 +144,7 @@ int	Server::init(void)
 	 */
 	// if (fcntl(this->socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
 	// 	perror("fcntl");
-	// 	return (W_SOCKET_ERR);
+	// 	return (WBS_SOCKET_ERR);
 	// }
 
 	memset(&this->socket_addr, 0, sizeof(this->socket_addr));
@@ -180,7 +180,7 @@ int	Server::init(void)
 		throw Server::ServerPortInUse();
 	}
 	this->_init = true;
-	return (W_NOERR);
+	return (WBS_NOERR);
 }
 
 void	Server::kill(void)
@@ -227,91 +227,10 @@ uint16_t	Server::getPort(void) const
 	return (this->port);
 }
 
-const std::vector<std::string>	&Server::getMethods(void) const
+void	Server::handleRouting(Request *request, Response *response)
 {
-	return (this->methods);
-}
-
-// std::stringstream &readMultipart(const int client, std::stringstream &stream)
-// {
-//     // Read the initial part of the request to find the boundary
-//     // (You need to extract the boundary from the Content-Type header)
-//     // For simplicity, let's assume the boundary is hardcoded here
-//     std::string boundary = "--BOUNDARY_STRING";
-
-//     // Temporary buffer for reading data
-//     std::vector<char> buff(RECV_SIZE);
-
-//     while (true)
-//     {
-//         int bytes_received = recv(client, &buff[0], buff.size(), 0);
-
-//         if (bytes_received < 0)
-//         {
-//             // Handle error
-//             break;
-//         }
-
-//         if (bytes_received == 0)
-//         {
-//             // Connection closed
-//             break;
-//         }
-
-//         // Process the received data
-//         // (You need to implement logic to identify the boundary and extract each part)
-//         // For simplicity, let's assume the boundary is not split across two chunks
-
-//         std::string received_data(&buff[0], bytes_received);
-
-//         // Find the boundary in the received data
-//         size_t boundary_pos = received_data.find(boundary);
-
-//         if (boundary_pos != std::string::npos)
-//         {
-//             // Process the part before the boundary
-//             stream.write(received_data.c_str(), boundary_pos);
-
-//             // Handle end of multipart request
-//             break;
-//         }
-
-//         // Process the entire received data as no boundary was found
-//         stream.write(received_data.c_str(), received_data.size());
-//     }
-
-//     return stream;
-// }
-
-void	Server::handleRequest(const int client, sockaddr_in clientAddr)
-{
-	char buffer[RECV_SIZE] = {0};
-
-	/**
-	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
-	 * le descripteur du client. À la difference de read(), la fonction recv() est
-	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
-	 * gestion de la lecture dans un contexte de travaille en réseau.
-	 */
-	int valread = recv(client, buffer, sizeof(buffer), 0);
-	if (valread == -1) {
-		Logger::error("server error: an error occurred while reading from client");
-		close(client);
-		return ;
-	} else if (valread == 0) {
-		Logger::error("Connection closed by the client");
-		close(client);
-		return ;
-	}
-	/**
-	 * Pour chaque requête entrante, on créer une instance des classes Request et Response
-	 * qui se chargent de l'interprétation des données de la requête et de la génération
-	 * de la réponse.
-	 */
-	Request	request = Request(*this, std::string(buffer), client, clientAddr);
 	if (Logger::_debug)
-		std::cout << request << std::endl;
-	Response response = Response(*this, request.getClientSocket(), request);
+		std::cout << *request << std::endl;
 
 	/**
 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
@@ -320,18 +239,17 @@ void	Server::handleRequest(const int client, sockaddr_in clientAddr)
 	 */
 	ServerConfig *clientConfig = this->_default;
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-		if ((*it)->evalName(request.getHost(), request.getPort())) {
+		if ((*it)->evalName(request->getHost(), request->getPort())) {
 			clientConfig = *it;
 			break;
 		}
 	}
-	clientConfig->handleRoutes(request, response);
+	clientConfig->handleRoutes(*request, *response);
 
 	if (Logger::_debug)
-		std::cout << response << std::endl;
-	this->printResponse(request, response);
-	close(client);
-	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
+		std::cout << *response << std::endl;
+
+	this->printResponse(*request, *response);
 }
 
 void	Server::printResponse(const Request &req, const Response &res) const

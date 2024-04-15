@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/27 23:05:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:10:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,7 +193,7 @@ void	Parser::switchConfigDirectives(std::string key, std::string val, const std:
 
 void	Parser::createNewRouter(std::string key, std::string val, const std::string parent, const std::string raw_line)
 {
-	struct s_Router_Location	location;
+	struct wbs_router_location	location;
 
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() > 2 || tokens.size() < 1)
@@ -213,8 +213,8 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 		this->new_server->use(this->tmp_router);
 	else
 		tmp->use(this->tmp_router);
-	const struct s_Router_Location &parent_l = tmp->getLocation();
-	const struct s_Router_Location &child_l = this->tmp_router->getLocation();
+	const struct wbs_router_location &parent_l = tmp->getLocation();
+	const struct wbs_router_location &child_l = this->tmp_router->getLocation();
 	if ((!parent_l.modifier.empty() && parent_l.modifier != "^~" && (child_l.modifier.empty() || child_l.modifier == "^~"))
 		|| (((parent_l.modifier.empty() || parent_l.modifier == "^~") && (child_l.modifier.empty() || child_l.modifier == "^~"))
 			&& (child_l.path.size() < parent_l.path.size() || child_l.path.substr(0, parent_l.path.size()) != parent_l.path))) {
@@ -395,10 +395,6 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
-		/**
-		 * TODO:
-		 * Implementer les sockets unix (unix:)
-		 */
 		std::vector<std::string> tokens = split(val, ' ');
 		if (tokens.size() < 2)
 			this->throwError(key, val);
