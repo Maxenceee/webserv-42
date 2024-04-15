@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 17:06:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,57 +226,6 @@ uint16_t	Server::getPort(void) const
 {
 	return (this->port);
 }
-
-// std::stringstream &readMultipart(const int client, std::stringstream &stream)
-// {
-//     // Read the initial part of the request to find the boundary
-//     // (You need to extract the boundary from the Content-Type header)
-//     // For simplicity, let's assume the boundary is hardcoded here
-//     std::string boundary = "--BOUNDARY_STRING";
-
-//     // Temporary buffer for reading data
-//     std::vector<char> buff(WBS_RECV_SIZE);
-
-//     while (true)
-//     {
-//         int bytes_received = recv(client, &buff[0], buff.size(), 0);
-
-//         if (bytes_received < 0)
-//         {
-//             // Handle error
-//             break;
-//         }
-
-//         if (bytes_received == 0)
-//         {
-//             // Connection closed
-//             break;
-//         }
-
-//         // Process the received data
-//         // (You need to implement logic to identify the boundary and extract each part)
-//         // For simplicity, let's assume the boundary is not split across two chunks
-
-//         std::string received_data(&buff[0], bytes_received);
-
-//         // Find the boundary in the received data
-//         size_t boundary_pos = received_data.find(boundary);
-
-//         if (boundary_pos != std::string::npos)
-//         {
-//             // Process the part before the boundary
-//             stream.write(received_data.c_str(), boundary_pos);
-
-//             // Handle end of multipart request
-//             break;
-//         }
-
-//         // Process the entire received data as no boundary was found
-//         stream.write(received_data.c_str(), received_data.size());
-//     }
-
-//     return stream;
-// }
 
 void	Server::handleRouting(Request *request, Response *response)
 {
