@@ -226,7 +226,7 @@ int		Cluster::start(void)
 		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'index
 		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
 		{
-			poll_fds.erase(poll_fds.begin() + *it);
+			poll_fds.erase(poll_fds.begin() + *it); // FIXME: caca berk faut changer ca vite
 			Client *client = reinterpret_cast<Client *>(poll_clients[poll_fds[*it].fd].data);
 			poll_clients.erase(poll_fds[*it].fd);
 			delete client;
