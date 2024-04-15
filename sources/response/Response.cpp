@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 03:23:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 14:33:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,7 +294,7 @@ Response	&Response::end()
 		 * On force l'ajout de l'en-tête `Content-Length` afin d'indiquer au client la taille de
 		 * de la ressource.
 		 */
-		if (!this->_headers.count("Content-Length"))
+		if (!this->_headers.count("Content-Length") && !this->_body.empty())
 			this->setHeader("Content-Length", toString<int>(this->_body.size()));
 
 		/**

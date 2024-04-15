@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 14:34:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,11 +170,17 @@ int		Cluster::start(void)
 		// Vérifier chaque connexions pour voir si elles sont prêtes pour la lecture
 		for (size_t i = 0; i < poll_fds.size(); ++i)
 		{
+			// Si le client a fermé la connexion ou une erreur s'est produite (à voir si on garde)
+			if (poll_fds[i].revents & POLLHUP)
+			{
+				std::cout << "Connection closed by the client (event POLLHUP)" << std::endl;
+				to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+			}
 			/**
 			 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
 			 * les faux positifs lorsque timeout expire ou lorsqu'il y a une exception.
 			 */
-			if (poll_fds[i].revents & POLLIN)
+			else if (poll_fds[i].revents & POLLIN)
 			{
 				switch (poll_clients[poll_fds[i].fd].type)
 				{
@@ -218,17 +224,24 @@ int		Cluster::start(void)
 					}
 					break;
 				}
-				// Traitement de la nouvelle connexion
-				// this->_servers[i]->handleRequest(newClient, client_addr);
+			}
+			// Si le descripteur n'est pas prêt pour la lecture et que c'est un client, on
+			// s'assure qu'il ne depasse pas le timeout
+			else if (poll_clients[poll_fds[i].fd].type == WBS_POLL_CLIENT)
+			{
+				if ((reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->timeout())
+					to_remove.push_back(i);
 			}
 		}
 
 		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'index
 		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
 		{
-			poll_fds.erase(poll_fds.begin() + *it); // FIXME: caca berk faut changer ca vite
-			Client *client = reinterpret_cast<Client *>(poll_clients[poll_fds[*it].fd].data);
-			poll_clients.erase(poll_fds[*it].fd);
+			// On sauvegarde le descripteur de l'élément à supprimer
+			newClient = poll_fds[*it].fd;
+			poll_fds.erase(poll_fds.begin() + *it);
+			client = reinterpret_cast<Client *>(poll_clients[newClient].data);
+			poll_clients.erase(newClient);
 			delete client;
 		}
 	} while (!this->exit);

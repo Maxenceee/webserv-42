@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 18:19:44 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 00:53:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 14:36:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ std::ostream	&operator<<(std::ostream &os, const Response &res)
 	for (it = cookies.begin(); it != cookies.end(); it++)
 		os << "\t" << it->second << "\n";
 
-	os << B_CYAN"Body:" << RESET << "\n" << res.getBody().substr(0, 100) << "\n";
+	os << B_CYAN"Body:" << RESET << "\n" << cropoutputs(res.getBody()) << "\n";
 
 	return os;
 }

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:54:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 14:17:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ private:
 	size_t						_body_size;
 	std::string					_ip;
 
-	long long					request_time;
+	time_t						request_time;
 
 	int		getRequestLine(const std::string &str);
 	int		getRequestPath(const std::string &str);
