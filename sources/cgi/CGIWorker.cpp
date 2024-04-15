@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 03:33:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:54:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ char	**CGIWorker::getEnv(const t_mapss &_env)
 	for (t_mapss::const_iterator it = _env.begin(); it != _env.end(); it++)
 	{
 		std::string tmp = it->first + "=" + it->second;
-		std::cout << tmp << std::endl;
+		Logger::debug("env: " + tmp);
 		env[i] = new char[tmp.length() + 1];
 		env[i] = std::strcpy(env[i], tmp.c_str());
 		i++;

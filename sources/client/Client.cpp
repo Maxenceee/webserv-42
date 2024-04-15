@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:51:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 18:53:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ int	Client::process(void)
 	}
 
 	this->_buffer.append(buffer, valread);
-	// std::cout << "Received: (" << this->_buffer << ")" << std::endl;
 
 	if (this->processLines()) {
 		return (WBS_POLL_CLIENT_CLOSED);
@@ -74,11 +73,8 @@ int	Client::processLines(void) {
 		std::string line = this->_buffer.substr(0, pos); // Extraire une ligne complète du buffer
 		this->_buffer.erase(0, pos + 2); // Supprimer la ligne traitée du buffer (incluant \r\n)
 
-		// std::cout << "processLine: (" << line << ")" << std::endl;
-		// Traitement de la ligne
 		if (request.processLine(line))
 		{
-			// std::cout << "sending response on error" << std::endl;
 			// Dans le cas d'une erreur de parsing on envoie une réponse d'erreur
 			response->status(400).end();
 			return (WBS_ERR);
