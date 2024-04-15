@@ -1,14 +1,9 @@
 # webserv
 
-utilisation :
+Usage :
 
 ``` sh
-./webserv ./config.conf
-```
-
-pour tester 
-``` sh
-curl -i http://localhost:4242
+./webserv [config_file]
 ```
 
 ### ressources utiles
@@ -64,26 +59,3 @@ https://www.gipsa-lab.grenoble-inp.fr/~christian.bulfone/MIASHS-L3/PDF/3-Les_pro
 https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Connection
 
 https://fr.wikipedia.org/wiki/Multipurpose_Internet_Mail_Extensions
-
-## TODO
-
-Ajouter le parser pour le fichier config :
-- server_name ✅
-- listen ✅
-- allowed_method (method) ✅
-- return ✅
-- root ✅
-- alias ✅
-- index ✅
-- autoindex (on/off) ✅
-- error_page ✅
-- client body max size ✅
-- cgi ✅
-- fastcgi_pass ✅
-
-bonus :
-- add_header ✅
-- fastcgi_param ✅
-
-Gerer les CGI ✅
-Gerer les inclusions en cascade de blocs "location" ?! ✅
