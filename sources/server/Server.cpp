@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 17:06:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 19:10:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,17 +135,6 @@ int	Server::init(void)
 		perror("setsockopt");
 		return (WBS_SOCKET_ERR);
 	}
-
-	/**
-	 * Lorsque présent plus rien de fonctionne, et lorsque les requêtes sont accéptées recv()
-	 * renvoie que le descripteur n'est pas prêt. A voir si en mode non bloquant poll ne pose pas
-	 * problème et peut être que select() serait plus adapté.
-	 * Les decriprteurs non bloquants étant uniquement necessaire pour MacOS, on oublie :)
-	 */
-	// if (fcntl(this->socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1) {
-	// 	perror("fcntl");
-	// 	return (WBS_SOCKET_ERR);
-	// }
 
 	memset(&this->socket_addr, 0, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
