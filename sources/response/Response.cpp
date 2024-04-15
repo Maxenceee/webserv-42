@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:11:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 19:09:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,18 +275,6 @@ Response	&Response::sendCGI(const std::string data)
 
 Response	&Response::end()
 {
-	/**
-	 * TODO:
-	 * 
-	 * verifier et supprimer le body en si requit par la norme
-	 * 
-	 * Any response to a HEAD request and any response with a 1xx
-	 * (Informational), 204 (No Content), or 304 (Not Modified) status
-     * code is always terminated by the first empty line after the
-     * header fields, regardless of the header fields present in the
-     * message, and thus cannot contain a message body.
-	 * 
-	 */
 	if (!this->_sent)
 	{
 		this->setHeader("Date", this->getTime());
@@ -306,6 +294,11 @@ Response	&Response::end()
 		 */
 		this->setHeader("Connection", "close");
 
+		/**
+		 * La norme HTTP impose que certaines réponses ne doivent pas contenir de corps.
+		 * 
+		 * (https://www.rfc-editor.org/rfc/rfc7230#section-3.3.3)
+		 */
 		if (this->_status == 204 || this->_status == 304 || this->_status < 200)
 			this->_body.clear();
 
@@ -348,7 +341,6 @@ const std::string	Response::prepareResponse(void)
 	 * Une réponse HTTP doit obligatoirement contenir une version HTTP valide.
 	 * Dans le cas ou la requête n'a pas été parsée correctement, la version
 	 * par défaut est la version 1.1.
-	 * 
 	 */
 	if (this->_version.empty())
 	{

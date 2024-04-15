@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:10:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 19:10:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,6 +162,7 @@ void	Parser::switchConfigDirectives(std::string key, std::string val, const std:
 {
 	/**
 	 * Directive server
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#server)
 	 */
 	if (!this->new_server && key != "server")
@@ -176,6 +177,7 @@ void	Parser::switchConfigDirectives(std::string key, std::string val, const std:
 	}
 	/**
 	 * Directive location
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
 	 */
 	else if (key == "location") {
@@ -227,6 +229,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 {
 	/**`
 	 * Directive Listen
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
 	 */
 	if (key == "listen" && parent != "server")
@@ -253,6 +256,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive server_name
+	 * 
 	 * (https://nginx.org/en/docs/http/server_names.html)
 	 */
 	if (key == "server_name" && parent != "server")
@@ -265,6 +269,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive root/alias
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#root)
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#alias)
 	 */
@@ -282,6 +287,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive index
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_index_module.html#index)
 	 */
 	if (key == "index") {
@@ -294,6 +300,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive autoindex
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_autoindex_module.html#autoindex)
 	 */
 	if (key == "autoindex") {
@@ -306,6 +313,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive return
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return)
 	 */
 	if (key == "return") {
@@ -347,6 +355,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive error_page
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
 	 */
 	if (key == "error_page") {
@@ -364,6 +373,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive client_max_body_size
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
 	 */
 	if (key == "client_max_body_size") {
@@ -383,6 +393,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive fastcgi_pass
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass)
 	 */
 	if (key == "fastcgi_pass") {
@@ -392,6 +403,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive fastcgi_param
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
@@ -404,6 +416,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 	/**
 	 * Directive add_header
+	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)
 	 */
 	if (key == "add_header") {
