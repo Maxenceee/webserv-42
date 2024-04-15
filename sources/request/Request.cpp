@@ -5,19 +5,28 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/04 19:01:33 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 21:24:00 by mgama            ###   ########.fr       */
+/*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
+/*   Updated: 2024/04/15 03:17:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-// Request::Request(const Server &server, const std::string &str, int socket, sockaddr_in clientAddr): _server(server), _raw(str), _status(200), _socket(socket), _host(""), _port(80), _clientAddr(clientAddr), _body("")
-Request::Request(int socket, sockaddr_in clientAddr): _has_request_line(false), _body_detected(false), _status(200), _socket(socket), _host(""), _port(80), _clientAddr(clientAddr), _body("")
+Request::Request(int socket, sockaddr_in clientAddr):
+	_request_line_received(false),
+	_headers_received(false),
+	_body_received(false),
+	_status(200),
+	_socket(socket),
+	_host(""),
+	_port(80),
+	_clientAddr(clientAddr),
+	_transfert_encoding(false),
+	_body(""),
+	_body_size(0)
 {
 	this->request_time = getTimestamp();
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
-	// this->parse();
 }
 
 Request::~Request(void)
@@ -26,7 +35,7 @@ Request::~Request(void)
 
 int	Request::processLine(const std::string &line)
 {
-	if (!this->_has_request_line)
+	if (!this->_request_line_received)
 	{
 		/**
 		 * La norme RFC impose que chaque requête HTTP suive un modèle strict.
@@ -37,74 +46,111 @@ int	Request::processLine(const std::string &line)
 		 * 
 		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3)
 		 */
-		std::cout << "command line: " << line << std::endl;
+		// std::cout << "command line: " << line << std::endl;
 		if ((this->_status = this->getRequestLine(line)) == 200)
 		{
-			this->_has_request_line = true;
+			this->_request_line_received = true;
 		}
 	}
 	else
 	{
-		/**
-		 * TODO:
-		 * Handle body properly
-		 * see (https://www.rfc-editor.org/rfc/rfc7230#section-3.3)
-		 * (https://datatracker.ietf.org/doc/html/rfc7230#section-3.3)
-		 * 
-		 */
-		if (!this->_body_detected)
+		if (!this->_headers_received)
 		{
-			if (line == "\r\n" || line == "\n" || line.empty())
+			if (line.empty())
 			{
+				this->_headers_received = true;
+				this->getRequestCookies();
+
+				/**
+				 * On s'assure que l'en-tête `Host` est présent dans la
+				 * requête. La cas échéant la requête est invalide.
+				 */
 				if (this->getRequestHostname(this->_headers["Host"]))
 				{
 					this->_status = 400;
-					return (REQ_ERROR);
+					return (WBS_REQ_ERROR);
 				}
-				this->_body_detected = true;
-				return (REQ_SUCCESS);
+
+				/**
+				 * On vérifie si la requête contient un corps. Si c'est le cas, on
+				 * extrait sa taille ou on vérifie si le codage `chunked` est utilisé.
+				 */
+				if (this->_method == "GET" || this->_method == "HEAD" || (!this->_headers.count("Content-Length") && !this->_headers.count("Transfer-Encoding")))
+				{
+					// std::cout << "no body" << std::endl;
+					this->_body_received = true;
+				}
+				else if (this->_headers.count("Transfer-Encoding") && this->_headers["Transfer-Encoding"] == "chunked")
+				{
+					this->_transfert_encoding = true;
+				}
+				else if (this->_headers.count("Content-Length"))
+				{
+					this->_body_size = std::stoi(this->_headers["Content-Length"]);
+					// std::cout << "body size: " << this->_body_size << std::endl;
+				}
+				return (WBS_REQ_SUCCESS);
 			}
-			
-			std::cout << "header line: " << line << std::endl;
+
+			/**
+			 * Selon la norme RFC les en-têtes doivent suivrent un modèle précis (Nom-Du-Champs: [espace?] valeur [espace?])
+			 * Le nom de l'en-tête doit avoir une majuscule, s'il contient plusieurs mots, ils
+			 * doivent aussi avoir une majuscule et être liés par un tiré (-). Les en-têtes sont sensibles à
+			 * la case et chaque type d'en-tête a son format spécifique pour ses différentes valeurs.
+			 * 
+			 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2)
+			 */
+			// std::cout << "header line: " << line << std::endl;
 			std::string	key = readKey(line);
 			if (key.empty())
 			{
-				std::cout << "error parsing header line" << std::endl;
-				return (REQ_ERROR);
+				Logger::error("error parsing header line");
+				return (WBS_REQ_ERROR);
 			}
 			std::string	value = readValue(line);
 			this->_headers[key] = value;
+
+			/**
+			 * Selon la norme RFC, les en-têtes `Transfer-Encoding` et `Content-Length` ne doivent pas
+			 * être présents dans la même requête. Si c'est le cas, la requête est invalide.
+			 */
+			if (this->_headers.count("Transfer-Encoding") && this->_headers.count("Content-Length"))
+			{
+				return (WBS_REQ_ERROR);
+			}
 		}
-		else
+		else if (!this->_body_received)
 		{
-			std::cout << "body line: " << line << std::endl;
+			// std::cout << "body line: " << line << std::endl;
+			if (this->_transfert_encoding)
+			{
+				switch (this->processChunk(line))
+				{
+				case WBS_CHUNK_PROCESS_ERROR:
+					return (WBS_REQ_ERROR);
+				case WBS_CHUNK_PROCESS_ZERO:
+					this->_body_received = true;
+					break;
+				case WBS_CHUNK_PROCESS_OK:
+					break;
+				}
+				return (WBS_REQ_SUCCESS);
+			}
+
 			this->_body += line;
+			// std::cout << "body size: " << this->_body.size() << " >= " << this->_body_size << std::endl;
+			if (this->_body.size() >= this->_body_size)
+			{
+				this->_body_received = true;
+			}
 		}
 	}
-	return (REQ_SUCCESS);
+	return (WBS_REQ_SUCCESS);
 }
 
-int	Request::parse(void)
+bool	Request::processFinished(void) const
 {
-	size_t	i = 0;
-
-	/**
-	 * La norme RFC impose que chaque requête HTTP suive un modèle strict.
-	 * Ligne de commande (Commande, URL, Version de protocole)
-	 * En-tête de requête
-	 * [Ligne vide]
-	 * Corps de requête
-	 * 
-	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3)
-	 */
-	// if ((this->_status = this->getRequestLine(this->_raw, i)) != 200)
-	// {
-	// 	return (REQ_ERROR);
-	// }
-	// this->getRequestHeadersAndBody(this->_raw, i);
-	// this->getRequestQuery();
-	// this->getRequestCookies();
-	return (REQ_SUCCESS);
+	return (this->_headers_received && this->_body_received);
 }
 
 int	Request::getRequestLine(const std::string &req_line)
@@ -176,56 +222,7 @@ int	Request::getRequestVersion(const std::string &str)
 	return (200);
 }
 
-std::string			Request::nextLine(const std::string &str, size_t &i)
-{
-	std::string		ret;
-	size_t			j;
-
-	if (i == std::string::npos)
-		return ("");
-	j = str.find_first_of('\n', i);
-	ret = str.substr(i, j - i);
-	if (ret[ret.size() - 1] == '\r')
-		pop(ret);
-	i = (j == std::string::npos ? j : j + 1);
-	return (ret);
-}
-
-int	Request::getRequestHeadersAndBody(const std::string &str)
-{
-	std::string	key;
-	std::string	value;
-	std::string	line;
-	size_t		i = 0;
-
-	/**
-	 * Selon la norme RFC les en-têtes doivent suivrent un modèle précis (Nom-Du-Champs: [espace?] valeur [espace?])
-	 * Le nom de l'en-tête doit avoir une majuscule, s'il contient plusieurs mots, ils
-	 * doivent aussi avoir une majuscule et être liés par un tiré (-). Les en-têtes sont sensibles à
-	 * la case et chaque type d'en-tête a son format spécifique pour ses différentes valeurs.
-	 * 
-	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2)
-	 */
-	while ((line = nextLine(str, i)) != "\r" && line != "")
-	{
-		key = readKey(line);
-		value = readValue(line);
-		this->_headers[key] = value;
-	}
-	this->getRequestHostname(this->_headers["Host"]);
-	if (i != std::string::npos) {
-		this->_body = str.substr(i, std::string::npos);
-		// On verifie si l'en-tête 'Transfer-Encoding' est présent afin de traiter le contenu du corps de la
-		// requête correctement.
-		if (this->_headers.count("Transfer-Encoding") && this->_headers["Transfer-Encoding"] == "chunked")
-			this->processChunk();
-	}
-	else
-		Logger::warning("RFC warning: missing empty line after headers");
-	return (REQ_SUCCESS);
-}
-
-void	Request::processChunk(void)
+ChunkProcessResult	Request::processChunk(const std::string &chunks)
 {
 	/**
 	 * Le codage `chunked` modifie le corps du la requête afin de le transféré sous frome d'une serie fragments,
@@ -251,21 +248,58 @@ void	Request::processChunk(void)
 	 * (https://www.rfc-editor.org/rfc/rfc2616#section-3.6.1)
 	 */
 
-	std::string	chunks = this->_body;
-	std::string	subchunk = chunks.substr(0, 100);
-	std::string	body = "";
-	int			chunksize = strtol(subchunk.c_str(), NULL, 16);
-	size_t		i = 0;
+	static std::string chunkBuffer;
 
-	while (chunksize)
-	{
-		i = chunks.find("\r\n", i) + 2;
-		body += chunks.substr(i, chunksize);
-		i += chunksize + 2;
-		subchunk = chunks.substr(i, 100);
-		chunksize = strtol(subchunk.c_str(), NULL, 16);
+	size_t pos;
+	size_t chunksize;
+
+	chunkBuffer.append(chunks);
+
+	while (true) {
+		pos = 0;
+		chunksize = 0;
+
+		// Trouver la fin de la taille du chunk
+		size_t endPos = chunkBuffer.find("\r\n", pos);
+		if (endPos == std::string::npos) {
+			// Fin du message atteinte
+			break;
+		}
+
+		// Extraire la taille du chunk
+		std::string chunkSizeStr = chunkBuffer.substr(pos, endPos - pos);
+		chunksize = strtol(chunkSizeStr.c_str(), NULL, 16);
+		if (chunksize == 0 && chunkSizeStr == "0") {
+			// Chunk de taille 0
+			return (WBS_CHUNK_PROCESS_ZERO);
+		} else if (chunksize == 0) {
+			// Taille du chunk invalide
+			return (WBS_CHUNK_PROCESS_ERROR);
+		}
+
+		// Trouver le début des données du chunk
+		pos = endPos + 2;
+		if (pos + chunksize + 2 > chunkBuffer.size()) {
+			// Le chunk est incomplet
+			return (WBS_CHUNK_PROCESS_OK);
+		}
+
+		// Extraire les données du chunk
+		std::string chunkData = chunkBuffer.substr(pos, chunksize);
+
+		// Vérifier si le chunk est complet
+		if (chunkData.size() == chunksize) {
+			// Le chunk est complet, ajoutez-le au corps de la requête
+			this->_body.append(chunkData);
+			// Réinitialiser le compteur de taille de données reçues
+			chunkBuffer.erase(0, pos + chunksize + 2);
+		} else {
+			// Le chunk est incomplet, attendez la suite des données
+			return (WBS_CHUNK_PROCESS_OK);
+		}
 	}
-	this->_body = body;
+
+	return (WBS_CHUNK_PROCESS_OK);
 }
 
 int	Request::getRequestQuery(void)
@@ -296,7 +330,7 @@ int	Request::getRequestQuery(void)
 		this->_path = this->_path.substr(0, i);
 	}
 	if (!query.size())
-		return (REQ_SUCCESS);
+		return (WBS_REQ_SUCCESS);
 	size_t pos = 0;
 	while (pos < query.length()) {
 		size_t ampersandPos = query.find('&', pos);
@@ -323,7 +357,7 @@ int	Request::getRequestQuery(void)
 			break;
 		}
 	}
-	return (REQ_SUCCESS);
+	return (WBS_REQ_SUCCESS);
 }
 
 int	Request::getRequestHostname(const std::string &host)
@@ -344,7 +378,7 @@ int	Request::getRequestHostname(const std::string &host)
 	if (!host.size())
 	{
 		this->_status = 400;
-		return (REQ_ERROR);
+		return (WBS_REQ_ERROR);
 	}
 	i = host.find_first_of(':');
 	this->_host = host.substr(0, i);
@@ -356,7 +390,7 @@ int	Request::getRequestHostname(const std::string &host)
 	{
 		this->_host = host;
 	}
-	return (REQ_SUCCESS);
+	return (WBS_REQ_SUCCESS);
 }
 
 int	Request::getRequestCookies(void)
@@ -370,7 +404,7 @@ int	Request::getRequestCookies(void)
 	std::vector<std::string>::iterator	it;
 
 	if (!this->_headers.count("Cookie"))
-		return (REQ_SUCCESS);
+		return (WBS_REQ_SUCCESS);
 
 	std::vector<std::string> cookies = split(this->_headers["Cookie"], ';');
 	for (it = cookies.begin(); it != cookies.end(); it++)
@@ -378,12 +412,22 @@ int	Request::getRequestCookies(void)
 		std::string c = trim(*it, ' ');
 		size_t equalPos = c.find('=');
 
-        std::string key = c.substr(0, equalPos);
-        std::string value = "";
-        if (equalPos != std::string::npos) {
+		std::string key = c.substr(0, equalPos);
+		std::string value = "";
+		if (equalPos != std::string::npos) {
 			value = c.substr(equalPos + 1);
-        }
-    	this->_cookie[key] = value;
+		}
+		this->_cookie[key] = value;
 	}
-	return (REQ_SUCCESS);
+	return (WBS_REQ_SUCCESS);
+}
+
+bool	Request::headerReceived(void) const
+{
+	return (this->_headers_received);
+}
+
+bool	Request::bodyReceived(void) const
+{
+	return (this->_body_received);
 }

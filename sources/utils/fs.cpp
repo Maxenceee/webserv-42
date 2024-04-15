@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/04 18:22:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,11 +118,11 @@ int	createFile(const std::string &path, const std::string &content)
 	if (!file.is_open())
 	{
 		Logger::error("Error: could not open file " + path);
-		return (W_ERR);
+		return (WBS_ERR);
 	}
 	file << content;
 	file.close();
-	return (W_NOERR);
+	return (WBS_NOERR);
 }
 
 int	appendFile(const std::string &path, const std::string &content)
@@ -133,11 +133,11 @@ int	appendFile(const std::string &path, const std::string &content)
 	if (!file.is_open())
 	{
 		Logger::error("Error: could not open file " + path);
-		return (W_ERR);
+		return (WBS_ERR);
 	}
 	file << content;
 	file.close();
-	return (W_NOERR);
+	return (WBS_NOERR);
 }
 
 int	deleteFile(const std::string &path)
@@ -145,9 +145,9 @@ int	deleteFile(const std::string &path)
 	if (remove(path.c_str()) != 0)
 	{
 		Logger::error("Error: could not delete file " + path);
-		return (W_ERR);
+		return (WBS_ERR);
 	}
-	return (W_NOERR);
+	return (WBS_NOERR);
 }
 
 std::string		resolve(std::string root, std::string path)

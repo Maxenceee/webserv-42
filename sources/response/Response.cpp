@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 18:42:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 03:23:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,8 @@ Response::Response(int socket, const Request &req): _sent(false)
 	this->_method = req.getMethod();
 	this->_status = req.getStatus();
 	this->_path = req.getPath();
-	this->setHeader("Server", W_SERVER_NAME);
+	this->setHeader("Server", WBS_SERVER_NAME);
+	this->setHeader("X-Powered-By", "maxencegama");
 	/**
 	 * On vérifie si la requête n'a renvoyé aucune erreur de parsing.
 	 */
@@ -192,7 +193,7 @@ Response	&Response::sendDefault(const int code)
 		this->status(code);
 	this->setHeader("Content-Type", "text/html; charset=utf-8");
 	std::string st(toString<int>(this->_status)+" "+this->getSatusName());
-	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>"+st+"</title></head><body><center><h1>"+st+"</h1></center><hr><center>"+W_SERVER_NAME+"</center></body></html>");
+	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>"+st+"</title></head><body><center><h1>"+st+"</h1></center><hr><center>"+WBS_SERVER_NAME+"</center></body></html>");
 	return (*this);
 }
 
@@ -274,6 +275,18 @@ Response	&Response::sendCGI(const std::string data)
 
 Response	&Response::end()
 {
+	/**
+	 * TODO:
+	 * 
+	 * verifier et supprimer le body en si requit par la norme
+	 * 
+	 * Any response to a HEAD request and any response with a 1xx
+	 * (Informational), 204 (No Content), or 304 (Not Modified) status
+     * code is always terminated by the first empty line after the
+     * header fields, regardless of the header fields present in the
+     * message, and thus cannot contain a message body.
+	 * 
+	 */
 	if (!this->_sent)
 	{
 		this->setHeader("Date", this->getTime());
@@ -283,6 +296,19 @@ Response	&Response::end()
 		 */
 		if (!this->_headers.count("Content-Length"))
 			this->setHeader("Content-Length", toString<int>(this->_body.size()));
+
+		/**
+		 * TODO:
+		 * 
+		 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).
+		 * On envoie donc une réponse avec l'en-tête Connection: close pour fermer la connexion
+		 * après chaque requête.
+		 */
+		this->setHeader("Connection", "close");
+
+		/**
+		 * On formate la réponse HTTP.
+		 */
 		std::string	res = this->prepareResponse();
 
 		/**
@@ -381,7 +407,7 @@ bool	Response::canAddHeader(void) const
 	);
 }
 
-Response	&Response::setCookie(const std::string name, const std::string value, const CookieOptions &options)
+Response	&Response::setCookie(const std::string name, const std::string value, const wbs_cookie_options &options)
 {
 	/**
 	 * L'en-tête `Set-Cookie` est envoyé par le serveur dans les réponses HTTP pour définir des cookies sur le client. Une

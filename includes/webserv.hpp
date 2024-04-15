@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/12 01:38:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 01:36:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,23 +61,23 @@
 #include "pcolors.hpp"
 #include "utils/utils.hpp"
 
-#define W_SERVER_NAME "webserv/1.0"
+#define WBS_SERVER_NAME "webserv/1.0"
 
 /* text */
 
-#define W_PREFIX "webserv: "
+#define WBS_PREFIX "webserv: "
 
 /* error codes */
 
-#define W_NOERR			0
-#define W_ERR			1
-#define W_SOCKET_ERR	2
+#define WBS_NOERR		0
+#define WBS_ERR			1
+#define WBS_SOCKET_ERR	2
 
 /* config */
 
-#define W_DEFAULT_PORT	3000
+#define WBS_DEFAULT_PORT	3000
 
-#define RECV_SIZE		2 << 19
+#define WBS_RECV_SIZE	2 << 12
 
 /* typedef */
 typedef std::map<std::string, std::string> t_mapss;
