@@ -4,9 +4,9 @@
 webserv
 express_test/node_modules
 express_test/package-lock.json
+public/router_2/upload
 
 out
-client
 server
 static
 test_res

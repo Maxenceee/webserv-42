@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 14:16:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/15 17:02:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ int	Request::processLine(const std::string &line)
 		}
 		else if (!this->_body_received)
 		{
-			// std::cout << "body line: " << line << std::endl;
+			std::cout << "body line: " << line << std::endl;
 			if (this->_transfert_encoding)
 			{
 				switch (this->processChunk(line))
@@ -248,29 +248,30 @@ ChunkProcessResult	Request::processChunk(const std::string &chunks)
 	 * (https://www.rfc-editor.org/rfc/rfc2616#section-3.6.1)
 	 */
 
-	static std::string chunkBuffer;
-
 	size_t pos;
 	size_t chunksize;
 
-	chunkBuffer.append(chunks);
+	this->_chunkBuffer.append(chunks);
+
+	std::cout << "this->_chunkBuffer: " << cropoutputs(this->_chunkBuffer) << "(" << this->_chunkBuffer.size() << ", " << chunks.size() << ")" << std::endl;
 
 	while (true) {
 		pos = 0;
 		chunksize = 0;
 
 		// Trouver la fin de la taille du chunk
-		size_t endPos = chunkBuffer.find("\r\n", pos);
+		size_t endPos = this->_chunkBuffer.find("\r\n", pos);
 		if (endPos == std::string::npos) {
 			// Fin du message atteinte
 			break;
 		}
 
 		// Extraire la taille du chunk
-		std::string chunkSizeStr = chunkBuffer.substr(pos, endPos - pos);
+		std::string chunkSizeStr = this->_chunkBuffer.substr(pos, endPos - pos);
 		chunksize = strtol(chunkSizeStr.c_str(), NULL, 16);
 		if (chunksize == 0 && chunkSizeStr == "0") {
 			// Chunk de taille 0
+			this->_chunkBuffer.clear();
 			return (WBS_CHUNK_PROCESS_ZERO);
 		} else if (chunksize == 0) {
 			// Taille du chunk invalide
@@ -279,20 +280,20 @@ ChunkProcessResult	Request::processChunk(const std::string &chunks)
 
 		// Trouver le début des données du chunk
 		pos = endPos + 2;
-		if (pos + chunksize + 2 > chunkBuffer.size()) {
+		if (pos + chunksize + 2 > this->_chunkBuffer.size()) {
 			// Le chunk est incomplet
 			return (WBS_CHUNK_PROCESS_OK);
 		}
 
 		// Extraire les données du chunk
-		std::string chunkData = chunkBuffer.substr(pos, chunksize);
+		std::string chunkData = this->_chunkBuffer.substr(pos, chunksize);
 
 		// Vérifier si le chunk est complet
 		if (chunkData.size() == chunksize) {
 			// Le chunk est complet, ajoutez-le au corps de la requête
 			this->_body.append(chunkData);
 			// Réinitialiser le compteur de taille de données reçues
-			chunkBuffer.erase(0, pos + chunksize + 2);
+			this->_chunkBuffer.erase(0, pos + chunksize + 2);
 		} else {
 			// Le chunk est incomplet, attendez la suite des données
 			return (WBS_CHUNK_PROCESS_OK);
