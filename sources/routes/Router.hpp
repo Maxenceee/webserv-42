@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 19:11:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 20:52:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,6 +125,7 @@ public:
 
 	void	reload(void);
 
+	Router	*eval(const std::string &path, const std::string &method, Response &response);
 	void	route(Request &request, Response &response);
 
 	void					use(Router *router);
@@ -164,11 +165,14 @@ public:
 	void 		setClientMaxBodySize(const std::string &size);
 	void 		setClientMaxBodySize(const int size);
 	size_t 		getClientMaxBodySize(void) const;
+	bool		hasClientMaxBodySize(void) const;
 
 	void				setCGI(const std::string path);
 	void				enableCGI(void);
 	void				addCGIParam(const std::string key, const std::string value);
 	const std::string	&getCGIPath() const;
+
+	bool				isProxy(void) const;
 
 	void	print(std::ostream &os) const;
 };

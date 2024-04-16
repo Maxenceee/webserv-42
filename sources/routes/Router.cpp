@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 13:02:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 21:22:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,16 +76,18 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 		this->_allowed_methods.methods = parent->_allowed_methods.methods;
 	}
 	
+	this->_client_body.set = false;
+
 	/**
-	 * Nginx definit la valeur par defaut comme étant 1Mo.
+	 * 
 	 */
-	if (parent) {
+	if (parent && parent->hasClientMaxBodySize()) {
 		this->_client_body.size = parent->getClientMaxBodySize();
+		this->_client_body.set = true;
 	} else {
 		this->_client_body.size = 1024 * 1024; // 1MB
 	}
 
-	this->_client_body.set = false;
 	this->_redirection.enabled = false;
 	this->_cgi.enabled = false;
 }
@@ -255,6 +257,11 @@ const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
 
 void	Router::setErrorPage(const int code, const std::string path)
 {
+	if (code < 200 || code == 204 || code == 304) {
+		Logger::warning("router warning: Cannot set error page for "+toString<int>(code));
+		return;
+	}
+
 	if (this->_error_page.count(code)) {
 		Logger::info("router info: overriding previous error page for " + toString<int>(code));
 	}
@@ -268,7 +275,7 @@ const std::string	&Router::getErrorPage(const int status) const
 	return (this->_error_page.at(status));
 }
 
-bool			Router::hasErrorPage(const int code) const
+bool	Router::hasErrorPage(const int code) const
 {
 	return (this->_error_page.count(code) > 0);
 }
@@ -278,6 +285,10 @@ void	Router::setClientMaxBodySize(const std::string &size)
 	int ts = parseSize(size);
 	if (ts < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+size);
+	}
+	if (this->_parent && this->_parent->hasClientMaxBodySize() && ts >= this->_parent->getClientMaxBodySize()) {
+		Logger::warning("router warning: Client max body size cannot be greater than parent's");
+		return;
 	}
 	this->_client_body.size = ts;
 	this->_client_body.set = true;
@@ -289,6 +300,10 @@ void	Router::setClientMaxBodySize(const int size)
 	if (size < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+toString<int>(size));
 	}
+	if (this->_parent && this->_parent->hasClientMaxBodySize() && size >= this->_parent->getClientMaxBodySize()) {
+		Logger::warning("router warning: Client max body size cannot be greater than parent's");
+		return;
+	}
 	this->_client_body.size = size;
 	this->_client_body.set = true;
 	this->reloadChildren();
@@ -297,6 +312,11 @@ void	Router::setClientMaxBodySize(const int size)
 size_t	Router::getClientMaxBodySize(void) const
 {
 	return (this->_client_body.size);
+}
+
+bool	Router::hasClientMaxBodySize(void) const
+{
+	return (this->_client_body.set);
 }
 
 void	Router::setCGI(const std::string path)
@@ -322,6 +342,11 @@ const std::string	&Router::getCGIPath(void) const
 	return (this->_cgi.path);
 }
 
+bool	Router::isProxy(void) const
+{
+	return (false);
+}
+
 void	Router::use(Router *router)
 {
 	/**
@@ -334,6 +359,27 @@ void	Router::use(Router *router)
 std::vector<Router *>	&Router::getRoutes(void)
 {
 	return (this->_routes);
+}
+
+Router	*Router::eval(const std::string &path, const std::string &method, Response &response)
+{
+	Router	*router = NULL;
+
+	if (this->matchRoute(path, response))
+	{
+		if (this->_allowed_methods.methods.size() && !contains(this->_allowed_methods.methods, method))
+		{
+			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods.methods));
+			response.status(405);
+			return (this);
+		}
+		for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+			if ((router = (*it)->eval(path, method, response)) != NULL)
+				return (router);
+		}
+		router = this;
+	}
+	return (router);
 }
 
 void	Router::route(Request &request, Response &response)
@@ -372,18 +418,15 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 * On compare le chemin du router et celui de la requête.
 	 */
 	if (this->matchRoute(request.getPath(), response))
-	{
+	{	
 		/**
-		 * TODO:
-		 * 
-		 * Supprimer la verification de la methode et du body avant la recherche des enfants et modifier l'heritage.
-		 * Un sous-router n'etant accessible que par son parent il herite par definition de ses restrictions.
+		 * Evaluation des routes enfants.
 		 */
-		if (this->_allowed_methods.methods.size() && !contains(this->_allowed_methods.methods, request.getMethod()))
-		{
-			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods.methods));
-			response.status(405);
-			return (true);
+		Logger::debug("sub-router: " + toString<int>(this->_routes.size()));
+		for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+			(*it)->route(request, response);
+			if (!response.canSend())
+				return (true);
 		}
 
 		/**
@@ -395,16 +438,6 @@ bool	Router::handleRoutes(Request &request, Response &response)
 				response.status(413);
 				return (true);
 			}
-		}
-		
-		/**
-		 * Evaluation des routes enfants.
-		 */
-		Logger::debug("sub-router: " + toString<int>(this->_routes.size()));
-		for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
-			(*it)->route(request, response);
-			if (!response.canSend())
-				return (true);
 		}
 		
 		/**
@@ -585,10 +618,10 @@ void	Router::handleTRACEMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ "B_BLUE"TRACE"B_GREEN" handler"RESET" ------------>");
 	
-	std::string res = request.getMethod() + " " + request.getPath() + " " + request.getVersion() + "\r\n";
+	std::string res = request.getMethod() + " " + request.getPath() + " " + request.getVersion() + WBS_CRLF;
 	t_mapss headers = request.getHeaders();
 	for (t_mapss::const_iterator it = headers.begin(); it != headers.end(); it++) {
-		res += it->first + ": " + it->second + "\r\n";
+		res += it->first + ": " + it->second + WBS_CRLF;
 	}
 	response.status(200).send(res).end();
 }
@@ -816,7 +849,9 @@ void	Router::reload(void)
 			this->_error_page[it->first] = it->second;
 		}
 	}
-	if (!this->_client_body.set) {
+	if (this->_parent->hasClientMaxBodySize() && this->_client_body.size > this->_parent->getClientMaxBodySize()) {
+		this->_client_body = this->_parent->_client_body;
+	} else if (!this->_client_body.set) {
 		this->_client_body = this->_parent->_client_body;
 	}
 	this->reloadChildren();

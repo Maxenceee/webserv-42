@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:59:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 21:23:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_server(server),
 	_client(client),
 	_clientAddr(clientAddr),
+	_headers_received(false),
+	_current_router(NULL),
 	request(client, clientAddr),
 	response(NULL)
 {
@@ -51,11 +53,17 @@ int	Client::process(void)
 
 	this->_buffer.append(buffer, valread);
 
-	if (this->processLines()) {
+	if (this->processLines())
+	{
 		return (WBS_POLL_CLIENT_CLOSED);
 	}
 
-	if (this->request.processFinished()) {
+	if (this->request.processFinished())
+	{
+		/**
+		 * TODO:
+		 * virer ca et se servir directement du current router
+		 */
 		this->_server->handleRouting(&this->request, this->response);
 		/**
 		 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).
@@ -79,6 +87,7 @@ int	Client::processLines(void) {
 			response->status(400).end();
 			return (WBS_ERR);
 		}
+
 		if (this->response == NULL)
 		{
 			this->response = new Response(this->_client, request);
@@ -87,14 +96,59 @@ int	Client::processLines(void) {
 				return (WBS_ERR);
 			}
 		}
+
+		if (!this->_headers_received && this->request.headersReceived())
+		{
+			this->_headers_received = true;
+			/**
+			 * Extraction du router correspondant à la requête.
+			 */
+			this->_current_router = this->_server->eval(this->request, *this->response);
+			/**
+			 * La fonction Server::eval() retourne un pointeur vers le router correspondant à la requête
+			 * ou le router par défaut du server si aucun router correspondant n'a été trouvé, cette fonction
+			 * n'est donc jamais censée retourner NULL, mais on s'ecurise tout de même.
+			 */
+			if (this->_current_router == NULL)
+			{
+				this->response->status(404).end();
+				return (WBS_ERR);
+			}
+
+			/**
+			 * Si lors de l'évaluation de la requête, on il y a eu une erreur, le code de statut de la réponse
+			 * est alors différent de 200, on envoie donc une réponse d'erreur.
+			 */
+			if (response->getStatus() != 200)
+			{
+				/**
+				 * TODO:
+				 * Ajouter une methode dans le router pour envoyer les pages d'erreur ou le corps par default
+				 */
+				response->end();
+				return (WBS_ERR);
+			}
+
+			if (this->_current_router->isProxy())
+			{
+				/**
+				 * TODO:
+				 * 
+				 * Setup le proxyworker
+				 */
+			}
+		}
 	}
 
-	if (!this->_buffer.empty() && this->request.headersReceived()) {
+
+	if (!this->_buffer.empty() && this->request.headersReceived())
+	{
 		/**
 		 * Si le client envoie un corps de requête alors que la requête n'en attend pas,
 		 * on envoie une réponse d'erreur.
 		 */
-		if (this->request.bodyReceived() && !this->request.hasContentLength()) {
+		if (this->request.bodyReceived() && !this->request.hasContentLength())
+		{
 			response->status(411).end();
 			return (WBS_ERR);
 		}
@@ -112,7 +166,8 @@ int	Client::processLines(void) {
 }
 
 bool	Client::timeout(void) {
-	if ((time_t)getTimestamp() > this->request.getRequestTime() + WBS_REQUEST_TIMEOUT) {
+	if ((time_t)getTimestamp() > this->request.getRequestTime() + WBS_REQUEST_TIMEOUT)
+	{
 		Logger::debug("Client timeout");
 		this->response->status(408).end();
 		return (true);

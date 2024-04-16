@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:00:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 21:07:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,6 @@ int	Request::processLine(const std::string &line)
 				 */
 				if (this->getRequestHostname(this->_headers["Host"]))
 				{
-					this->_status = 400;
 					return (WBS_REQ_ERROR);
 				}
 
@@ -274,7 +273,7 @@ ChunkProcessResult	Request::processChunk(const std::string &chunks)
 		chunksize = 0;
 
 		// Trouver la fin de la taille du chunk
-		size_t endPos = this->_chunkBuffer.find("\r\n", pos);
+		size_t endPos = this->_chunkBuffer.find(WBS_CRLF, pos);
 		if (endPos == std::string::npos) {
 			// Fin du message atteinte
 			break;
@@ -392,7 +391,6 @@ int	Request::getRequestHostname(const std::string &host)
 	 */
 	if (!host.size())
 	{
-		this->_status = 400;
 		return (WBS_REQ_ERROR);
 	}
 	i = host.find_first_of(':');
