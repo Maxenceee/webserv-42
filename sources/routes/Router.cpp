@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 11:17:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,11 +244,11 @@ void	Router::addHeader(const std::string key, const std::string value, const boo
 		this->_headers.enabled = true;
 		this->_headers.list.clear();
 	}
-	this->_headers.list.push_back((wp_router_header_t){key, value, always});
+	this->_headers.list.push_back((wbs_router_header_t){key, value, always});
 	this->reloadChildren();
 }
 
-const std::vector<wp_router_header_t>	&Router::getHeaders(void) const
+const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
 {
 	return (this->_headers.list);
 }
@@ -340,7 +340,7 @@ void	Router::route(Request &request, Response &response)
 {
 	if (this->handleRoutes(request, response)) {
 		if (response.canSend()) {
-			for (std::vector<wp_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
+			for (std::vector<wbs_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
 				if (it->always || response.canAddHeader())
 					response.setHeader(it->key, it->value);
 			}
@@ -373,6 +373,12 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 */
 	if (this->matchRoute(request.getPath(), response))
 	{
+		/**
+		 * TODO:
+		 * 
+		 * Supprimer la verification de la methode et du body avant la recherche des enfants et modifier l'heritage.
+		 * Un sous-router n'etant accessible que par son parent il herite par definition de ses restrictions.
+		 */
 		if (this->_allowed_methods.methods.size() && !contains(this->_allowed_methods.methods, request.getMethod()))
 		{
 			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods.methods));
