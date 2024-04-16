@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:59:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 20:05:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,7 +250,7 @@ Response	&Response::sendCGI(const std::string data)
 	}
 
 	while (i < j) {
-		size_t pos = data.find("\r\n", i);
+		size_t pos = data.find(WBS_CRLF, i);
 		if (pos == std::string::npos) break;
 		std::string line = data.substr(i, pos - i);
 		
@@ -357,16 +357,16 @@ const std::string	Response::prepareResponse(void)
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
 	 */
-	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + "\r\n";
+	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + WBS_CRLF;
 	for (t_mapss::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
-		res += it->first + ": " + it->second + "\r\n";
+		res += it->first + ": " + it->second + WBS_CRLF;
 	}
 	for (t_mapss::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
-		res += "Set-Cookie: " + it->second + "\r\n";
+		res += "Set-Cookie: " + it->second + WBS_CRLF;
 	}
-	res += "\r\n";
+	res += WBS_CRLF;
 	if (this->hasBody())
-		res += this->_body + "\r\n";
+		res += this->_body + WBS_CRLF;
 	return (res);
 }
 

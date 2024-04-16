@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:40:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 20:52:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,7 +216,28 @@ uint16_t	Server::getPort(void) const
 	return (this->port);
 }
 
+Router	*Server::eval(Request &request, Response &response) const
+{
+	Router	*router = this->_default->getDefaultHandler();
 
+	/**
+	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
+	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
+	 * la configuration par défaut.
+	 */
+	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+		if ((*it)->evalName(request.getHost(), request.getPort())) {
+			router = (*it)->getDefaultHandler();
+			break;
+		}
+	}
+	/**
+	 * On retourne le router qui évalué, c'est à dire celui le plus approprié pour
+	 * traiter la requête. Cette fonction retourne regarde recursivement les sous-routers
+	 * définis dans le router et retourne celui qui correspond le mieux à la requête.
+	 */
+	return (router->eval(request.getPath(), request.getMethod(), response));
+}
 
 void	Server::handleRouting(Request *request, Response *response)
 {
