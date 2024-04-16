@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 11:13:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ struct wbs_router_method {
 	std::vector<std::string>	methods;
 };
 
-typedef struct wbs_router_headers::wbs_router_header	wp_router_header_t;
+typedef struct wbs_router_headers::wbs_router_header	wbs_router_header_t;
 
 class Router
 {
@@ -155,7 +155,7 @@ public:
 	void	addIndex(const std::string index);
 
 	void	addHeader(const std::string key, const std::string value, const bool always = false);
-	const std::vector<wp_router_header_t>	&getHeaders(void) const;
+	const std::vector<wbs_router_header_t>	&getHeaders(void) const;
 
 	void					setErrorPage(const int code, const std::string path);
 	const std::string		&getErrorPage(const int status) const;
