@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 11:13:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/16 19:11:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ private:
 	struct wbs_router_cgi_data		_cgi;
 	struct wbs_router_headers		_headers;
 	struct wbs_router_client_body	_client_body;
-	struct wbs_router_method			_allowed_methods;
+	struct wbs_router_method		_allowed_methods;
 	bool							_autoindex;
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
