@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 20:52:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 00:47:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,7 +142,7 @@ public:
 
 	const struct wbs_router_location	&getLocation(void) const;
 
-	const std::string				&getRoot(void) const;
+	const std::string					&getRoot(void) const;
 	const struct wbs_router_root		&getRootData(void) const;
 
 	std::string			getLocalFilePath(const std::string &requestPath);
@@ -171,6 +171,8 @@ public:
 	void				enableCGI(void);
 	void				addCGIParam(const std::string key, const std::string value);
 	const std::string	&getCGIPath() const;
+
+	void				sendResponse(Response &response);
 
 	bool				isProxy(void) const;
 

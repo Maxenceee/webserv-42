@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 20:52:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 02:29:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,38 +233,38 @@ Router	*Server::eval(Request &request, Response &response) const
 	}
 	/**
 	 * On retourne le router qui évalué, c'est à dire celui le plus approprié pour
-	 * traiter la requête. Cette fonction retourne regarde recursivement les sous-routers
+	 * traiter la requête. Cette fonction regarde recursivement les sous-routers
 	 * définis dans le router et retourne celui qui correspond le mieux à la requête.
 	 */
 	return (router->eval(request.getPath(), request.getMethod(), response));
 }
 
-void	Server::handleRouting(Request *request, Response *response)
-{
-	if (Logger::_debug)
-		std::cout << *request << std::endl;
+// void	Server::handleRouting(Request *request, Response *response)
+// {
+// 	if (Logger::_debug)
+// 		std::cout << *request << std::endl;
 
-	/**
-	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
-	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
-	 * la configuration par défaut.
-	 */
-	ServerConfig *clientConfig = this->_default;
-	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-		if ((*it)->evalName(request->getHost(), request->getPort())) {
-			clientConfig = *it;
-			break;
-		}
-	}
-	clientConfig->handleRoutes(*request, *response);
+// 	/**
+// 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
+// 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
+// 	 * la configuration par défaut.
+// 	 */
+// 	ServerConfig *clientConfig = this->_default;
+// 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+// 		if ((*it)->evalName(request->getHost(), request->getPort())) {
+// 			clientConfig = *it;
+// 			break;
+// 		}
+// 	}
+// 	clientConfig->handleRoutes(*request, *response);
 
-	if (Logger::_debug)
-		std::cout << *response << std::endl;
+// 	if (Logger::_debug)
+// 		std::cout << *response << std::endl;
 
-	this->printResponse(*request, *response);
-}
+// 	this->printResponse(*request, *response);
+// }
 
-void	Server::printResponse(const Request &req, const Response &res) const
+void	Server::printResponse(const Request &req, const Response &res, const double response_duration)
 {
 	std::string response = req.getMethod() + " " + req.getRawPath() + " ";
 	int status = res.getStatus();
@@ -279,9 +279,9 @@ void	Server::printResponse(const Request &req, const Response &res) const
 	response += toString<int>(status);
 	response += RESET;
 
-    double response_duration = getTimestamp() - req.getRequestTime();
+    // double response_duration = getTimestamp() - req.getRequestTime();
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << response_duration;
+    ss << std::fixed << std::setprecision(3) << response_duration;
     std::string duration_str = ss.str();
     response += " " + duration_str + " ms - ";
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 00:46:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,38 +32,38 @@ struct wbs_server_name {
 class ServerConfig
 {
 private:
-	Server						*_server;
-	uint32_t					address;
-	uint16_t					port;
+	Server				*_server;
+	uint32_t			address;
+	uint16_t			port;
 	std::vector<struct wbs_server_name>	_server_name;
 
-	// les comportements par default du serveur sont stocké dans un router spécifique
-	Router						*_default;
+	// les comportements par default du serveur sont stockés dans un router spécifique
+	Router				*_default;
 
 public:
 	ServerConfig(Server *server = NULL);
 	~ServerConfig(void);
 
-	bool			used;
+	bool		used;
 
-	void			setServer(Server *server);
+	void		setServer(Server *server);
 
-	void			handleRoutes(Request &req, Response &res);
+	void		handleRoutes(Request &req, Response &res);
 
-	Router			*getDefaultHandler(void);
-	void			use(Router *router);
+	Router		*getDefaultHandler(void);
+	void		use(Router *router);
 
-	void				setAddress(const std::string address);
-	void				setAddress(const uint32_t address);
-	uint32_t			getAddress(void) const;
+	void		setAddress(const std::string address);
+	void		setAddress(const uint32_t address);
+	uint32_t	getAddress(void) const;
 
-	void				setPort(const uint16_t port);
-	uint16_t			getPort(void) const;
+	void		setPort(const uint16_t port);
+	uint16_t	getPort(void) const;
 	
-	void								addNames(const std::vector<std::string> name);
-	void								addName(const std::string name);
+	void										addNames(const std::vector<std::string> name);
+	void										addName(const std::string name);
 	const std::vector<struct wbs_server_name>	&getNames(void) const;
-	bool								evalName(const std::string name, const uint16_t port = 80) const;
+	bool										evalName(const std::string name, const uint16_t port = 80) const;
 
 	void	print(std::ostream &os) const;
 };

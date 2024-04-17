@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 21:07:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 02:24:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,9 +121,13 @@ int	Request::processLine(const std::string &line)
 			 * On verifie si elle est déjà présente dans les en-têtes, si c'est le cas, on s'assure
 			 * que la valeur est la même que celle déjà présente.
 			 */
-			if (key == "Content-Length" && this->_headers.count("Content-Length") && this->_headers["Content-Length"] != value)
+			if (key == "Content-Length")
 			{
-				return (WBS_REQ_ERROR);
+				if (!isNumber(value))
+					return (WBS_REQ_ERROR);
+
+				if (this->_headers.count("Content-Length") && this->_headers["Content-Length"] != value)
+					return (WBS_REQ_ERROR);
 			}
 
 			this->_headers[key] = value;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/14 14:58:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 20:12:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 02:14:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,9 @@ private:
 	int					_client;
 	bool				_headers_received;
 
-	Router				*_current_router;	
+	Router				*_current_router;
+
+	time_t				request_time;
 
 	int		processLines(void);
 

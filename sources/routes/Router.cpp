@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 21:22:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 01:28:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,7 +257,7 @@ const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
 
 void	Router::setErrorPage(const int code, const std::string path)
 {
-	if (code < 200 || code == 204 || code == 304) {
+	if (code == 304) {
 		Logger::warning("router warning: Cannot set error page for "+toString<int>(code));
 		return;
 	}
@@ -382,27 +382,32 @@ Router	*Router::eval(const std::string &path, const std::string &method, Respons
 	return (router);
 }
 
+void	Router::sendResponse(Response &response)
+{
+	if (response.canSend()) {
+		for (std::vector<wbs_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
+			if (it->always || response.canAddHeader())
+				response.setHeader(it->key, it->value);
+		}
+	}
+	if (response.canSend() && !response.hasBody())
+	{
+		if (this->_error_page.count(response.getStatus())) {
+			std::string fullpath = resolve(this->_root.nearest_root, this->_error_page[response.getStatus()]);
+			Logger::debug("router full path: " + fullpath);
+			response.sendFile(fullpath);
+		} else {
+			Logger::debug("router default response");
+			response.sendDefault();
+		}
+	}
+	response.end();
+}
+
 void	Router::route(Request &request, Response &response)
 {
 	if (this->handleRoutes(request, response)) {
-		if (response.canSend()) {
-			for (std::vector<wbs_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
-				if (it->always || response.canAddHeader())
-					response.setHeader(it->key, it->value);
-			}
-		}
-		if (response.canSend() && !response.hasBody())
-		{
-			if (this->_error_page.count(response.getStatus())) {
-				std::string fullpath = resolve(this->_root.nearest_root, this->_error_page[response.getStatus()]);
-				Logger::debug("router full path: " + fullpath);
-				response.sendFile(fullpath);
-			} else {
-				Logger::debug("router default response");
-				response.sendDefault();
-			}
-		}
-		response.end();
+		this->sendResponse(response);
 	}
 }
 
@@ -414,63 +419,47 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 */
 	if (!response.canSend())
 		return (false);
-	/**
-	 * On compare le chemin du router et celui de la requête.
-	 */
-	if (this->matchRoute(request.getPath(), response))
-	{	
-		/**
-		 * Evaluation des routes enfants.
-		 */
-		Logger::debug("sub-router: " + toString<int>(this->_routes.size()));
-		for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
-			(*it)->route(request, response);
-			if (!response.canSend())
-				return (true);
-		}
 
-		/**
-		 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
-		 * desactive la verification de la limite de taille du corps de la requête.
-		 */
-		if (this->_client_body.size > 0) {
-			if (request.getBody().size() > this->_client_body.size) {
-				response.status(413);
-				return (true);
-			}
-		}
-		
-		/**
-		 * Nginx execute la directive `return` avant toutes les autres.
-		 * Si le code de retour est de type 3xx (redirect) alors la redirection est effectuée, sinon
-		 * le code de retour est envoyé avec le corps de la réponse.
-		 */
-		if (this->_redirection.enabled) {
-			if (this->_redirection.path.empty() && this->_redirection.data.empty()) {
-				response.status(this->_redirection.status);
-				return (true);
-			}
-			Logger::debug("redirect to: " + this->_redirection.path);
-			if (this->_redirection.status % 300 < 100) {
-				response.redirect(this->_redirection.path, this->_redirection.status).end();
-			} else {
-				response.status(this->_redirection.status).send(this->_redirection.data).end();
-			}
+	/**
+	 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
+	 * desactive la verification de la limite de taille du corps de la requête.
+	 */
+	if (this->_client_body.size > 0) {
+		if (request.getBody().size() > this->_client_body.size) {
+			response.status(413);
 			return (true);
 		}
-		
-		/**
-		 * Si le router est configuré pour utiliser CGI, on execute le script CGI
-		 * et on envoie la réponse.
-		 */
-		if (this->_cgi.enabled) {
-			this->handleCGI(request, response);
+	}
+	
+	/**
+	 * Nginx execute la directive `return` avant toutes les autres.
+	 * Si le code de retour est de type 3xx (redirect) alors la redirection est effectuée, sinon
+	 * le code de retour est envoyé avec le corps de la réponse.
+	 */
+	if (this->_redirection.enabled) {
+		if (this->_redirection.path.empty() && this->_redirection.data.empty()) {
+			response.status(this->_redirection.status);
 			return (true);
 		}
-		this->call(request.getMethod(), request, response);
+		Logger::debug("redirect to: " + this->_redirection.path);
+		if (this->_redirection.status % 300 < 100) {
+			response.redirect(this->_redirection.path, this->_redirection.status).end();
+		} else {
+			response.status(this->_redirection.status).send(this->_redirection.data).end();
+		}
 		return (true);
 	}
-	return (false);
+	
+	/**
+	 * Si le router est configuré pour utiliser CGI, on execute le script CGI
+	 * et on envoie la réponse.
+	 */
+	if (this->_cgi.enabled) {
+		this->handleCGI(request, response);
+		return (true);
+	}
+	this->call(request.getMethod(), request, response);
+	return (true);
 }
 
 void	Router::handleGETMethod(Request &request, Response &response)
