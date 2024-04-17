@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:20 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 15:10:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 20:53:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,12 +33,13 @@ private:
 	struct wbs_router_proxy	_config;
 	int						socket_fd;
 	struct sockaddr_in		socket_addr;
+	pid_t					_pid;
 	
 public:
 	ProxyWorker(int client, const struct wbs_router_proxy &config);
 	~ProxyWorker();
 
-	int		connect();
+	int		connect(const std::string &buffer);
 };
 
 #endif /* PROXYWORKER_HPP */
