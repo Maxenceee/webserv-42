@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 14:42:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 21:21:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -670,7 +670,7 @@ void	Router::handleCGI(Request &request, Response &response)
 	response.sendCGI(CGIWorker::run(request, fullpath, this->_cgi.params, this->_cgi.path, body)).end();
 }
 
-void	Router::handlerProxy(Request &request, Response &response)
+void	Router::handleProxy(Request &request, Response &response)
 {
 	Logger::debug("<------------ "B_BLUE"Proxy"B_GREEN" handler"RESET" ------------>");
 }
