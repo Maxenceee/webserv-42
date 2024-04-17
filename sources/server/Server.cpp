@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 02:29:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 14:55:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,7 @@ int	Server::init(void)
 		return (WBS_SOCKET_ERR);
 	}
 
-	memset(&this->socket_addr, 0, sizeof(this->socket_addr));
+	bzero(&this->socket_addr, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->port);
 	this->socket_addr.sin_addr.s_addr = htonl(this->_address);

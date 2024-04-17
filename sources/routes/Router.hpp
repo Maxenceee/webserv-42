@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 00:47:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 14:42:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,17 @@ struct wbs_router_method {
 	std::vector<std::string>	methods;
 };
 
+struct wbs_router_proxy {
+	bool			enabled;
+	std::string		host;
+	int				port;
+	bool			buffering;
+
+	std::map<std::string, std::string>	headers;
+
+	wbs_router_proxy() : enabled(false), host(""), port(0), buffering(false) {}
+};
+
 typedef struct wbs_router_headers::wbs_router_header	wbs_router_header_t;
 
 class Router
@@ -91,6 +102,7 @@ private:
 	bool							_autoindex;
 	std::vector<std::string>		_index;
 	std::map<int, std::string>		_error_page;
+	struct wbs_router_proxy			_proxy;
 
 	std::vector<Router *>			_routes;
 
@@ -114,6 +126,8 @@ private:
 	void	handleTRACEMethod(Request &request, Response &response);
 
 	void	handleCGI(Request &request, Response &response);
+
+	void	handlerProxy(Request &request, Response &response);
 
 	bool	matchRoute(const std::string &route, Response &response) const;
 
