@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 14:42:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 21:21:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ private:
 
 	void	handleCGI(Request &request, Response &response);
 
-	void	handlerProxy(Request &request, Response &response);
+	void	handleProxy(Request &request, Response &response);
 
 	bool	matchRoute(const std::string &route, Response &response) const;
 
