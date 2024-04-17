@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 21:23:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 02:43:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_clientAddr(clientAddr),
 	_headers_received(false),
 	_current_router(NULL),
+	request_time(getTimestamp()),
 	request(client, clientAddr),
 	response(NULL)
 {
@@ -27,7 +28,10 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 Client::~Client(void)
 {
 	if (this->response)
+	{
+		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
+	}
 	close(this->_client);
 	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
 }
@@ -55,16 +59,18 @@ int	Client::process(void)
 
 	if (this->processLines())
 	{
+		this->request_time = getTimestamp();
 		return (WBS_POLL_CLIENT_CLOSED);
 	}
 
 	if (this->request.processFinished())
 	{
+		this->request_time = getTimestamp();
 		/**
-		 * TODO:
-		 * virer ca et se servir directement du current router
+		 * Une fois que la requête est complètement parsée, on peut effectuer le routage.
 		 */
-		this->_server->handleRouting(&this->request, this->response);
+		// std::cout << "Router::route()" << *this->_current_router << std::endl;
+		this->_current_router->route(this->request, *this->response);
 		/**
 		 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).
 		 * On indique donc au cluster qu'il faut fermer la connexion.
@@ -84,7 +90,7 @@ int	Client::processLines(void) {
 		if (request.processLine(line))
 		{
 			// Dans le cas d'une erreur de parsing on envoie une réponse d'erreur
-			response->status(400).end();
+			this->response->status(400).end();
 			return (WBS_ERR);
 		}
 
@@ -107,11 +113,11 @@ int	Client::processLines(void) {
 			/**
 			 * La fonction Server::eval() retourne un pointeur vers le router correspondant à la requête
 			 * ou le router par défaut du server si aucun router correspondant n'a été trouvé, cette fonction
-			 * n'est donc jamais censée retourner NULL, mais on s'ecurise tout de même.
+			 * n'est donc jamais censée retourner NULL, mais on sécurise tout de même.
 			 */
 			if (this->_current_router == NULL)
 			{
-				this->response->status(404).end();
+				this->response->status(404).sendDefault().end();
 				return (WBS_ERR);
 			}
 
@@ -121,11 +127,7 @@ int	Client::processLines(void) {
 			 */
 			if (response->getStatus() != 200)
 			{
-				/**
-				 * TODO:
-				 * Ajouter une methode dans le router pour envoyer les pages d'erreur ou le corps par default
-				 */
-				response->end();
+				this->_current_router->sendResponse(*this->response);
 				return (WBS_ERR);
 			}
 
@@ -140,7 +142,6 @@ int	Client::processLines(void) {
 		}
 	}
 
-
 	if (!this->_buffer.empty() && this->request.headersReceived())
 	{
 		/**
@@ -149,7 +150,7 @@ int	Client::processLines(void) {
 		 */
 		if (this->request.bodyReceived() && !this->request.hasContentLength())
 		{
-			response->status(411).end();
+			response->status(411).sendDefault().end();
 			return (WBS_ERR);
 		}
 
@@ -169,7 +170,7 @@ bool	Client::timeout(void) {
 	if ((time_t)getTimestamp() > this->request.getRequestTime() + WBS_REQUEST_TIMEOUT)
 	{
 		Logger::debug("Client timeout");
-		this->response->status(408).end();
+		this->response->status(408).sendDefault().end();
 		return (true);
 	}
 	return (false);

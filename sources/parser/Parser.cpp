@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:10:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 01:59:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -319,20 +319,29 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "return") {
 		int status = 302;
 		std::string loc = val;
-		if (val.find(' ') != std::string::npos) {
+
+		if (val.find(' ') != std::string::npos)
+		{
 			std::vector<std::string> tokens = split(val, ' ');
-			if (tokens.size() == 2) {
+
+			if (tokens.size() == 2)
+			{
 				if (!isDigit(tokens[0]))
 					this->throwError(key, val);
 				status = std::atoi(tokens[0].c_str());
 				loc = tokens[1];
 			}
 			else if (tokens.size() > 2)
+			{
 				this->throwError(key, val);
-		} else if (isDigit(val)) {
+			}
+		}
+		else if (isDigit(val))
+		{
 			status = std::atoi(val.c_str());
 			loc = "";
 		}
+
 		if (!Response::isValidStatus(status)) {
 			Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
 		}
@@ -366,7 +375,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			if (!isDigit(tokens[i])) {
 				this->throwError(key, val);
 			}
-			this->tmp_router->setErrorPage(std::atoi(tokens[i].c_str()), tokens[tokens.size() - 1]);
+			int code = std::atoi(tokens[i].c_str());
+			if (code < 300 || code > 599) {
+				this->throwError(key, val, raw_line);
+			}
+			this->tmp_router->setErrorPage(code, tokens[tokens.size() - 1]);
 		}
 		return ;
 	}
