@@ -6,31 +6,35 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 15:11:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 20:53:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
 
-ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config): _client(client), _config(config), socket_fd(-1)
+ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config): _client(client), _config(config), socket_fd(-1), _pid(-1)
 {
 	
 }
 
 ProxyWorker::~ProxyWorker()
 {
-	
+	if (this->_pid > -1)
+	{
+		kill(this->_pid, SIGKILL);
+	}
 }
 
-int	ProxyWorker::connect()
+int	ProxyWorker::connect(const std::string &buffer)
 {
-	switch (fork())
+	switch ((this->_pid = fork()))
 	{
 	case -1:
 		perror("fork");
 		return (WBS_PROXY_ERROR);
 	case 0:
-		close(this->_client);
+		break;
+	default:
 		return (WBS_PROXY_OK);
 	}
 	int option = 1;
@@ -56,6 +60,12 @@ int	ProxyWorker::connect()
 	if (::connect(this->socket_fd, (struct sockaddr *)&this->socket_addr, sizeof(this->socket_addr)) < 0)
 	{
 		perror("connect");
+		return (WBS_PROXY_ERROR);
+	}
+
+	if (::send(this->socket_fd, buffer.c_str(), buffer.size(), 0) < 0)
+	{
+		perror("send");
 		return (WBS_PROXY_ERROR);
 	}
 }
