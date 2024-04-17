@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 02:43:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 14:35:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,14 +131,20 @@ int	Client::processLines(void) {
 				return (WBS_ERR);
 			}
 
-			if (this->_current_router->isProxy())
-			{
-				/**
-				 * TODO:
-				 * 
-				 * Setup le proxyworker
-				 */
-			}
+			/**
+			 * TODO:
+			 * 
+			 * Gere le proxybuffering off;
+			 * consiste à envoyer tout le contenu recu directement au server distant sans le stocker
+			 */
+			// if (this->_current_router->isProxy())
+			// {
+			// 	/**
+			// 	 * TODO:
+			// 	 * 
+			// 	 * Setup le proxyworker
+			// 	 */
+			// }
 		}
 	}
 

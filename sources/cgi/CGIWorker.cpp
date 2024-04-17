@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:54:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 14:55:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t
 		int r = 1;
 		while (r > 0)
 		{
-			memset(buffer, 0, WBS_CGIWORKER_BUFFER_SIZE);
+			bzero(buffer, WBS_CGIWORKER_BUFFER_SIZE);
 			r = read(fdout, buffer, WBS_CGIWORKER_BUFFER_SIZE);
 			if (r > 0)
 				result += buffer;

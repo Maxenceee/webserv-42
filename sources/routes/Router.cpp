@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 01:28:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/17 14:42:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -420,6 +420,14 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	if (!response.canSend())
 		return (false);
 
+	if (this->_proxy.enabled) {
+		/**
+		 * Si le router est configuré comme étant un proxy, on envoie la requête au server distant.
+		 */
+		this->handleProxy(request, response);
+		return (true);
+	}
+
 	/**
 	 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
 	 * desactive la verification de la limite de taille du corps de la requête.
@@ -660,6 +668,11 @@ void	Router::handleCGI(Request &request, Response &response)
 		body = buffer.str();
 	}
 	response.sendCGI(CGIWorker::run(request, fullpath, this->_cgi.params, this->_cgi.path, body)).end();
+}
+
+void	Router::handlerProxy(Request &request, Response &response)
+{
+	Logger::debug("<------------ "B_BLUE"Proxy"B_GREEN" handler"RESET" ------------>");
 }
 
 void	Router::call(std::string method, Request &request, Response &response)
