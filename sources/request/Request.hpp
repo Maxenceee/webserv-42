@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:17:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:20:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,9 @@
 #define WBS_REQ_ERROR		1
 
 enum ChunkProcessResult {
-	WBS_CHUNK_PROCESS_OK	= 0x00,        // Le traitement du chunk s'est bien déroulé
-	WBS_CHUNK_PROCESS_ZERO	= 0x01,      // Un chunk de taille 0 a été rencontré
-	WBS_CHUNK_PROCESS_ERROR	= 0x02      // Une erreur s'est produite pendant le traitement du chunk
+	WBS_CHUNK_PROCESS_OK	= 0x00,		// Le traitement du chunk s'est bien déroulé
+	WBS_CHUNK_PROCESS_ZERO	= 0x01,		// Un chunk de taille 0 a été rencontré
+	WBS_CHUNK_PROCESS_ERROR	= 0x02		// Une erreur s'est produite pendant le traitement du chunk
 };
 
 class Server;
