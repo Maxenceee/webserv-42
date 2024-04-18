@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 21:21:21 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:17:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ struct wbs_router_location {
 struct wbs_router_cgi_data {
 	bool			enabled;
 	std::string		path;
-	t_mapss			params;
+	wbs_mapss_t		params;
 };
 
 struct wbs_router_headers {
@@ -81,7 +81,7 @@ struct wbs_router_proxy {
 	int				port;
 	bool			buffering;
 
-	std::map<std::string, std::string>	headers;
+	wbs_mapss_t		headers;
 
 	wbs_router_proxy() : enabled(false), host(""), port(0), buffering(false) {}
 };
@@ -101,7 +101,7 @@ private:
 	struct wbs_router_method		_allowed_methods;
 	bool							_autoindex;
 	std::vector<std::string>		_index;
-	std::map<int, std::string>		_error_page;
+	wbs_mapis_t						_error_page;
 	struct wbs_router_proxy			_proxy;
 
 	std::vector<Router *>			_routes;

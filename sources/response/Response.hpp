@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 02:03:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:18:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,12 +39,12 @@ private:
 	std::string			_version;
 	std::string			_method;
 	std::string			_path;
-	t_mapss				_headers;
-	t_mapss				_cookie;
+	wbs_mapss_t			_headers;
+	wbs_mapss_t			_cookie;
 	std::string			_body;
 	
-	static std::map<int, std::string>		initCodes();
-	static std::map<int, std::string>		http_codes;
+	static wbs_mapis_t	initCodes();
+	static wbs_mapis_t	http_codes;
 	
 	const std::string	prepareResponse(void);
 	std::string			getTime(void);
@@ -75,8 +75,8 @@ public:
 	const std::string		&getVersion(void) const;
 	int						getStatus(void) const;
 	const std::string		&getSatusName(void) const;
-	const t_mapss			&getHeaders(void) const;
-	const t_mapss			&getCookies(void) const;
+	const wbs_mapss_t		&getHeaders(void) const;
+	const wbs_mapss_t		&getCookies(void) const;
 	const std::string		&getBody(void) const;
 
 	bool					canSend(void) const;

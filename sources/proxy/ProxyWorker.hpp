@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:20 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 20:53:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:05:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,9 @@ class Client;
 
 enum wbs_proxy_code
 {
-	WBS_PROXY_OK = 0,
-	WBS_PROXY_ERROR = 1,
-	WBS_PROXY_TIMEOUT = 2
+	WBS_PROXY_OK		= 0,
+	WBS_PROXY_ERROR		= 1,
+	WBS_PROXY_TIMEOUT	= 2
 };
 
 class ProxyWorker

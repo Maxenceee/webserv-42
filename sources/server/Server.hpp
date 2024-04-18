@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 02:28:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:12:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ public:
 	static std::vector<std::string>		methods;
 	
 	Router		*eval(Request &request, Response &response) const;
-	void		handleRouting(Request *request, Response *response);
+	// void		handleRouting(Request *request, Response *response);
 	
 	static void		printResponse(const Request &req, const Response &res, const double response_duration);
 	void			print(std::ostream &os) const;

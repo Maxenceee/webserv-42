@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:16:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ bool	isDirectory(const std::string &path)
 	return S_ISDIR(pathStat.st_mode);
 }
 
-void listFilesInDirectory(const std::string &path, std::map<std::string, std::string> &fileMap, bool recursive)
+void listFilesInDirectory(const std::string &path, wbs_mapss_t &fileMap, bool recursive)
 {
 	DIR				*dir;
 	struct dirent	*ent;
@@ -86,10 +86,10 @@ void listFilesInDirectory(const std::string &path, std::map<std::string, std::st
 
 void	listDirContent(const std::string dirpath)
 {
-	std::map<std::string, std::string>	active_dir_files; // temp
+	wbs_mapss_t	active_dir_files; // temp
 
 	listFilesInDirectory(dirpath, active_dir_files);
-	for (std::map<std::string, std::string>::iterator it = active_dir_files.begin(); it != active_dir_files.end(); it++)
+	for (wbs_mapss_t::iterator it = active_dir_files.begin(); it != active_dir_files.end(); it++)
 		std::cout << it->first << " -> " << it->second << std::endl;
 }
 
