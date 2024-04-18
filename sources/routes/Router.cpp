@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 21:21:21 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:17:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -616,8 +616,8 @@ void	Router::handleTRACEMethod(Request &request, Response &response)
 	Logger::debug("<------------ "B_BLUE"TRACE"B_GREEN" handler"RESET" ------------>");
 	
 	std::string res = request.getMethod() + " " + request.getPath() + " " + request.getVersion() + WBS_CRLF;
-	t_mapss headers = request.getHeaders();
-	for (t_mapss::const_iterator it = headers.begin(); it != headers.end(); it++) {
+	wbs_mapss_t headers = request.getHeaders();
+	for (wbs_mapss_t::const_iterator it = headers.begin(); it != headers.end(); it++) {
 		res += it->first + ": " + it->second + WBS_CRLF;
 	}
 	response.status(200).send(res).end();
@@ -846,7 +846,7 @@ void	Router::reload(void)
 	if (!this->_allowed_methods.enabled) {
 		this->_allowed_methods.methods = this->_parent->_allowed_methods.methods;
 	}
-	for (std::map<int, std::string>::iterator it = this->_parent->_error_page.begin(); it != this->_parent->_error_page.end(); it++) {
+	for (wbs_mapis_t::iterator it = this->_parent->_error_page.begin(); it != this->_parent->_error_page.end(); it++) {
 		if (!this->_error_page.count(it->first)) {
 			this->_error_page[it->first] = it->second;
 		}
@@ -861,7 +861,7 @@ void	Router::reload(void)
 
 const std::string	Router::getDirList(const std::string dirpath, std::string reqPath)
 {
-	t_mapss		content;
+	wbs_mapss_t	content;
 	std::string	res;
 
 	this->checkLeadingTrailingSlash(reqPath);
@@ -881,7 +881,7 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 	replace(res, "<%= dir_tree %>", dirhierachy);
 	temp = "";
 	std::string icon;
-	for (t_mapss::iterator it = content.begin(); it != content.end(); it++) {
+	for (wbs_mapss_t::iterator it = content.begin(); it != content.end(); it++) {
 		if ((it->first == "..") || isDirectory(it->second))
 			icon = "icon-directory";
 		else
@@ -926,7 +926,7 @@ void	Router::print(std::ostream &os) const
 			os << space << it->key << ": " << it->value << (it->always ? " (always)" : "") << "\n";
 	}
 	os << space << B_CYAN"Error pages: " << RESET << "\n";
-	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
+	for (wbs_mapis_t::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
 		os << space << it->first << " => " << it->second << "\n";
 	if (this->_routes.size()) {
 		os << "\n";

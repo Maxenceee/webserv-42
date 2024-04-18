@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 18:19:44 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 14:36:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:16:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,17 @@
 
 std::ostream	&operator<<(std::ostream &os, const Response &res)
 {
-	t_mapss::const_iterator	it;
+	wbs_mapss_t::const_iterator	it;
 
 	os << B_GREEN"HTTP" << RESET << "/" << res.getVersion() << " " << res.getStatus() << " " << res.getSatusName() << "\n";
 
 	os << B_CYAN"Headers: " << RESET << std::endl;
-	const t_mapss &headers = res.getHeaders();
+	const wbs_mapss_t &headers = res.getHeaders();
 	for (it = headers.begin(); it != headers.end(); it++)
 		os << "\t" << it->first << ": " << it->second << "\n";
 
 	os << B_CYAN"Cookie: " << RESET << std::endl;
-	const t_mapss &cookies = res.getCookies();
+	const wbs_mapss_t &cookies = res.getCookies();
 	for (it = cookies.begin(); it != cookies.end(); it++)
 		os << "\t" << it->second << "\n";
 
@@ -53,12 +53,12 @@ const std::string	&Response::getSatusName(void) const
 	return (this->http_codes[this->_status]);
 }
 
-const t_mapss	&Response::getHeaders(void) const
+const wbs_mapss_t	&Response::getHeaders(void) const
 {
 	return (this->_headers);
 }
 
-const t_mapss	&Response::getCookies(void) const
+const wbs_mapss_t	&Response::getCookies(void) const
 {
 	return (this->_cookie);
 }

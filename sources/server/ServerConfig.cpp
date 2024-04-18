@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 02:01:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:13:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ void	ServerConfig::addName(const std::string name)
 	}
 }
 
-const std::vector<struct wbs_server_name>	&ServerConfig::getNames(void) const
+const wbs_server_names	&ServerConfig::getNames(void) const
 {
 	return (this->_server_name);
 }
@@ -164,7 +164,7 @@ void	ServerConfig::print(std::ostream &os) const
 		os << B_GREEN << "default" << RESET;
 	os << "\n";
 	os << B_CYAN << "Name: " << RESET;
-	for (std::vector<struct wbs_server_name>::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
+	for (wbs_server_names::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{
 		os << it->name;
 		if (it->port > 0)

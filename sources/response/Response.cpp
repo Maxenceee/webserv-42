@@ -6,14 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 02:04:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:17:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 #include "MIMEType.hpp"
 
-std::map<int, std::string>	Response::http_codes = Response::initCodes();
+wbs_mapis_t	Response::http_codes = Response::initCodes();
 
 Response::Response(int socket, const Request &req): _sent(false)
 {
@@ -33,9 +33,9 @@ Response::Response(int socket, const Request &req): _sent(false)
 	}
 }
 
-std::map<int, std::string>	Response::initCodes()
+wbs_mapis_t	Response::initCodes()
 {
-	std::map<int, std::string>	codes;
+	wbs_mapis_t	codes;
 	
 	/**
 	 * Information
@@ -358,10 +358,10 @@ const std::string	Response::prepareResponse(void)
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
 	 */
 	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + WBS_CRLF;
-	for (t_mapss::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
+	for (wbs_mapss_t::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
 		res += it->first + ": " + it->second + WBS_CRLF;
 	}
-	for (t_mapss::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
+	for (wbs_mapss_t::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
 		res += "Set-Cookie: " + it->second + WBS_CRLF;
 	}
 	res += WBS_CRLF;

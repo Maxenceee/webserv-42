@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:04:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,15 +23,15 @@ class Parser;
 typedef std::vector<Server*>	v_servers;
 
 enum wbs_polltype {
-	WBS_POLL_SERVER = 0x00,
-	WBS_POLL_CLIENT = 0x01
+	WBS_POLL_SERVER	= 0x00,
+	WBS_POLL_CLIENT	= 0x01
 };
 
 enum wbs_pollclientstatus {
-	WBS_POLL_CLIENT_OK = 0x00,
-	WBS_POLL_CLIENT_DISCONNECT = 0x01,
-	WBS_POLL_CLIENT_CLOSED = 0x02,
-	WBS_POLL_CLIENT_ERROR = 0x03
+	WBS_POLL_CLIENT_OK			= 0x00,
+	WBS_POLL_CLIENT_DISCONNECT	= 0x01,
+	WBS_POLL_CLIENT_CLOSED		= 0x02,
+	WBS_POLL_CLIENT_ERROR		= 0x03
 };
 
 struct wbs_pollclient {
