@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:04:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:28:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 
 class Parser;
 
-typedef std::vector<Server*>	v_servers;
+typedef std::vector<Server*>	wsb_v_servers_t;
 
 enum wbs_polltype {
 	WBS_POLL_SERVER	= 0x00,

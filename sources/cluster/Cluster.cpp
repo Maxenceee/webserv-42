@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:54:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:32:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ Cluster::~Cluster()
 	Logger::print("Shutting down webserv", B_GREEN);
 	if (this->parser)
 		delete this->parser;
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		delete *it;
 	Logger::debug("Cluster destroyed");
 }
@@ -40,7 +40,7 @@ Cluster::~Cluster()
 void	Cluster::parse(const char *configPath)
 {
 	this->parser->parse(configPath);
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		(*it)->init();
 		if (Logger::_debug)
@@ -60,7 +60,7 @@ void	Cluster::initConfigs(std::vector<ServerConfig *> &configs)
 
 Server	*Cluster::addConfig(ServerConfig *config)
 {
-	v_servers::iterator it;
+	wsb_v_servers_t::iterator it;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress())
@@ -77,10 +77,10 @@ Server	*Cluster::addConfig(ServerConfig *config)
 
 int		Cluster::start(void)
 {
-	std::vector<pollfd>			poll_fds;
+	std::vector<pollfd>				poll_fds;
 	std::map<int, wbs_pollclient>	poll_clients;
-	const int					timeout = 100;
-	v_servers::iterator			it;
+	const int						timeout = WBS_POLL_TIMEOUT;
+	wsb_v_servers_t::iterator		it;
 
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
@@ -107,7 +107,7 @@ int		Cluster::start(void)
 		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
 	}
 
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		Server *server = *it;
 		Logger::print("Listening on port " + toString<int>(server->getPort()), B_GREEN);
@@ -119,7 +119,7 @@ int		Cluster::start(void)
 		 * Elle prend en paramètres le descripteur de fichiers du socket et la taille de la file
 		 * d'attente.
 		 */
-		int error = listen(server->getSocketFD(), 1024);
+		int error = listen(server->getSocketFD(), WBS_DEFAULT_MAX_WORKERS);
 		if (error == -1)
 		{
 			Logger::error("server error: an error occurred while listening");
@@ -254,7 +254,7 @@ int		Cluster::start(void)
 	}
 
 	// On eteint les serveurs et libère la mémoire
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->kill();
 
 	return (WBS_NOERR);

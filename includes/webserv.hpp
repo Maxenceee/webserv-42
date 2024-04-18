@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:19:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:32:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,14 @@
 #else
 #define WBS_REQUEST_TIMEOUT	60000 // 1 minute in milliseconds
 #endif /* REQUEST_TIMEOUT */
+
+#ifdef POLL_TIMEOUT
+#define WBS_POLL_TIMEOUT	POLL_TIMEOUT
+#else
+#define WBS_POLL_TIMEOUT	100
+#endif /* POLL_TIMEOUT */
+
+#define WBS_DEFAULT_MAX_WORKERS	1024
 
 /* */
 
