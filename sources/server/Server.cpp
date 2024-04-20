@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 14:55:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 13:15:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,10 @@ std::ostream	&operator<<(std::ostream &os, const Server &server)
 
 std::vector<std::string>	Server::methods = Server::initMethods();
 
-Server::Server(int id, uint16_t port, uint32_t address): _id(id), port(port), _address(address)
+Server::Server(int id, uint16_t port, uint32_t address):
+	_id(id),
+	port(port),
+	_address(address)
 {
 	this->_default = NULL;
 	this->_init = false;

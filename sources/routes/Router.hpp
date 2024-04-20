@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:17:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:39:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,7 +188,10 @@ public:
 
 	void				sendResponse(Response &response);
 
-	bool				isProxy(void) const;
+	void							setProxy(const std::string host, const int port);
+	void							addProxyHeader(const std::string key, const std::string value);
+	bool							isProxy(void) const;
+	const struct wbs_router_proxy	&getProxyConfig(void) const;
 
 	void	print(std::ostream &os) const;
 };

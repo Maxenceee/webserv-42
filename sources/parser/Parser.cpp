@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 01:59:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:40:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -445,6 +445,78 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		this->tmp_router->addHeader(tokens[0], tokens[1], always);
 		return ;
 	
+	}
+
+	/**
+	 * Directive proxy_pass
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass)
+	 */
+	if (key == "proxy_pass") {
+		std::string url = val;
+    
+		std::string protocol;
+		std::string host;
+		std::string port;
+		std::string path;
+		
+		// Vérifie si la chaîne commence par "http://" ou "https://"
+		if (url.substr(0, 7) == "http://") {
+			protocol = "http";
+			url = url.substr(7);
+		} else if (url.substr(0, 8) == "https://") {
+			protocol = "https";
+			url = url.substr(8);
+		} else {
+			protocol = "http"; // Par défaut
+		}
+		
+		size_t pos = url.find('/');
+		if (pos == std::string::npos) {
+			host = url;
+			path = "/";
+		} else {
+			host = url.substr(0, pos);
+			path = url.substr(pos);
+		}
+
+		if (host.find(':') != std::string::npos) {
+			std::vector<std::string> hostTokens = split(host, ':');
+			host = hostTokens[0];
+			port = hostTokens[1];
+		} else {
+			port = "80"; // Par défaut
+		}
+
+		if (!isNumber(port))
+			this->throwError(key, val, raw_line);
+
+		if (!isIPAddress(host))
+		{
+			Logger::error("parser error: the server won't do the dns resolution, please provide an IP address.");
+			this->throwError(key, val, raw_line);
+		}
+
+		// std::cout << "Protocol: " << protocol << std::endl;
+		// std::cout << "Host: " << host << std::endl;
+		// std::cout << "Port: " << port << std::endl;
+		// std::cout << "Path: " << path << std::endl;
+
+		this->tmp_router->setProxy(host, std::atoi(port.c_str()));
+		return ;
+	}
+
+	/**
+	 * Directive proxy_pass_header
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_header)
+	 */
+	if (key == "proxy_pass_header") {
+		std::vector<std::string> tokens = split(val, ' ');
+		if (tokens.size() < 2 || tokens.size() > 3)
+			this->throwError(key, val);
+		this->tmp_router->addProxyHeader(tokens[0], tokens[1]);
+		return ;
 	}
 
 	/**

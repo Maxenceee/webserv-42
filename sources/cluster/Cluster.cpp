@@ -6,12 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:32:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:58:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
 #include "client/Client.hpp"
+#include "proxy/ProxyClient.hpp"
 
 bool Cluster::exit = true;
 
@@ -133,7 +134,7 @@ int		Cluster::start(void)
 
 	int newClient;
 	Client *client;
-	// Server *server;
+	ProxyClient *proxy;
 
 	do
 	{
@@ -215,11 +216,17 @@ int		Cluster::start(void)
 					/**
 					 * On crée un nouveau client et on l'ajoute à la liste des clients
 					 */
-					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
+					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr, poll_fds, poll_clients)};
 					break;
 
 				case WBS_POLL_CLIENT:
 					if ((client = reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
+						to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+					}
+					break;
+
+				case WBS_POLL_PROXY:
+					if ((proxy = reinterpret_cast<ProxyClient *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
 						to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
 					}
 					break;
@@ -244,6 +251,8 @@ int		Cluster::start(void)
 			poll_clients.erase(newClient);
 			delete client;
 		}
+		std::cout << "clients: " << poll_clients.size() << std::endl;
+		std::cout << "fds: " << poll_fds.size() << std::endl;
 	} while (!this->exit);
 
 	// On ferme les sockets des clients et libère la mémoire

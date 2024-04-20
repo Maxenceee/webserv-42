@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:17:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:42:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,11 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Router *parent, const struct wbs_router_location location, int level): _parent(parent), _location(location), _autoindex(false), level(level)
+Router::Router(Router *parent, const struct wbs_router_location location, int level):
+	_parent(parent),
+	_location(location),
+	_autoindex(false),
+	level(level)
 {
 	/**
 	 * Par défault le router hérite de la racine de son parent. Celui-ci peut être
@@ -90,6 +94,8 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 
 	this->_redirection.enabled = false;
 	this->_cgi.enabled = false;
+	this->_proxy.enabled = false;
+	this->_proxy.buffering = true;
 }
 
 Router::~Router(void)
@@ -342,9 +348,32 @@ const std::string	&Router::getCGIPath(void) const
 	return (this->_cgi.path);
 }
 
+void	Router::setProxy(const std::string host, const int port)
+{
+	if (this->_proxy.enabled)
+	{
+		Logger::warning("router warning: Proxy is already enabled");
+		return;
+	}
+
+	this->_proxy.enabled = true;
+	this->_proxy.host = host;
+	this->_proxy.port = port;	
+}
+
+void	Router::addProxyHeader(const std::string key, const std::string value)
+{
+	this->_proxy.headers[key] = value;
+}
+
 bool	Router::isProxy(void) const
 {
-	return (false);
+	return (this->_proxy.enabled);
+}
+
+const struct wbs_router_proxy	&Router::getProxyConfig(void) const
+{
+	return (this->_proxy);
 }
 
 void	Router::use(Router *router)
@@ -918,6 +947,11 @@ void	Router::print(std::ostream &os) const
 	os << space << B_CYAN"CGI: " << RESET << (this->_cgi.enabled ? "enabled" : "disabled") << "\n";
 	if (this->_cgi.enabled) {
 		os << space << B_CYAN"CGI path: " << RESET << this->_cgi.path << "\n";
+	}
+	os << space << B_CYAN"Proxy: " << RESET << (this->_proxy.enabled ? "enabled" : "disabled") << "\n";
+	if (this->_proxy.enabled) {
+		os << space << B_CYAN"Proxy host: " << RESET << this->_proxy.host << "\n";
+		os << space << B_CYAN"Proxy port: " << RESET << this->_proxy.port << "\n";
 	}
 	os << space << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
 	if (this->_headers.list.size()) {

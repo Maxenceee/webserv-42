@@ -6,19 +6,23 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:21:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:57:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Client.hpp"
 
-Client::Client(Server *server, const int client, sockaddr_in clientAddr):
+Client::Client(Server *server, const int client, sockaddr_in clientAddr, std::vector<pollfd> &poll_fds, std::map<int, wbs_pollclient> &poll_clients):
 	_server(server),
 	_client(client),
 	_clientAddr(clientAddr),
 	_headers_received(false),
+	_poll_fds(poll_fds),
+	_poll_clients(poll_clients),
 	_current_router(NULL),
+	_proxy(NULL),
+	is_proxy(false),
 	request_time(getTimestamp()),
 	request(client, clientAddr),
 	response(NULL)
@@ -32,6 +36,8 @@ Client::~Client(void)
 		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
 	}
+	if (this->_proxy)
+		this->_proxy->disconnect();
 	close(this->_client);
 	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
 }
@@ -57,6 +63,19 @@ int	Client::process(void)
 
 	this->_buffer.append(buffer, valread);
 
+	if (this->is_proxy)
+	{
+		/**
+		 * Si le client est un proxy, on envoie directement le contenu reçu au serveur distant.
+		 */
+		if (this->_proxy->send(this->_buffer))
+		{
+			this->response->status(502).sendDefault().end();
+			return (WBS_ERR);
+		}
+		return (WBS_POLL_CLIENT_OK);
+	}
+
 	if (this->processLines())
 	{
 		this->request_time = getTimestamp();
@@ -65,16 +84,51 @@ int	Client::process(void)
 
 	if (this->request.processFinished())
 	{
-		this->request_time = getTimestamp();
-		/**
-		 * Une fois que la requête est complètement parsée, on peut effectuer le routage.
-		 */
-		// std::cout << "Router::route()" << *this->_current_router << std::endl;
-		this->_current_router->route(this->request, *this->response);
-		/**
-		 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).
-		 * On indique donc au cluster qu'il faut fermer la connexion.
-		 */
+		if (this->_current_router->isProxy() && !this->_proxy)
+		{
+			this->_proxy = new ProxyClient(this->_client, this->_current_router->getProxyConfig());
+			if (this->_proxy->connect())
+			{
+				this->response->status(502).sendDefault().end();
+				delete this->_proxy;
+				this->_proxy = NULL;
+				return (WBS_POLL_CLIENT_ERROR);
+			}
+
+			/**
+			 * On ajoute le client du proxy au tableau des descripteurs à surveiller.
+			 */
+			this->_poll_fds.push_back((pollfd){this->_proxy->getSocketFD(), POLLIN, 0});
+
+			this->_poll_clients[this->_proxy->getSocketFD()] = (wbs_pollclient){WBS_POLL_PROXY, this->_proxy};
+
+			/**
+			 * On indique que le client est un proxy.
+			 */
+			this->is_proxy = true;
+
+			/**
+			 * On envoie la requête au serveur distant.
+			 */
+			if (this->_proxy->send(this->request))
+			{
+				this->response->status(502).sendDefault().end();
+				return (WBS_POLL_CLIENT_ERROR);
+			}
+		}
+		else
+		{
+			this->request_time = getTimestamp();
+			/**
+			 * Une fois que la requête est complètement parsée, on peut effectuer le routage.
+			 */
+			// std::cout << "Router::route()" << *this->_current_router << std::endl;
+			this->_current_router->route(this->request, *this->response);
+			/**
+			 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).
+			 * On indique donc au cluster qu'il faut fermer la connexion.
+			 */
+		}
 		return (WBS_POLL_CLIENT_CLOSED);
 	}
 	return (WBS_POLL_CLIENT_OK);
