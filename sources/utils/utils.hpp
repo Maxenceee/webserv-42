@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:16:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:03:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ std::string	toStringl(T &container, std::string separator = " ");
 void	printFileInfo(const char *filename);
 int		isFile(const std::string &path);
 bool	isDirectory(const std::string &path);
-void	listFilesInDirectory(const std::string &path, wbs_mapss_t &fileMap, bool recursive = true);
+void	listFilesInDirectory(const std::string &path, std::map<std::string, std::string> &fileMap, bool recursive = true);
 void	listDirContent(const std::string dirpath);
 std::string	getLastModifiedDate(const std::string filepath);
 

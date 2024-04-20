@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:18:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 13:30:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ private:
 	std::string			_body;
 	
 	static wbs_mapis_t	initCodes();
-	static wbs_mapis_t	http_codes;
 	
 	const std::string	prepareResponse(void);
 	std::string			getTime(void);
@@ -52,6 +51,8 @@ private:
 public:
 	Response(int socket, const Request &req);
 	~Response(void);
+
+	static wbs_mapis_t	http_codes;
 
 	static bool		isValidStatus(int status);
 

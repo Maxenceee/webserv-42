@@ -6,13 +6,17 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 20:53:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 13:16:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
 
-ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config): _client(client), _config(config), socket_fd(-1), _pid(-1)
+ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config):
+	_client(client),
+	_config(config),
+	socket_fd(-1),
+	_pid(-1)
 {
 	
 }
