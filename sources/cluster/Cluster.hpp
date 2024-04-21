@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 13:08:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/21 12:07:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ enum wbs_pollclientstatus {
 
 struct wbs_pollclient {
 	enum wbs_polltype	type;
-	void			*data;
+	void				*data;
 };
 
 class Cluster
