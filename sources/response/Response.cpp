@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:59:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/05/01 18:16:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ std::map<int, std::string>	Response::initCodes()
 	 */
 	codes[500] = "Internal Server Error";
 	codes[501] = "Not Implemented";
-	codes[502] = "Bad Gateway ou Proxy Error";
+	codes[502] = "Bad Gateway";
 	codes[503] = "Service Unavailable";
 	codes[504] = "Gateway Time-out";
 	codes[505] = "HTTP Version not supported";
