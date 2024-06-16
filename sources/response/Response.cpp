@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:17:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/16 11:30:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -462,4 +462,9 @@ Response		&Response::clearBody(void)
 bool		Response::hasBody(void) const
 {
 	return (this->_body.size() > 0);
+}
+
+void	Response::cancel(void)
+{
+	this->_sent = true;
 }

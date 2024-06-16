@@ -6,23 +6,25 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 14:57:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/16 11:54:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Client.hpp"
 
-Client::Client(Server *server, const int client, sockaddr_in clientAddr, std::vector<pollfd> &poll_fds, std::map<int, wbs_pollclient> &poll_clients):
+// Client::Client(Server *server, const int client, sockaddr_in clientAddr, std::vector<pollfd> &poll_fds, std::map<int, wbs_pollclient> &poll_clients):
+Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_server(server),
 	_client(client),
 	_clientAddr(clientAddr),
 	_headers_received(false),
-	_poll_fds(poll_fds),
-	_poll_clients(poll_clients),
+	// _poll_fds(poll_fds),
+	// _poll_clients(poll_clients),
 	_current_router(NULL),
-	_proxy(NULL),
-	is_proxy(false),
+	// _proxy(NULL),
+	// is_proxy(false),
+	upgraded_to_proxy(false),
 	request_time(getTimestamp()),
 	request(client, clientAddr),
 	response(NULL)
@@ -31,13 +33,25 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr, std::ve
 
 Client::~Client(void)
 {
+	if (this->upgraded_to_proxy)
+	{
+		/**
+		 * Lorsque le Client est passé en mode proxy, ce dernier passe le relais au ProxyWorker,
+		 * et doit être detruit mais sans fermer la connexion avec le client.
+		 * Dans ce cas on annule la réponse et on supprime le pointeur.
+		 */
+		this->response->cancel();
+		delete this->response;
+		Logger::debug(B_YELLOW"------------------Client upgraded to proxy and closed-------------------\n");
+		return ;
+	}
 	if (this->response)
 	{
 		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
 	}
-	if (this->_proxy)
-		this->_proxy->disconnect();
+	// if (this->_proxy)
+	// 	this->_proxy->disconnect();
 	close(this->_client);
 	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
 }
@@ -63,18 +77,18 @@ int	Client::process(void)
 
 	this->_buffer.append(buffer, valread);
 
-	if (this->is_proxy)
-	{
-		/**
-		 * Si le client est un proxy, on envoie directement le contenu reçu au serveur distant.
-		 */
-		if (this->_proxy->send(this->_buffer))
-		{
-			this->response->status(502).sendDefault().end();
-			return (WBS_ERR);
-		}
-		return (WBS_POLL_CLIENT_OK);
-	}
+	// if (this->is_proxy)
+	// {
+	// 	/**
+	// 	 * Si le client est un proxy, on envoie directement le contenu reçu au serveur distant.
+	// 	 */
+	// 	if (this->_proxy->send(this->_buffer))
+	// 	{
+	// 		this->response->status(502).sendDefault().end();
+	// 		return (WBS_ERR);
+	// 	}
+	// 	return (WBS_POLL_CLIENT_OK);
+	// }
 
 	if (this->processLines())
 	{
@@ -84,37 +98,38 @@ int	Client::process(void)
 
 	if (this->request.processFinished())
 	{
-		if (this->_current_router->isProxy() && !this->_proxy)
+		if (this->_current_router->isProxy())
 		{
-			this->_proxy = new ProxyClient(this->_client, this->_current_router->getProxyConfig());
-			if (this->_proxy->connect())
-			{
-				this->response->status(502).sendDefault().end();
-				delete this->_proxy;
-				this->_proxy = NULL;
-				return (WBS_POLL_CLIENT_ERROR);
-			}
+			// this->_proxy = new ProxyClient(this->_client, this->_current_router->getProxyConfig());
+			// if (this->_proxy->connect())
+			// {
+			// 	this->response->status(502).sendDefault().end();
+			// 	delete this->_proxy;
+			// 	this->_proxy = NULL;
+			// 	return (WBS_POLL_CLIENT_ERROR);
+			// }
 
-			/**
-			 * On ajoute le client du proxy au tableau des descripteurs à surveiller.
-			 */
-			this->_poll_fds.push_back((pollfd){this->_proxy->getSocketFD(), POLLIN, 0});
+			// /**
+			//  * On ajoute le client du proxy au tableau des descripteurs à surveiller.
+			//  */
+			// this->_poll_fds.push_back((pollfd){this->_proxy->getSocketFD(), POLLIN, 0});
 
-			this->_poll_clients[this->_proxy->getSocketFD()] = (wbs_pollclient){WBS_POLL_PROXY, this->_proxy};
+			// this->_poll_clients[this->_proxy->getSocketFD()] = (wbs_pollclient){WBS_POLL_PROXY, this->_proxy};
 
-			/**
-			 * On indique que le client est un proxy.
-			 */
-			this->is_proxy = true;
+			// /**
+			//  * On indique que le client est un proxy.
+			//  */
+			// this->is_proxy = true;
 
-			/**
-			 * On envoie la requête au serveur distant.
-			 */
-			if (this->_proxy->send(this->request))
-			{
-				this->response->status(502).sendDefault().end();
-				return (WBS_POLL_CLIENT_ERROR);
-			}
+			// /**
+			//  * On envoie la requête au serveur distant.
+			//  */
+			// if (this->_proxy->send(this->request))
+			// {
+			// 	this->response->status(502).sendDefault().end();
+			// 	return (WBS_POLL_CLIENT_ERROR);
+			// }
+			// printf("request finished: new ProxyWorker !!!\n");
 		}
 		else
 		{
@@ -179,7 +194,7 @@ int	Client::processLines(void) {
 			 * Si lors de l'évaluation de la requête, on il y a eu une erreur, le code de statut de la réponse
 			 * est alors différent de 200, on envoie donc une réponse d'erreur.
 			 */
-			if (response->getStatus() != 200)
+			if (this->response->getStatus() != 200)
 			{
 				this->_current_router->sendResponse(*this->response);
 				return (WBS_ERR);
@@ -190,15 +205,17 @@ int	Client::processLines(void) {
 			 * 
 			 * Gerer le proxybuffering off;
 			 * consiste à envoyer tout le contenu recu directement au server distant sans le stocker
+			 * a voir, va surement etre directement geré par proxyworker
 			 */
-			// if (this->_current_router->isProxy())
-			// {
-			// 	/**
-			// 	 * TODO:
-			// 	 * 
-			// 	 * Setup le proxyworker
-			// 	 */
-			// }
+			if (this->_current_router->isProxy())
+			{
+				/**
+				 * TODO:
+				 * 
+				 * Setup le proxyworker
+				 */
+				printf("new proxy worker\n");
+			}
 		}
 	}
 
@@ -210,14 +227,14 @@ int	Client::processLines(void) {
 		 */
 		if (this->request.bodyReceived() && !this->request.hasContentLength())
 		{
-			response->status(411).sendDefault().end();
+			this->response->status(411).sendDefault().end();
 			return (WBS_ERR);
 		}
 
 		if (request.processLine(this->_buffer))
 		{
 			// Dans le cas d'une erreur on envoie une réponse d'erreur
-			response->status(400).end();
+			this->response->status(400).end();
 			return (WBS_ERR);
 		}
 		this->_buffer.clear();
