@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 14:58:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/16 11:15:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ int		Cluster::start(void)
 
 	int newClient;
 	Client *client;
-	ProxyClient *proxy;
+	// ProxyClient *proxy;
 
 	do
 	{
@@ -216,7 +216,8 @@ int		Cluster::start(void)
 					/**
 					 * On crée un nouveau client et on l'ajoute à la liste des clients
 					 */
-					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr, poll_fds, poll_clients)};
+					// poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr, poll_fds, poll_clients)};
+					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
 					break;
 
 				case WBS_POLL_CLIENT:
@@ -225,11 +226,11 @@ int		Cluster::start(void)
 					}
 					break;
 
-				case WBS_POLL_PROXY:
-					if ((proxy = reinterpret_cast<ProxyClient *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
-						to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
-					}
-					break;
+				// case WBS_POLL_PROXY:
+				// 	if ((proxy = reinterpret_cast<ProxyClient *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
+				// 		to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+				// 	}
+				// 	break;
 				}
 			}
 			// Si le descripteur n'est pas prêt pour la lecture et que c'est un client, on
@@ -251,8 +252,8 @@ int		Cluster::start(void)
 			poll_clients.erase(newClient);
 			delete client;
 		}
-		std::cout << "clients: " << poll_clients.size() << std::endl;
-		std::cout << "fds: " << poll_fds.size() << std::endl;
+		// std::cout << "clients: " << poll_clients.size() << std::endl;
+		// std::cout << "fds: " << poll_fds.size() << std::endl;
 	} while (!this->exit);
 
 	// On ferme les sockets des clients et libère la mémoire

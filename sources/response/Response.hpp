@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 13:30:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/16 11:28:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@ public:
 	const std::string		&getBody(void) const;
 
 	bool					canSend(void) const;
+	void					cancel(void);
 
 	static std::string	formatMethods(const std::vector<std::string> methods);
 };

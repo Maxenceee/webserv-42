@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 13:16:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/16 12:00:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@ ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config):
 	socket_fd(-1),
 	_pid(-1)
 {
-	
 }
 
 ProxyWorker::~ProxyWorker()
@@ -31,6 +30,11 @@ ProxyWorker::~ProxyWorker()
 
 int	ProxyWorker::connect(const std::string &buffer)
 {
+	/**
+	 * TODO:
+	 * Replace the new process by a new thread
+	 * Maybre create a thread pool
+	 */
 	switch ((this->_pid = fork()))
 	{
 	case -1:

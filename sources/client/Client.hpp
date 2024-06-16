@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/14 14:58:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 14:46:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/16 11:26:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,19 +32,21 @@ private:
 	int					_client;
 	bool				_headers_received;
 
-	std::vector<pollfd>				&_poll_fds;
-	std::map<int, wbs_pollclient>	&_poll_clients;
+	// std::vector<pollfd>				&_poll_fds;
+	// std::map<int, wbs_pollclient>	&_poll_clients;
 
 	Router				*_current_router;
-	ProxyClient			*_proxy;
-	bool				is_proxy;
+	// ProxyClient			*_proxy;
+	// bool				is_proxy;
+	bool				upgraded_to_proxy;
 
 	time_t				request_time;
 
 	int		processLines(void);
 
 public:
-	Client(Server *server, const int client, sockaddr_in clientAddr, std::vector<pollfd> &poll_fds, std::map<int, wbs_pollclient> &poll_clients);
+	// Client(Server *server, const int client, sockaddr_in clientAddr, std::vector<pollfd> &poll_fds, std::map<int, wbs_pollclient> &poll_clients);
+	Client(Server *server, const int client, sockaddr_in clientAddr);
 	~Client(void);
 	// tmp puclic
 
