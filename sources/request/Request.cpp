@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/17 02:24:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/17 23:12:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ Request::~Request(void)
 
 int	Request::processLine(const std::string &line)
 {
+	this->_raw.append(line);
+	this->_raw.append(WBS_CRLF);
 	if (!this->_request_line_received)
 	{
 		/**
