@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:20:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/17 23:08:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class Server;
 class Request
 {
 private:
+	std::string			_raw;
 	bool				_request_line_received;
 	bool				_headers_received;
 	bool				_body_received;
@@ -90,6 +91,7 @@ public:
 	int						getClientSocket(void) const;
 	const sockaddr_in		&getClientAddr(void) const;
 	const std::string		&getIP(void) const;
+	const std::string		&getRawRequest(void) const;
 	time_t					getRequestTime(void) const;
 };
 

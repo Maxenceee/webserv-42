@@ -6,12 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/16 11:54:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 00:06:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Client.hpp"
+#include "proxy/ProxyWorker.hpp"
 
 // Client::Client(Server *server, const int client, sockaddr_in clientAddr, std::vector<pollfd> &poll_fds, std::map<int, wbs_pollclient> &poll_clients):
 Client::Client(Server *server, const int client, sockaddr_in clientAddr):
@@ -29,6 +30,7 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	request(client, clientAddr),
 	response(NULL)
 {
+	Logger::debug("new client on fd: "+toString(client));
 }
 
 Client::~Client(void)
@@ -42,7 +44,7 @@ Client::~Client(void)
 		 */
 		this->response->cancel();
 		delete this->response;
-		Logger::debug(B_YELLOW"------------------Client upgraded to proxy and closed-------------------\n");
+		Logger::debug("------------------Client upgraded to proxy and closed-------------------\n", B_YELLOW);
 		return ;
 	}
 	if (this->response)
@@ -53,7 +55,7 @@ Client::~Client(void)
 	// if (this->_proxy)
 	// 	this->_proxy->disconnect();
 	close(this->_client);
-	Logger::debug(B_YELLOW"------------------Client closed-------------------\n");
+	Logger::debug("------------------Client closed-------------------\n", B_YELLOW);
 }
 
 int	Client::process(void)
@@ -130,6 +132,7 @@ int	Client::process(void)
 			// 	return (WBS_POLL_CLIENT_ERROR);
 			// }
 			// printf("request finished: new ProxyWorker !!!\n");
+			return (WBS_POLL_CLIENT_CLOSED);
 		}
 		else
 		{
@@ -215,6 +218,18 @@ int	Client::processLines(void) {
 				 * Setup le proxyworker
 				 */
 				printf("new proxy worker\n");
+				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request.getRawRequest())())
+				{
+					/**
+					 * S une erreur s'est produite lors de la création du ProxyWorker,
+					 * on envoie une réponse d'erreur 502 (Bad Gateway) informant le client que la connection
+					 * avec le serveur distant n'a pas pu être établie.
+					 */
+					this->response->status(502).sendDefault().end();
+					return (WBS_ERR);
+				}
+				this->upgraded_to_proxy = true;
+				return (WBS_POLL_CLIENT_CLOSED);
 			}
 		}
 	}

@@ -54,9 +54,18 @@ signal(SIGPIPE,SIG_IGN);
 	server_sd.sin_port = htons(5010);  
 	server_sd.sin_addr.s_addr = INADDR_ANY;  
 	// bind socket to the port  
-	bind(fd, (struct sockaddr*)&server_sd,sizeof(server_sd));  
+	if (bind(fd, (struct sockaddr*)&server_sd,sizeof(server_sd)))
+	{
+		perror("bind");
+		exit(1);
+	}
 	// start listening at the given port for new connection requests  
-	listen(fd, SOMAXCONN);  
+	if (listen(fd, SOMAXCONN))
+	{
+		perror("listen");
+		exit(1);
+	
+	}
 	// continuously accept connections in while(1) loop  
 	while(1)  
 	{  
@@ -70,7 +79,7 @@ signal(SIGPIPE,SIG_IGN);
 			printf("proxy connected\n");     
 			pthread_t tid;  
 			// pass client fd as a thread parameter  
-				pthread_create(&tid, NULL, runSocket, (void *)client_fd);   
+			pthread_create(&tid, NULL, runSocket, (void *)client_fd);   
 		}  
 	}  
 	close(client_fd);   

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/16 11:15:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/17 23:04:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "proxy/ProxyClient.hpp"
 
 bool Cluster::exit = true;
+ThreadPool Cluster::pool(0);
 
 static void interruptHandler(int sig_int) {
 	(void)sig_int;
@@ -35,6 +36,7 @@ Cluster::~Cluster()
 		delete this->parser;
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		delete *it;
+	Cluster::pool.kill();
 	Logger::debug("Cluster destroyed");
 }
 
@@ -86,6 +88,11 @@ int		Cluster::start(void)
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
+
+	/**
+	 * Initialise la pool de threads pour la gestion des requêtes proxy.
+	 */
+	Cluster::initializePool(8);
 
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)

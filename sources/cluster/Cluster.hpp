@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/21 12:07:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/16 13:38:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "parser/Parser.hpp"
 #include "server/Server.hpp"
 #include "server/ServerConfig.hpp"
+#include "proxy/threads/ThreadPool.hpp"
 
 class Parser;
 
@@ -51,7 +52,14 @@ public:
 	Cluster(void);
 	~Cluster();
 
-	static bool		exit;
+	static bool			exit;
+
+	static ThreadPool	pool;
+
+	static void initializePool(size_t numThreads) {
+        // Initialize the pool with the specified number of threads
+		new(&pool) ThreadPool(numThreads);
+    }
 
 	int		start(void);
 

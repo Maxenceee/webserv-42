@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:18:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/17 23:08:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,6 +127,11 @@ const sockaddr_in	&Request::getClientAddr(void) const
 const std::string	&Request::getIP(void) const
 {
 	return (this->_ip);
+}
+
+const std::string	&Request::getRawRequest(void) const
+{
+	return (this->_raw);
 }
 
 time_t	Request::getRequestTime(void) const
