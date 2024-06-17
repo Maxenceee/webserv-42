@@ -6,13 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/17 23:04:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 00:14:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
 #include "client/Client.hpp"
-#include "proxy/ProxyClient.hpp"
 
 bool Cluster::exit = true;
 ThreadPool Cluster::pool(0);
