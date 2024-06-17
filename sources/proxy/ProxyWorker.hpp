@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:20 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/17 22:57:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 00:17:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,13 @@
 class Client;
 
 void	relay_data(int client_fd, int backend_fd);
+
+enum wbs_proxy_code
+{
+	WBS_PROXY_OK		= 0,
+	WBS_PROXY_ERROR		= 1,
+	WBS_PROXY_TIMEOUT	= 2
+};
 
 class ProxyWorker
 {

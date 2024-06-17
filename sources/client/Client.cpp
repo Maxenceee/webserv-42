@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 00:06:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 00:22:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,12 @@
 #include "Client.hpp"
 #include "proxy/ProxyWorker.hpp"
 
-// Client::Client(Server *server, const int client, sockaddr_in clientAddr, std::vector<pollfd> &poll_fds, std::map<int, wbs_pollclient> &poll_clients):
 Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_server(server),
 	_client(client),
 	_clientAddr(clientAddr),
 	_headers_received(false),
-	// _poll_fds(poll_fds),
-	// _poll_clients(poll_clients),
 	_current_router(NULL),
-	// _proxy(NULL),
-	// is_proxy(false),
 	upgraded_to_proxy(false),
 	request_time(getTimestamp()),
 	request(client, clientAddr),
@@ -52,8 +47,6 @@ Client::~Client(void)
 		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
 	}
-	// if (this->_proxy)
-	// 	this->_proxy->disconnect();
 	close(this->_client);
 	Logger::debug("------------------Client closed-------------------\n", B_YELLOW);
 }
@@ -78,19 +71,6 @@ int	Client::process(void)
 	}
 
 	this->_buffer.append(buffer, valread);
-
-	// if (this->is_proxy)
-	// {
-	// 	/**
-	// 	 * Si le client est un proxy, on envoie directement le contenu reçu au serveur distant.
-	// 	 */
-	// 	if (this->_proxy->send(this->_buffer))
-	// 	{
-	// 		this->response->status(502).sendDefault().end();
-	// 		return (WBS_ERR);
-	// 	}
-	// 	return (WBS_POLL_CLIENT_OK);
-	// }
 
 	if (this->processLines())
 	{
@@ -213,11 +193,14 @@ int	Client::processLines(void) {
 			if (this->_current_router->isProxy())
 			{
 				/**
-				 * TODO:
-				 * 
-				 * Setup le proxyworker
+				 * Si le router est un proxy, on crée un ProxyWorker qui va se charger de la communication
+				 * avec le serveur distant.
 				 */
-				printf("new proxy worker\n");
+				/**
+				 * TODO:
+				 * voir le cas ou la request contient un body, le proxy est créé mais le body n'est pas envoyé
+				 * il faut verifier s'il reste de la data dans buffer et si oui on l'envoie avec avec lr raw request
+				 */
 				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request.getRawRequest())())
 				{
 					/**
