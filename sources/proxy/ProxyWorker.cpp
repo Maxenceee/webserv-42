@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 00:06:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 00:12:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, cons
 	_buffer(buffer)
 	// _tid(0)
 {
+	// std::cout << "ProxyWorker: " << buffer << std::endl;
 }
 
 ProxyWorker::~ProxyWorker()
@@ -124,6 +125,7 @@ void relay_data(int client_fd, int backend_fd)
                 }
                 break;
             }
+			// std::cout << "client_to_backend_buffer: " << client_to_backend_buffer << std::endl;
             client_to_backend_bytes = bytes_read;
             client_data_pending = true;
         }
@@ -139,6 +141,7 @@ void relay_data(int client_fd, int backend_fd)
                 }
                 break;
             }
+			// std::cout << "backend_to_client_buffer: " << backend_to_client_buffer << std::endl;
             backend_to_client_bytes = bytes_read;
             backend_data_pending = true;
         }
