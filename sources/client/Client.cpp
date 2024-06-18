@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 00:22:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 10:13:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,7 +231,7 @@ int	Client::processLines(void) {
 
 		if (request.processLine(this->_buffer))
 		{
-			// Dans le cas d'une erreur on envoie une réponse d'erreur
+			// Dans le cas d'une erreur de parsing on envoie une réponse d'erreur
 			this->response->status(400).end();
 			return (WBS_ERR);
 		}
