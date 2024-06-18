@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 00:12:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 00:23:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,11 @@ void relay_data(int client_fd, int backend_fd)
     bool client_data_pending = false, backend_data_pending = false;
     int client_to_backend_bytes = 0, backend_to_client_bytes = 0;
 
+	/**
+	 * TODO:
+	 * la proxy n'envoie que la derniere partie du buffer au client
+	 * pas cool, à reglé !!!
+	 */
     while (true) {
         FD_ZERO(&read_fds);
         FD_ZERO(&write_fds);
