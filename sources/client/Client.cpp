@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 10:13:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 15:23:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,9 +186,9 @@ int	Client::processLines(void) {
 			/**
 			 * TODO:
 			 * 
-			 * Gerer le proxybuffering off;
-			 * consiste à envoyer tout le contenu recu directement au server distant sans le stocker
-			 * a voir, va surement etre directement geré par proxyworker
+			 * Gerer le proxybuffering on;
+			 * consiste à stocker le contenu recu depuis le client jusqu'a ce que la taille du buffer soit atteinte 
+			 * puis d'envoyer tout le buffer au serveur distant
 			 */
 			if (this->_current_router->isProxy())
 			{
@@ -196,12 +196,11 @@ int	Client::processLines(void) {
 				 * Si le router est un proxy, on crée un ProxyWorker qui va se charger de la communication
 				 * avec le serveur distant.
 				 */
-				/**
-				 * TODO:
-				 * voir le cas ou la request contient un body, le proxy est créé mais le body n'est pas envoyé
-				 * il faut verifier s'il reste de la data dans buffer et si oui on l'envoie avec avec lr raw request
-				 */
-				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request.getRawRequest())())
+				// On concatène les parties déjà traitée et non traitée de la requête
+				// en un seul tampon à transmettre.
+				std::string raw(this->request.getRawRequest());
+				raw.append(this->_buffer);
+				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), raw)())
 				{
 					/**
 					 * S une erreur s'est produite lors de la création du ProxyWorker,

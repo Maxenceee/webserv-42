@@ -6,13 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/10 18:56:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 23:29:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "cluster/Cluster.hpp"
 #include "parser/Parser.hpp"
+#include "daemon/daemon.hpp"
 
 void	print_name(void)
 {
@@ -52,10 +53,18 @@ int	main(int argc, char const **argv)
 			Logger::_debug = true;
 		}
 	}
+	Logger::init();
 	Cluster	cluster;
 	try
 	{
 		cluster.parse(argv[1]);
+		// Logger::info("Attempting to become daemon");
+		// if (become_daemon(WBS_NO_CLOSE_FILES) < 0)
+		// {
+		// 	Logger::error("Failed to become daemon");
+		// 	return (1);
+		// }
+		// Logger::info("Daemon created successfully");
 		cluster.start();
 	}
 	catch(const std::exception& e)

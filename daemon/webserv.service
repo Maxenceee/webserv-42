@@ -1,0 +1,14 @@
+[Unit]
+Description=Webserv by Maxnece Gama
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/Users/maxencegama/Desktop/Programmation/42/CC/WEBSERV/webserv/webserv
+Restart=on-failure
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=webserv
+
+[Install]
+WantedBy=multi-user.target

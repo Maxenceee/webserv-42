@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:53 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/01 13:26:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 23:29:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ class Logger
 public:
 	static bool	_debug;
 
+	static void init(void);
 	static void	print(const std::string &msg, const std::string &color = RESET);
 	static void	info(const std::string &msg);
 	static void	warning(const std::string &msg, const std::string &color = B_ORANGE);

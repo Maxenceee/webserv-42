@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/16 13:38:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 15:55:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ typedef std::vector<Server*>	wsb_v_servers_t;
 
 enum wbs_polltype {
 	WBS_POLL_SERVER	= 0x00,
-	WBS_POLL_CLIENT	= 0x01,
-	WBS_POLL_PROXY	= 0x02
+	WBS_POLL_CLIENT	= 0x01
+	// WBS_POLL_PROXY	= 0x02
 };
 
 enum wbs_pollclientstatus {
