@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:16:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,11 @@
 class CGIWorker
 {
 private:
-	static t_mapss		init(const Request &req, const std::string &scriptpath, t_mapss &params, const std::string &body);
-	static char			**getEnv(const t_mapss &env);
+	static wbs_mapss_t	init(const Request &req, const std::string &scriptpath, wbs_mapss_t &params, const std::string &body);
+	static char			**getEnv(const wbs_mapss_t &env);
 
 public:
-	static std::string	run(const Request &req, const std::string &scriptpath, t_mapss &params, const std::string &scriptpname, const std::string &body);
+	static std::string	run(const Request &req, const std::string &scriptpath, wbs_mapss_t &params, const std::string &scriptpname, const std::string &body);
 };
 
 #endif /* CGIWORKER_HPP */

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/18 15:55:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,26 +17,28 @@
 #include "parser/Parser.hpp"
 #include "server/Server.hpp"
 #include "server/ServerConfig.hpp"
+#include "proxy/threads/ThreadPool.hpp"
 
 class Parser;
 
-typedef std::vector<Server*>	v_servers;
+typedef std::vector<Server*>	wsb_v_servers_t;
 
 enum wbs_polltype {
-	WBS_POLL_SERVER = 0x00,
-	WBS_POLL_CLIENT = 0x01
+	WBS_POLL_SERVER	= 0x00,
+	WBS_POLL_CLIENT	= 0x01
+	// WBS_POLL_PROXY	= 0x02
 };
 
 enum wbs_pollclientstatus {
-	WBS_POLL_CLIENT_OK = 0x00,
-	WBS_POLL_CLIENT_DISCONNECT = 0x01,
-	WBS_POLL_CLIENT_CLOSED = 0x02,
-	WBS_POLL_CLIENT_ERROR = 0x03
+	WBS_POLL_CLIENT_OK			= 0x00,
+	WBS_POLL_CLIENT_DISCONNECT	= 0x01,
+	WBS_POLL_CLIENT_CLOSED		= 0x02,
+	WBS_POLL_CLIENT_ERROR		= 0x03
 };
 
 struct wbs_pollclient {
 	enum wbs_polltype	type;
-	void			*data;
+	void				*data;
 };
 
 class Cluster
@@ -50,7 +52,14 @@ public:
 	Cluster(void);
 	~Cluster();
 
-	static bool		exit;
+	static bool			exit;
+
+	static ThreadPool	pool;
+
+	static void initializePool(size_t numThreads) {
+        // Initialize the pool with the specified number of threads
+		new(&pool) ThreadPool(numThreads);
+    }
 
 	int		start(void);
 

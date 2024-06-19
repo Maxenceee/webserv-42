@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 19:11:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:39:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ struct wbs_router_location {
 struct wbs_router_cgi_data {
 	bool			enabled;
 	std::string		path;
-	t_mapss			params;
+	wbs_mapss_t		params;
 };
 
 struct wbs_router_headers {
@@ -75,6 +75,17 @@ struct wbs_router_method {
 	std::vector<std::string>	methods;
 };
 
+struct wbs_router_proxy {
+	bool			enabled;
+	std::string		host;
+	int				port;
+	bool			buffering;
+
+	wbs_mapss_t		headers;
+
+	wbs_router_proxy() : enabled(false), host(""), port(0), buffering(false) {}
+};
+
 typedef struct wbs_router_headers::wbs_router_header	wbs_router_header_t;
 
 class Router
@@ -90,7 +101,8 @@ private:
 	struct wbs_router_method		_allowed_methods;
 	bool							_autoindex;
 	std::vector<std::string>		_index;
-	std::map<int, std::string>		_error_page;
+	wbs_mapis_t						_error_page;
+	struct wbs_router_proxy			_proxy;
 
 	std::vector<Router *>			_routes;
 
@@ -115,6 +127,8 @@ private:
 
 	void	handleCGI(Request &request, Response &response);
 
+	void	handleProxy(Request &request, Response &response);
+
 	bool	matchRoute(const std::string &route, Response &response) const;
 
 public:
@@ -125,6 +139,7 @@ public:
 
 	void	reload(void);
 
+	Router	*eval(const std::string &path, const std::string &method, Response &response);
 	void	route(Request &request, Response &response);
 
 	void					use(Router *router);
@@ -141,7 +156,7 @@ public:
 
 	const struct wbs_router_location	&getLocation(void) const;
 
-	const std::string				&getRoot(void) const;
+	const std::string					&getRoot(void) const;
 	const struct wbs_router_root		&getRootData(void) const;
 
 	std::string			getLocalFilePath(const std::string &requestPath);
@@ -164,11 +179,19 @@ public:
 	void 		setClientMaxBodySize(const std::string &size);
 	void 		setClientMaxBodySize(const int size);
 	size_t 		getClientMaxBodySize(void) const;
+	bool		hasClientMaxBodySize(void) const;
 
 	void				setCGI(const std::string path);
 	void				enableCGI(void);
 	void				addCGIParam(const std::string key, const std::string value);
 	const std::string	&getCGIPath() const;
+
+	void				sendResponse(Response &response);
+
+	void							setProxy(const std::string host, const int port);
+	void							addProxyHeader(const std::string key, const std::string value);
+	bool							isProxy(void) const;
+	const struct wbs_router_proxy	&getProxyConfig(void) const;
 
 	void	print(std::ostream &os) const;
 };

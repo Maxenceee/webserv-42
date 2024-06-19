@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/14 23:24:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:12:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,8 @@ public:
 	Server(int id, uint16_t port = 80, uint32_t address = 0);
 	~Server(void);
 
-	int			init(void);
-	void		kill(void);
+	int				init(void);
+	void			kill(void);
 
 	bool			isInit(void) const;
 	int				getSocketFD(void) const;
@@ -64,10 +64,11 @@ public:
 	
 	static std::vector<std::string>		methods;
 	
-	void		handleRouting(Request *request, Response *response);
+	Router		*eval(Request &request, Response &response) const;
+	// void		handleRouting(Request *request, Response *response);
 	
-	void		printResponse(const Request &req, const Response &res) const;
-	void		print(std::ostream &os) const;
+	static void		printResponse(const Request &req, const Response &res, const double response_duration);
+	void			print(std::ostream &os) const;
 
 	static bool	isValidMethod(const std::string method);
 

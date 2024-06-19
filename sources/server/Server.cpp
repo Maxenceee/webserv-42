@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:40:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 13:15:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,10 @@ std::ostream	&operator<<(std::ostream &os, const Server &server)
 
 std::vector<std::string>	Server::methods = Server::initMethods();
 
-Server::Server(int id, uint16_t port, uint32_t address): _id(id), port(port), _address(address)
+Server::Server(int id, uint16_t port, uint32_t address):
+	_id(id),
+	port(port),
+	_address(address)
 {
 	this->_default = NULL;
 	this->_init = false;
@@ -136,7 +139,7 @@ int	Server::init(void)
 		return (WBS_SOCKET_ERR);
 	}
 
-	memset(&this->socket_addr, 0, sizeof(this->socket_addr));
+	bzero(&this->socket_addr, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->port);
 	this->socket_addr.sin_addr.s_addr = htonl(this->_address);
@@ -216,34 +219,55 @@ uint16_t	Server::getPort(void) const
 	return (this->port);
 }
 
-
-
-void	Server::handleRouting(Request *request, Response *response)
+Router	*Server::eval(Request &request, Response &response) const
 {
-	if (Logger::_debug)
-		std::cout << *request << std::endl;
+	Router	*router = this->_default->getDefaultHandler();
 
 	/**
 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
 	 * la configuration par défaut.
 	 */
-	ServerConfig *clientConfig = this->_default;
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-		if ((*it)->evalName(request->getHost(), request->getPort())) {
-			clientConfig = *it;
+		if ((*it)->evalName(request.getHost(), request.getPort())) {
+			router = (*it)->getDefaultHandler();
 			break;
 		}
 	}
-	clientConfig->handleRoutes(*request, *response);
-
-	if (Logger::_debug)
-		std::cout << *response << std::endl;
-
-	this->printResponse(*request, *response);
+	/**
+	 * On retourne le router qui évalué, c'est à dire celui le plus approprié pour
+	 * traiter la requête. Cette fonction regarde recursivement les sous-routers
+	 * définis dans le router et retourne celui qui correspond le mieux à la requête.
+	 */
+	return (router->eval(request.getPath(), request.getMethod(), response));
 }
 
-void	Server::printResponse(const Request &req, const Response &res) const
+// void	Server::handleRouting(Request *request, Response *response)
+// {
+// 	if (Logger::_debug)
+// 		std::cout << *request << std::endl;
+
+// 	/**
+// 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
+// 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
+// 	 * la configuration par défaut.
+// 	 */
+// 	ServerConfig *clientConfig = this->_default;
+// 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+// 		if ((*it)->evalName(request->getHost(), request->getPort())) {
+// 			clientConfig = *it;
+// 			break;
+// 		}
+// 	}
+// 	clientConfig->handleRoutes(*request, *response);
+
+// 	if (Logger::_debug)
+// 		std::cout << *response << std::endl;
+
+// 	this->printResponse(*request, *response);
+// }
+
+void	Server::printResponse(const Request &req, const Response &res, const double response_duration)
 {
 	std::string response = req.getMethod() + " " + req.getRawPath() + " ";
 	int status = res.getStatus();
@@ -258,9 +282,9 @@ void	Server::printResponse(const Request &req, const Response &res) const
 	response += toString<int>(status);
 	response += RESET;
 
-    double response_duration = getTimestamp() - req.getRequestTime();
+    // double response_duration = getTimestamp() - req.getRequestTime();
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << response_duration;
+    ss << std::fixed << std::setprecision(3) << response_duration;
     std::string duration_str = ss.str();
     response += " " + duration_str + " ms - ";
 

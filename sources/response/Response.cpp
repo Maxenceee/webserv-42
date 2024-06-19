@@ -6,14 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/05/01 18:16:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:54:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 #include "MIMEType.hpp"
 
-std::map<int, std::string>	Response::http_codes = Response::initCodes();
+wbs_mapis_t	Response::http_codes = Response::initCodes();
 
 Response::Response(int socket, const Request &req): _sent(false)
 {
@@ -33,9 +33,9 @@ Response::Response(int socket, const Request &req): _sent(false)
 	}
 }
 
-std::map<int, std::string>	Response::initCodes()
+wbs_mapis_t	Response::initCodes()
 {
-	std::map<int, std::string>	codes;
+	wbs_mapis_t	codes;
 	
 	/**
 	 * Information
@@ -250,7 +250,7 @@ Response	&Response::sendCGI(const std::string data)
 	}
 
 	while (i < j) {
-		size_t pos = data.find("\r\n", i);
+		size_t pos = data.find(WBS_CRLF, i);
 		if (pos == std::string::npos) break;
 		std::string line = data.substr(i, pos - i);
 		
@@ -316,7 +316,7 @@ Response	&Response::end()
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
 		(void)ret;
 		this->_sent = true;
-		Logger::debug(B_YELLOW"------------------Response sent-------------------\n");
+		Logger::debug(B_YELLOW"------------------Response sent-------------------");
 	}
 	return (*this);
 }
@@ -357,16 +357,16 @@ const std::string	Response::prepareResponse(void)
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.1.2)
 	 */
-	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + "\r\n";
-	for (t_mapss::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
-		res += it->first + ": " + it->second + "\r\n";
+	res = "HTTP/" + this->_version + " " + toString(this->_status) + " " + this->getSatusName() + WBS_CRLF;
+	for (wbs_mapss_t::iterator it = this->_headers.begin(); it != this->_headers.end(); it++) {
+		res += it->first + ": " + it->second + WBS_CRLF;
 	}
-	for (t_mapss::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
-		res += "Set-Cookie: " + it->second + "\r\n";
+	for (wbs_mapss_t::iterator it = this->_cookie.begin(); it != this->_cookie.end(); it++) {
+		res += "Set-Cookie: " + it->second + WBS_CRLF;
 	}
-	res += "\r\n";
+	res += WBS_CRLF;
 	if (this->hasBody())
-		res += this->_body + "\r\n";
+		res += this->_body + WBS_CRLF;
 	return (res);
 }
 
@@ -462,4 +462,9 @@ Response		&Response::clearBody(void)
 bool		Response::hasBody(void) const
 {
 	return (this->_body.size() > 0);
+}
+
+void	Response::cancel(void)
+{
+	this->_sent = true;
 }

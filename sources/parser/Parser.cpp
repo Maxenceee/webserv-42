@@ -6,12 +6,29 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 19:10:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 00:31:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
+
+/**
+ * TODO:
+ * add client_header_timeout directive
+ */
+/**
+ * TODO:
+ * if no port provided with, check if the prog has the privileges to use port 80 otherwise use 8000
+ */
+/**
+ * TODO:
+ * handle quotes in conf file
+ */
+/**
+ * TODO: mais pas sur
+ * fastcgi_pass_header
+ */
 
 #define PARSER_ERR		"parser error: invalid file path"
 
@@ -232,6 +249,12 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
 	 */
+	/**
+	 * TODO:
+	 * fix le fait de ne pas pouvoir utiliser listen avec simplement l'adresse IP
+	 * check avec getuid() si l'utilisateur a les droits pour utiliser le port 80
+	 * sinon utiliser le port 8000
+	 */
 	if (key == "listen" && parent != "server")
 		this->throwError(key, val);
 	else if (key == "listen") {
@@ -319,20 +342,29 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "return") {
 		int status = 302;
 		std::string loc = val;
-		if (val.find(' ') != std::string::npos) {
+
+		if (val.find(' ') != std::string::npos)
+		{
 			std::vector<std::string> tokens = split(val, ' ');
-			if (tokens.size() == 2) {
+
+			if (tokens.size() == 2)
+			{
 				if (!isDigit(tokens[0]))
 					this->throwError(key, val);
 				status = std::atoi(tokens[0].c_str());
 				loc = tokens[1];
 			}
 			else if (tokens.size() > 2)
+			{
 				this->throwError(key, val);
-		} else if (isDigit(val)) {
+			}
+		}
+		else if (isDigit(val))
+		{
 			status = std::atoi(val.c_str());
 			loc = "";
 		}
+
 		if (!Response::isValidStatus(status)) {
 			Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
 		}
@@ -366,7 +398,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			if (!isDigit(tokens[i])) {
 				this->throwError(key, val);
 			}
-			this->tmp_router->setErrorPage(std::atoi(tokens[i].c_str()), tokens[tokens.size() - 1]);
+			int code = std::atoi(tokens[i].c_str());
+			if (code < 300 || code > 599) {
+				this->throwError(key, val, raw_line);
+			}
+			this->tmp_router->setErrorPage(code, tokens[tokens.size() - 1]);
 		}
 		return ;
 	}
@@ -432,6 +468,87 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		this->tmp_router->addHeader(tokens[0], tokens[1], always);
 		return ;
 	
+	}
+
+	/**
+	 * Directive proxy_pass
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass)
+	 */
+	if (key == "proxy_pass") {
+		std::string url = val;
+    
+		std::string protocol;
+		std::string host;
+		std::string port;
+		std::string path;
+		
+		// Vérifie si la chaîne commence par "http://" ou "https://"
+		if (url.substr(0, 7) == "http://") {
+			protocol = "http";
+			url = url.substr(7);
+		} else if (url.substr(0, 8) == "https://") {
+			protocol = "https";
+			url = url.substr(8);
+		} else {
+			this->throwError(key, val, raw_line);
+		}
+
+		if (protocol == "https") {
+			Logger::warning("parser info: unsupported protocol (https:), using http instead.");
+		}
+		
+		size_t pos = url.find('/');
+		if (pos == std::string::npos) {
+			host = url;
+			path = "/";
+		} else {
+			host = url.substr(0, pos);
+			path = url.substr(pos);
+		}
+
+		if (host.find(':') != std::string::npos) {
+			std::vector<std::string> hostTokens = split(host, ':');
+			host = hostTokens[0];
+			port = hostTokens[1];
+		} else {
+			port = "80"; // Par défaut
+		}
+
+		if (!isNumber(port))
+			this->throwError(key, val, raw_line);
+
+		/**
+		 * INFO:
+		 * Grace au fonctions standards de la librairie C, on peut facilement faire des resolution DNS.
+		 * Plus besoin de restreiendre l'utilisateur à fournir une adresse IP.
+		 */
+		// if (!isIPAddress(host))
+		// {
+		// 	Logger::error("parser error: the server won't do the dns resolution, please provide an IP address.");
+		// 	this->throwError(key, val, raw_line);
+		// }
+
+		// std::cout << "Protocol: " << protocol << std::endl;
+		// std::cout << "Host: " << host << std::endl;
+		// std::cout << "Port: " << port << std::endl;
+		// std::cout << "Path: " << path << std::endl;
+
+		this->tmp_router->setProxy(host, std::atoi(port.c_str()));
+		return ;
+	}
+
+	/**
+	 * Directive proxy_pass_header
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_header)
+	 */
+	if (key == "proxy_pass_header") {
+		std::vector<std::string> tokens = split(val, ' ');
+		if (tokens.size() < 2 || tokens.size() > 3)
+			this->throwError(key, val);
+		this->tmp_router->addProxyHeader(tokens[0], tokens[1]);
+		return ;
 	}
 
 	/**

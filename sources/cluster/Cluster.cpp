@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:54:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 15:55:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "client/Client.hpp"
 
 bool Cluster::exit = true;
+ThreadPool Cluster::pool(0);
 
 static void interruptHandler(int sig_int) {
 	(void)sig_int;
@@ -32,15 +33,16 @@ Cluster::~Cluster()
 	Logger::print("Shutting down webserv", B_GREEN);
 	if (this->parser)
 		delete this->parser;
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		delete *it;
+	Cluster::pool.kill();
 	Logger::debug("Cluster destroyed");
 }
 
 void	Cluster::parse(const char *configPath)
 {
 	this->parser->parse(configPath);
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		(*it)->init();
 		if (Logger::_debug)
@@ -60,7 +62,7 @@ void	Cluster::initConfigs(std::vector<ServerConfig *> &configs)
 
 Server	*Cluster::addConfig(ServerConfig *config)
 {
-	v_servers::iterator it;
+	wsb_v_servers_t::iterator it;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress())
@@ -77,14 +79,20 @@ Server	*Cluster::addConfig(ServerConfig *config)
 
 int		Cluster::start(void)
 {
-	std::vector<pollfd>			poll_fds;
+	std::vector<pollfd>				poll_fds;
 	std::map<int, wbs_pollclient>	poll_clients;
-	const int					timeout = 100;
-	v_servers::iterator			it;
+	const int						timeout = WBS_POLL_TIMEOUT;
+	wsb_v_servers_t::iterator		it;
 
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
+	signal(SIGTERM, interruptHandler);
+
+	/**
+	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
+	 */
+	Cluster::initializePool(8);
 
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -107,7 +115,7 @@ int		Cluster::start(void)
 		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
 	}
 
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		Server *server = *it;
 		Logger::print("Listening on port " + toString<int>(server->getPort()), B_GREEN);
@@ -119,7 +127,7 @@ int		Cluster::start(void)
 		 * Elle prend en paramètres le descripteur de fichiers du socket et la taille de la file
 		 * d'attente.
 		 */
-		int error = listen(server->getSocketFD(), 1024);
+		int error = listen(server->getSocketFD(), WBS_DEFAULT_MAX_WORKERS);
 		if (error == -1)
 		{
 			Logger::error("server error: an error occurred while listening");
@@ -133,7 +141,7 @@ int		Cluster::start(void)
 
 	int newClient;
 	Client *client;
-	// Server *server;
+	// ProxyClient *proxy;
 
 	do
 	{
@@ -174,7 +182,7 @@ int		Cluster::start(void)
 			if (poll_fds[i].revents & POLLHUP)
 			{
 				Logger::debug("Connection closed by the client (event POLLHUP)");
-				to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+				to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 			}
 			/**
 			 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
@@ -194,8 +202,8 @@ int		Cluster::start(void)
 					 */
 					/**
 					 * Etant donné que les serveurs sont ajoutés dans l'ordre dans le tableau des descripteurs
-					 * à surveiller, on peut déduire l'index du serveur à partir de l'index du descripteur.
-					 * D'où l'utilisation de l'index `i` pour récupérer le serveur correspondant dans `this->_servers`
+					 * à surveiller, on peut déduire l'indice du serveur à partir de l'indice du descripteur.
+					 * D'où l'utilisation de l'indice `i` pour récupérer le serveur correspondant dans `this->_servers`
 					 * au lieu de devoir faire un reinterpret_cast<Server *>(poll_clients[poll_fds[i].fd].data) comme
 					 * pour les clients.
 					 */
@@ -215,14 +223,21 @@ int		Cluster::start(void)
 					/**
 					 * On crée un nouveau client et on l'ajoute à la liste des clients
 					 */
+					// poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr, poll_fds, poll_clients)};
 					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
 					break;
 
 				case WBS_POLL_CLIENT:
 					if ((client = reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
-						to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+						to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 					}
 					break;
+
+				// case WBS_POLL_PROXY:
+				// 	if ((proxy = reinterpret_cast<ProxyClient *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
+				// 		to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
+				// 	}
+				// 	break;
 				}
 			}
 			// Si le descripteur n'est pas prêt pour la lecture et que c'est un client, on
@@ -234,7 +249,7 @@ int		Cluster::start(void)
 			}
 		}
 
-		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'index
+		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'indice
 		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
 		{
 			// On sauvegarde le descripteur de l'élément à supprimer
@@ -244,6 +259,8 @@ int		Cluster::start(void)
 			poll_clients.erase(newClient);
 			delete client;
 		}
+		// std::cout << "clients: " << poll_clients.size() << std::endl;
+		// std::cout << "fds: " << poll_fds.size() << std::endl;
 	} while (!this->exit);
 
 	// On ferme les sockets des clients et libère la mémoire
@@ -254,7 +271,7 @@ int		Cluster::start(void)
 	}
 
 	// On eteint les serveurs et libère la mémoire
-	for (v_servers::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->kill();
 
 	return (WBS_NOERR);

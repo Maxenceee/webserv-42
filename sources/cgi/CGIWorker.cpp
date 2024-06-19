@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:54:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:16:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,10 @@ std::string	formatHeaderKey(const std::string &key)
 	return (replaceAll(res, '-', '_'));
 }
 
-t_mapss		CGIWorker::init(const Request &req, const std::string &scriptpath, t_mapss &params, const std::string &body)
+wbs_mapss_t	CGIWorker::init(const Request &req, const std::string &scriptpath, wbs_mapss_t &params, const std::string &body)
 {
-	t_mapss headers = req.getHeaders();
-	t_mapss env;
+	wbs_mapss_t headers = req.getHeaders();
+	wbs_mapss_t env;
 
 	env["REDIRECT_STATUS"] = "200";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
@@ -60,7 +60,7 @@ t_mapss		CGIWorker::init(const Request &req, const std::string &scriptpath, t_ma
 	/**
 	 * Ajout des en-tête HTTP au CGI
 	 */
-	for (t_mapss::iterator it = headers.begin(); it != headers.end(); it++)
+	for (wbs_mapss_t::iterator it = headers.begin(); it != headers.end(); it++)
 	{
 		if (it->second.size() > 0)
 			env[formatHeaderKey(it->first)] = it->second;
@@ -68,19 +68,19 @@ t_mapss		CGIWorker::init(const Request &req, const std::string &scriptpath, t_ma
 	/**
 	 * Ajout des paramètres de la requête au CGI
 	 */
-	for (t_mapss::iterator it = params.begin(); it != params.end(); it++)
+	for (wbs_mapss_t::iterator it = params.begin(); it != params.end(); it++)
 	{
 		env[it->first] = it->second;
 	}
 	return env;
 }
 
-char	**CGIWorker::getEnv(const t_mapss &_env)
+char	**CGIWorker::getEnv(const wbs_mapss_t &_env)
 {
 	char **env = new char*[_env.size() + 1];
 	int i = 0;
 
-	for (t_mapss::const_iterator it = _env.begin(); it != _env.end(); it++)
+	for (wbs_mapss_t::const_iterator it = _env.begin(); it != _env.end(); it++)
 	{
 		std::string tmp = it->first + "=" + it->second;
 		Logger::debug("env: " + tmp);
@@ -92,7 +92,7 @@ char	**CGIWorker::getEnv(const t_mapss &_env)
 	return env;
 }
 
-std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t_mapss &params, const std::string &scriptpname, const std::string &body)
+std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, wbs_mapss_t &params, const std::string &scriptpname, const std::string &body)
 {
 	int		sstdin = dup(STDIN_FILENO);
 	int		sstdout = dup(STDOUT_FILENO);
@@ -145,7 +145,7 @@ std::string		CGIWorker::run(const Request &req, const std::string &scriptpath, t
 		int r = 1;
 		while (r > 0)
 		{
-			memset(buffer, 0, WBS_CGIWORKER_BUFFER_SIZE);
+			bzero(buffer, WBS_CGIWORKER_BUFFER_SIZE);
 			r = read(fdout, buffer, WBS_CGIWORKER_BUFFER_SIZE);
 			if (r > 0)
 				result += buffer;
