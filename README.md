@@ -12,6 +12,8 @@ To start the server:
 $> ./webserv [config_file]
 ```
 
+Use `-d` or `--debug` to enable debug mode.
+
 To daemonize the server:
 
 ``` sh
