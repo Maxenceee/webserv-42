@@ -39,8 +39,18 @@ sudo cp $PROG_FILE /usr/local/bin
 
 # Détection du système d'exploitation et appel des fonctions appropriées
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [ -f "/Library/LaunchDaemons/$PLIST_FILE" ]; then
+        sudo launchctl stop "dev.maxencegama.$SERVICE_NAME"
+        sudo launchctl unload /Library/LaunchDaemons/"$PLIST_FILE"
+        sudo rm "/Library/LaunchDaemons/$PLIST_FILE"
+    fi
     setup_launchd
 elif [[ -f /etc/debian_version || -f /etc/redhat-release ]]; then
+    if [ -f "/etc/systemd/system/$SERVICE_FILE" ]; then
+        sudo systemctl stop "$SERVICE_NAME"
+        sudo systemctl disable "$SERVICE_NAME"
+        sudo rm "/etc/systemd/system/$SERVICE_FILE"
+    fi
     setup_systemd
 else
     echo "Unsupported OS."

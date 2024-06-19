@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 23:26:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 15:55:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,9 +87,10 @@ int		Cluster::start(void)
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
+	signal(SIGTERM, interruptHandler);
 
 	/**
-	 * Initialise la pool de threads pour la gestion des requêtes proxy.
+	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
 	 */
 	Cluster::initializePool(8);
 
@@ -181,7 +182,7 @@ int		Cluster::start(void)
 			if (poll_fds[i].revents & POLLHUP)
 			{
 				Logger::debug("Connection closed by the client (event POLLHUP)");
-				to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+				to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 			}
 			/**
 			 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
@@ -201,8 +202,8 @@ int		Cluster::start(void)
 					 */
 					/**
 					 * Etant donné que les serveurs sont ajoutés dans l'ordre dans le tableau des descripteurs
-					 * à surveiller, on peut déduire l'index du serveur à partir de l'index du descripteur.
-					 * D'où l'utilisation de l'index `i` pour récupérer le serveur correspondant dans `this->_servers`
+					 * à surveiller, on peut déduire l'indice du serveur à partir de l'indice du descripteur.
+					 * D'où l'utilisation de l'indice `i` pour récupérer le serveur correspondant dans `this->_servers`
 					 * au lieu de devoir faire un reinterpret_cast<Server *>(poll_clients[poll_fds[i].fd].data) comme
 					 * pour les clients.
 					 */
@@ -228,13 +229,13 @@ int		Cluster::start(void)
 
 				case WBS_POLL_CLIENT:
 					if ((client = reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
-						to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+						to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 					}
 					break;
 
 				// case WBS_POLL_PROXY:
 				// 	if ((proxy = reinterpret_cast<ProxyClient *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
-				// 		to_remove.push_back(i); // Ajoute l'index de l'élément à supprimer
+				// 		to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 				// 	}
 				// 	break;
 				}
@@ -248,7 +249,7 @@ int		Cluster::start(void)
 			}
 		}
 
-		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'index
+		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'indice
 		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
 		{
 			// On sauvegarde le descripteur de l'élément à supprimer
