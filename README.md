@@ -21,6 +21,7 @@ $>  ./setup_daemon.bash
 ```
 
 In this case you need to place your config file in `/etc/webserv` with the `.conf` extension.
+
 Log file will be in `/var/log/webserv.log` and `/var/log/webserv.err`.
 
 # Features
