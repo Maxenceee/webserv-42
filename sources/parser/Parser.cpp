@@ -6,12 +6,29 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:52:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 00:31:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
+
+/**
+ * TODO:
+ * add client_header_timeout directive
+ */
+/**
+ * TODO:
+ * if no port provided with, check if the prog has the privileges to use port 80 otherwise use 8000
+ */
+/**
+ * TODO:
+ * handle quotes in conf file
+ */
+/**
+ * TODO: mais pas sur
+ * fastcgi_pass_header
+ */
 
 #define PARSER_ERR		"parser error: invalid file path"
 
@@ -231,6 +248,12 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Directive Listen
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
+	 */
+	/**
+	 * TODO:
+	 * fix le fait de ne pas pouvoir utiliser listen avec simplement l'adresse IP
+	 * check avec getuid() si l'utilisateur a les droits pour utiliser le port 80
+	 * sinon utiliser le port 8000
 	 */
 	if (key == "listen" && parent != "server")
 		this->throwError(key, val);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 16:00:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 00:03:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,18 @@
 
 /**
  * TODO:
+ * finish the implementation of the proxy_pass_header directive see router config struct
+ */
+/**
+ * TODO:
  * voir pour implementer la directive `proxy_set_header` et autres directives liées au proxy
+ * il faut gere des variables pour celui la on va laisser tomber
+ */
+/**
+ * TODO:
+ * supporter les uri dans la directive proxy_pass 
+ * si uri => remplacer uri de la requete par celle de la directive
+ * sinon => garder uri de la requete
  */
 
 ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
