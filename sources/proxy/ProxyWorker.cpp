@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 00:23:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 10:44:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,33 +87,17 @@ int	ProxyWorker::connect()
 
 void relay_data(int client_fd, int backend_fd)
 {
-    fd_set read_fds, write_fds;
+    fd_set read_fds;
     int max_fd = (client_fd > backend_fd ? client_fd : backend_fd) + 1;
-    char client_to_backend_buffer[4096], backend_to_client_buffer[4096];
+    char buffer[4096];
     ssize_t bytes_read, bytes_sent;
-    bool client_data_pending = false, backend_data_pending = false;
-    int client_to_backend_bytes = 0, backend_to_client_bytes = 0;
 
-	/**
-	 * TODO:
-	 * la proxy n'envoie que la derniere partie du buffer au client
-	 * pas cool, à reglé !!!
-	 */
     while (true) {
         FD_ZERO(&read_fds);
-        FD_ZERO(&write_fds);
-
         FD_SET(client_fd, &read_fds);
         FD_SET(backend_fd, &read_fds);
 
-        if (client_data_pending) {
-            FD_SET(backend_fd, &write_fds);
-        }
-        if (backend_data_pending) {
-            FD_SET(client_fd, &write_fds);
-        }
-
-        int activity = select(max_fd, &read_fds, &write_fds, nullptr, nullptr);
+        int activity = select(max_fd, &read_fds, nullptr, nullptr, nullptr);
         if (activity < 0) {
             perror("select");
             break;
@@ -121,7 +105,7 @@ void relay_data(int client_fd, int backend_fd)
 
         // Check if there's data to read from the client
         if (FD_ISSET(client_fd, &read_fds)) {
-            bytes_read = recv(client_fd, client_to_backend_buffer, sizeof(client_to_backend_buffer), 0);
+            bytes_read = recv(client_fd, buffer, sizeof(buffer), 0);
             if (bytes_read <= 0) {
                 if (bytes_read == 0) {
                     // printf("client closed connection\n");
@@ -130,14 +114,17 @@ void relay_data(int client_fd, int backend_fd)
                 }
                 break;
             }
-			// std::cout << "client_to_backend_buffer: " << client_to_backend_buffer << std::endl;
-            client_to_backend_bytes = bytes_read;
-            client_data_pending = true;
+
+            bytes_sent = send(backend_fd, buffer, bytes_read, 0);
+            if (bytes_sent == -1) {
+                perror("send to backend");
+                break;
+            }
         }
 
         // Check if there's data to read from the backend
         if (FD_ISSET(backend_fd, &read_fds)) {
-            bytes_read = recv(backend_fd, backend_to_client_buffer, sizeof(backend_to_client_buffer), 0);
+            bytes_read = recv(backend_fd, buffer, sizeof(buffer), 0);
             if (bytes_read <= 0) {
                 if (bytes_read == 0) {
                     // printf("backend closed connection\n");
@@ -146,31 +133,12 @@ void relay_data(int client_fd, int backend_fd)
                 }
                 break;
             }
-			// std::cout << "backend_to_client_buffer: " << backend_to_client_buffer << std::endl;
-            backend_to_client_bytes = bytes_read;
-            backend_data_pending = true;
-        }
 
-        // Check if the backend is ready to send data from the client
-        if (client_data_pending && FD_ISSET(backend_fd, &write_fds)) {
-            bytes_sent = send(backend_fd, client_to_backend_buffer, client_to_backend_bytes, 0);
-            if (bytes_sent == -1) {
-                perror("send to backend");
-                break;
-            }
-            client_data_pending = false;
-            // printf("client to backend: %zd bytes\n", bytes_sent);
-        }
-
-        // Check if the client is ready to send data from the backend
-        if (backend_data_pending && FD_ISSET(client_fd, &write_fds)) {
-            bytes_sent = send(client_fd, backend_to_client_buffer, backend_to_client_bytes, 0);
+            bytes_sent = send(client_fd, buffer, bytes_read, 0);
             if (bytes_sent == -1) {
                 perror("send to client");
                 break;
             }
-            backend_data_pending = false;
-            printf("backend to client: %zd bytes\n", bytes_sent);
         }
     }
 
