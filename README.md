@@ -48,6 +48,8 @@ Log file will be `/var/log/webserv.log` and `/var/log/webserv.err`.
 
 ## Documentation
 
+Based on Nginx documentation ;)
+
 ### `add_header`
 
 ```
