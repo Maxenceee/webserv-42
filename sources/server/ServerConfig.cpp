@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 01:32:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/18 13:13:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,41 +37,41 @@ void	ServerConfig::setServer(Server *server)
 	this->_server = server;
 }
 
-void	ServerConfig::handleRoutes(Request &req, Response &res)
-{
-	std::vector<Router *>	&routes = this->_default->getRoutes();
-	for (std::vector<Router *>::iterator it = routes.begin(); it != routes.end(); it++) {
-		(*it)->route(req, res);
-		if (!res.canSend())
-			break;
-	}
-	/**
-	 * Dans le cas où la route demandée n'a pu être géré par aucun des routers du serveur,
-	 * on renvoie la réponse par defaut. (Error 404, Not Found)
-	 */
-	if (res.canSend())
-	{
-		/**
-		 * Dans le cas ou le chemin de la requête ne correspond à aucune route, on vérifie si
-		 * une redirection est définie par defaut pour le serveur. Si c'est le cas, on redirige
-		 * la requête vers le chemin spécifié.
-		 */
-		if (this->_default->getRedirection().enabled) {
-			if (this->_default->getRedirection().path.empty() && this->_default->getRedirection().data.empty()) {
-				res.status(this->_default->getRedirection().status);
-				res.sendDefault().end();
-				return ;
-			}
-			if (this->_default->getRedirection().status % 300 < 100) {
-				res.redirect(this->_default->getRedirection().path, this->_default->getRedirection().status).end();
-			} else {
-				res.status(this->_default->getRedirection().status).send(this->_default->getRedirection().data).end();
-			}
-			return ;
-		}
-		res.sendNotFound().end();
-	}
-}
+// void	ServerConfig::handleRoutes(Request &req, Response &res)
+// {
+// 	std::vector<Router *>	&routes = this->_default->getRoutes();
+// 	for (std::vector<Router *>::iterator it = routes.begin(); it != routes.end(); it++) {
+// 		(*it)->route(req, res);
+// 		if (!res.canSend())
+// 			break;
+// 	}
+// 	/**
+// 	 * Dans le cas où la route demandée n'a pu être géré par aucun des routers du serveur,
+// 	 * on renvoie la réponse par defaut. (Error 404, Not Found)
+// 	 */
+// 	if (res.canSend())
+// 	{
+// 		/**
+// 		 * Dans le cas ou le chemin de la requête ne correspond à aucune route, on vérifie si
+// 		 * une redirection est définie par defaut pour le serveur. Si c'est le cas, on redirige
+// 		 * la requête vers le chemin spécifié.
+// 		 */
+// 		if (this->_default->getRedirection().enabled) {
+// 			if (this->_default->getRedirection().path.empty() && this->_default->getRedirection().data.empty()) {
+// 				res.status(this->_default->getRedirection().status);
+// 				res.sendDefault().end();
+// 				return ;
+// 			}
+// 			if (this->_default->getRedirection().status % 300 < 100) {
+// 				res.redirect(this->_default->getRedirection().path, this->_default->getRedirection().status).end();
+// 			} else {
+// 				res.status(this->_default->getRedirection().status).send(this->_default->getRedirection().data).end();
+// 			}
+// 			return ;
+// 		}
+// 		res.sendNotFound().end();
+// 	}
+// }
 
 Router	*ServerConfig::getDefaultHandler(void)
 {
@@ -138,7 +138,7 @@ void	ServerConfig::addName(const std::string name)
 	}
 }
 
-const std::vector<struct wbs_server_name>	&ServerConfig::getNames(void) const
+const wbs_server_names	&ServerConfig::getNames(void) const
 {
 	return (this->_server_name);
 }
@@ -164,7 +164,7 @@ void	ServerConfig::print(std::ostream &os) const
 		os << B_GREEN << "default" << RESET;
 	os << "\n";
 	os << B_CYAN << "Name: " << RESET;
-	for (std::vector<struct wbs_server_name>::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
+	for (wbs_server_names::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{
 		os << it->name;
 		if (it->port > 0)

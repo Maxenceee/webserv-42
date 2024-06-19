@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/16 13:02:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/04/20 14:42:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,11 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Router *parent, const struct wbs_router_location location, int level): _parent(parent), _location(location), _autoindex(false), level(level)
+Router::Router(Router *parent, const struct wbs_router_location location, int level):
+	_parent(parent),
+	_location(location),
+	_autoindex(false),
+	level(level)
 {
 	/**
 	 * Par défault le router hérite de la racine de son parent. Celui-ci peut être
@@ -76,18 +80,22 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 		this->_allowed_methods.methods = parent->_allowed_methods.methods;
 	}
 	
+	this->_client_body.set = false;
+
 	/**
-	 * Nginx definit la valeur par defaut comme étant 1Mo.
+	 * 
 	 */
-	if (parent) {
+	if (parent && parent->hasClientMaxBodySize()) {
 		this->_client_body.size = parent->getClientMaxBodySize();
+		this->_client_body.set = true;
 	} else {
 		this->_client_body.size = 1024 * 1024; // 1MB
 	}
 
-	this->_client_body.set = false;
 	this->_redirection.enabled = false;
 	this->_cgi.enabled = false;
+	this->_proxy.enabled = false;
+	this->_proxy.buffering = true;
 }
 
 Router::~Router(void)
@@ -255,6 +263,11 @@ const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
 
 void	Router::setErrorPage(const int code, const std::string path)
 {
+	if (code == 304) {
+		Logger::warning("router warning: Cannot set error page for "+toString<int>(code));
+		return;
+	}
+
 	if (this->_error_page.count(code)) {
 		Logger::info("router info: overriding previous error page for " + toString<int>(code));
 	}
@@ -268,7 +281,7 @@ const std::string	&Router::getErrorPage(const int status) const
 	return (this->_error_page.at(status));
 }
 
-bool			Router::hasErrorPage(const int code) const
+bool	Router::hasErrorPage(const int code) const
 {
 	return (this->_error_page.count(code) > 0);
 }
@@ -278,6 +291,10 @@ void	Router::setClientMaxBodySize(const std::string &size)
 	int ts = parseSize(size);
 	if (ts < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+size);
+	}
+	if (this->_parent && this->_parent->hasClientMaxBodySize() && ts >= this->_parent->getClientMaxBodySize()) {
+		Logger::warning("router warning: Client max body size cannot be greater than parent's");
+		return;
 	}
 	this->_client_body.size = ts;
 	this->_client_body.set = true;
@@ -289,6 +306,10 @@ void	Router::setClientMaxBodySize(const int size)
 	if (size < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+toString<int>(size));
 	}
+	if (this->_parent && this->_parent->hasClientMaxBodySize() && size >= this->_parent->getClientMaxBodySize()) {
+		Logger::warning("router warning: Client max body size cannot be greater than parent's");
+		return;
+	}
 	this->_client_body.size = size;
 	this->_client_body.set = true;
 	this->reloadChildren();
@@ -297,6 +318,11 @@ void	Router::setClientMaxBodySize(const int size)
 size_t	Router::getClientMaxBodySize(void) const
 {
 	return (this->_client_body.size);
+}
+
+bool	Router::hasClientMaxBodySize(void) const
+{
+	return (this->_client_body.set);
 }
 
 void	Router::setCGI(const std::string path)
@@ -322,6 +348,34 @@ const std::string	&Router::getCGIPath(void) const
 	return (this->_cgi.path);
 }
 
+void	Router::setProxy(const std::string host, const int port)
+{
+	if (this->_proxy.enabled)
+	{
+		Logger::warning("router warning: Proxy is already enabled");
+		return;
+	}
+
+	this->_proxy.enabled = true;
+	this->_proxy.host = host;
+	this->_proxy.port = port;	
+}
+
+void	Router::addProxyHeader(const std::string key, const std::string value)
+{
+	this->_proxy.headers[key] = value;
+}
+
+bool	Router::isProxy(void) const
+{
+	return (this->_proxy.enabled);
+}
+
+const struct wbs_router_proxy	&Router::getProxyConfig(void) const
+{
+	return (this->_proxy);
+}
+
 void	Router::use(Router *router)
 {
 	/**
@@ -336,27 +390,53 @@ std::vector<Router *>	&Router::getRoutes(void)
 	return (this->_routes);
 }
 
+Router	*Router::eval(const std::string &path, const std::string &method, Response &response)
+{
+	Router	*router = NULL;
+
+	if (this->matchRoute(path, response))
+	{
+		if (this->_allowed_methods.methods.size() && !contains(this->_allowed_methods.methods, method))
+		{
+			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods.methods));
+			response.status(405);
+			return (this);
+		}
+		for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
+			if ((router = (*it)->eval(path, method, response)) != NULL)
+				return (router);
+		}
+		router = this;
+	}
+	return (router);
+}
+
+void	Router::sendResponse(Response &response)
+{
+	if (response.canSend()) {
+		for (std::vector<wbs_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
+			if (it->always || response.canAddHeader())
+				response.setHeader(it->key, it->value);
+		}
+	}
+	if (response.canSend() && !response.hasBody())
+	{
+		if (this->_error_page.count(response.getStatus())) {
+			std::string fullpath = resolve(this->_root.nearest_root, this->_error_page[response.getStatus()]);
+			Logger::debug("router full path: " + fullpath);
+			response.sendFile(fullpath);
+		} else {
+			Logger::debug("router default response");
+			response.sendDefault();
+		}
+	}
+	response.end();
+}
+
 void	Router::route(Request &request, Response &response)
 {
 	if (this->handleRoutes(request, response)) {
-		if (response.canSend()) {
-			for (std::vector<wbs_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
-				if (it->always || response.canAddHeader())
-					response.setHeader(it->key, it->value);
-			}
-		}
-		if (response.canSend() && !response.hasBody())
-		{
-			if (this->_error_page.count(response.getStatus())) {
-				std::string fullpath = resolve(this->_root.nearest_root, this->_error_page[response.getStatus()]);
-				Logger::debug("router full path: " + fullpath);
-				response.sendFile(fullpath);
-			} else {
-				Logger::debug("router default response");
-				response.sendDefault();
-			}
-		}
-		response.end();
+		this->sendResponse(response);
 	}
 }
 
@@ -368,76 +448,55 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 */
 	if (!response.canSend())
 		return (false);
-	/**
-	 * On compare le chemin du router et celui de la requête.
-	 */
-	if (this->matchRoute(request.getPath(), response))
-	{
-		/**
-		 * TODO:
-		 * 
-		 * Supprimer la verification de la methode et du body avant la recherche des enfants et modifier l'heritage.
-		 * Un sous-router n'etant accessible que par son parent il herite par definition de ses restrictions.
-		 */
-		if (this->_allowed_methods.methods.size() && !contains(this->_allowed_methods.methods, request.getMethod()))
-		{
-			response.setHeader("Allow", Response::formatMethods(this->_allowed_methods.methods));
-			response.status(405);
-			return (true);
-		}
 
+	if (this->_proxy.enabled) {
 		/**
-		 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
-		 * desactive la verification de la limite de taille du corps de la requête.
+		 * Si le router est configuré comme étant un proxy, on envoie la requête au server distant.
 		 */
-		if (this->_client_body.size > 0) {
-			if (request.getBody().size() > this->_client_body.size) {
-				response.status(413);
-				return (true);
-			}
-		}
-		
-		/**
-		 * Evaluation des routes enfants.
-		 */
-		Logger::debug("sub-router: " + toString<int>(this->_routes.size()));
-		for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
-			(*it)->route(request, response);
-			if (!response.canSend())
-				return (true);
-		}
-		
-		/**
-		 * Nginx execute la directive `return` avant toutes les autres.
-		 * Si le code de retour est de type 3xx (redirect) alors la redirection est effectuée, sinon
-		 * le code de retour est envoyé avec le corps de la réponse.
-		 */
-		if (this->_redirection.enabled) {
-			if (this->_redirection.path.empty() && this->_redirection.data.empty()) {
-				response.status(this->_redirection.status);
-				return (true);
-			}
-			Logger::debug("redirect to: " + this->_redirection.path);
-			if (this->_redirection.status % 300 < 100) {
-				response.redirect(this->_redirection.path, this->_redirection.status).end();
-			} else {
-				response.status(this->_redirection.status).send(this->_redirection.data).end();
-			}
-			return (true);
-		}
-		
-		/**
-		 * Si le router est configuré pour utiliser CGI, on execute le script CGI
-		 * et on envoie la réponse.
-		 */
-		if (this->_cgi.enabled) {
-			this->handleCGI(request, response);
-			return (true);
-		}
-		this->call(request.getMethod(), request, response);
+		this->handleProxy(request, response);
 		return (true);
 	}
-	return (false);
+
+	/**
+	 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
+	 * desactive la verification de la limite de taille du corps de la requête.
+	 */
+	if (this->_client_body.size > 0) {
+		if (request.getBody().size() > this->_client_body.size) {
+			response.status(413);
+			return (true);
+		}
+	}
+	
+	/**
+	 * Nginx execute la directive `return` avant toutes les autres.
+	 * Si le code de retour est de type 3xx (redirect) alors la redirection est effectuée, sinon
+	 * le code de retour est envoyé avec le corps de la réponse.
+	 */
+	if (this->_redirection.enabled) {
+		if (this->_redirection.path.empty() && this->_redirection.data.empty()) {
+			response.status(this->_redirection.status);
+			return (true);
+		}
+		Logger::debug("redirect to: " + this->_redirection.path);
+		if (this->_redirection.status % 300 < 100) {
+			response.redirect(this->_redirection.path, this->_redirection.status).end();
+		} else {
+			response.status(this->_redirection.status).send(this->_redirection.data).end();
+		}
+		return (true);
+	}
+	
+	/**
+	 * Si le router est configuré pour utiliser CGI, on execute le script CGI
+	 * et on envoie la réponse.
+	 */
+	if (this->_cgi.enabled) {
+		this->handleCGI(request, response);
+		return (true);
+	}
+	this->call(request.getMethod(), request, response);
+	return (true);
 }
 
 void	Router::handleGETMethod(Request &request, Response &response)
@@ -585,10 +644,10 @@ void	Router::handleTRACEMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ "B_BLUE"TRACE"B_GREEN" handler"RESET" ------------>");
 	
-	std::string res = request.getMethod() + " " + request.getPath() + " " + request.getVersion() + "\r\n";
-	t_mapss headers = request.getHeaders();
-	for (t_mapss::const_iterator it = headers.begin(); it != headers.end(); it++) {
-		res += it->first + ": " + it->second + "\r\n";
+	std::string res = request.getMethod() + " " + request.getPath() + " " + request.getVersion() + WBS_CRLF;
+	wbs_mapss_t headers = request.getHeaders();
+	for (wbs_mapss_t::const_iterator it = headers.begin(); it != headers.end(); it++) {
+		res += it->first + ": " + it->second + WBS_CRLF;
 	}
 	response.status(200).send(res).end();
 }
@@ -638,6 +697,11 @@ void	Router::handleCGI(Request &request, Response &response)
 		body = buffer.str();
 	}
 	response.sendCGI(CGIWorker::run(request, fullpath, this->_cgi.params, this->_cgi.path, body)).end();
+}
+
+void	Router::handleProxy(Request &request, Response &response)
+{
+	Logger::debug("<------------ "B_BLUE"Proxy"B_GREEN" handler"RESET" ------------>");
 }
 
 void	Router::call(std::string method, Request &request, Response &response)
@@ -811,12 +875,14 @@ void	Router::reload(void)
 	if (!this->_allowed_methods.enabled) {
 		this->_allowed_methods.methods = this->_parent->_allowed_methods.methods;
 	}
-	for (std::map<int, std::string>::iterator it = this->_parent->_error_page.begin(); it != this->_parent->_error_page.end(); it++) {
+	for (wbs_mapis_t::iterator it = this->_parent->_error_page.begin(); it != this->_parent->_error_page.end(); it++) {
 		if (!this->_error_page.count(it->first)) {
 			this->_error_page[it->first] = it->second;
 		}
 	}
-	if (!this->_client_body.set) {
+	if (this->_parent->hasClientMaxBodySize() && this->_client_body.size > this->_parent->getClientMaxBodySize()) {
+		this->_client_body = this->_parent->_client_body;
+	} else if (!this->_client_body.set) {
 		this->_client_body = this->_parent->_client_body;
 	}
 	this->reloadChildren();
@@ -824,7 +890,7 @@ void	Router::reload(void)
 
 const std::string	Router::getDirList(const std::string dirpath, std::string reqPath)
 {
-	t_mapss		content;
+	wbs_mapss_t	content;
 	std::string	res;
 
 	this->checkLeadingTrailingSlash(reqPath);
@@ -844,7 +910,7 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 	replace(res, "<%= dir_tree %>", dirhierachy);
 	temp = "";
 	std::string icon;
-	for (t_mapss::iterator it = content.begin(); it != content.end(); it++) {
+	for (wbs_mapss_t::iterator it = content.begin(); it != content.end(); it++) {
 		if ((it->first == "..") || isDirectory(it->second))
 			icon = "icon-directory";
 		else
@@ -882,6 +948,11 @@ void	Router::print(std::ostream &os) const
 	if (this->_cgi.enabled) {
 		os << space << B_CYAN"CGI path: " << RESET << this->_cgi.path << "\n";
 	}
+	os << space << B_CYAN"Proxy: " << RESET << (this->_proxy.enabled ? "enabled" : "disabled") << "\n";
+	if (this->_proxy.enabled) {
+		os << space << B_CYAN"Proxy host: " << RESET << this->_proxy.host << "\n";
+		os << space << B_CYAN"Proxy port: " << RESET << this->_proxy.port << "\n";
+	}
 	os << space << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
 	if (this->_headers.list.size()) {
 		os << space << B_CYAN"Response headers: " << RESET << "\n";
@@ -889,7 +960,7 @@ void	Router::print(std::ostream &os) const
 			os << space << it->key << ": " << it->value << (it->always ? " (always)" : "") << "\n";
 	}
 	os << space << B_CYAN"Error pages: " << RESET << "\n";
-	for (std::map<int, std::string>::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
+	for (wbs_mapis_t::const_iterator it = this->_error_page.begin(); it != this->_error_page.end(); it++)
 		os << space << it->first << " => " << it->second << "\n";
 	if (this->_routes.size()) {
 		os << "\n";

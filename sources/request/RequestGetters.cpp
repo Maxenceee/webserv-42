@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 00:57:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:41:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 std::ostream	&operator<<(std::ostream &os, const Request &req)
 {
-	t_mapss::const_iterator	it;
+	wbs_mapss_t::const_iterator	it;
 
 	os << B_CYAN"Method: " << RESET << req.getMethod() << " | HTTP version: " << req.getVersion() << "\n";
 	os << B_CYAN"Path: " << RESET << req.getRawPath() << "\n";
@@ -23,17 +23,17 @@ std::ostream	&operator<<(std::ostream &os, const Request &req)
 	os << B_CYAN"Origin IP: " << RESET << req.getIP() << "\n";
 
 	os << B_CYAN"Headers: " << RESET << std::endl;
-	const t_mapss &headers = req.getHeaders();
+	const wbs_mapss_t &headers = req.getHeaders();
 	for (it = headers.begin(); it != headers.end(); it++)
 		os << "\t" << it->first << ": " << it->second << "\n";
 
 	os << B_CYAN"Query: " << RESET << std::endl;
-	const t_mapss &queries = req.getQueries();
+	const wbs_mapss_t &queries = req.getQueries();
 	for (it = queries.begin(); it != queries.end(); it++)
 		os << "\t" << it->first << ": " << it->second << "\n";
 
 	os << B_CYAN"Cookie: " << RESET << std::endl;
-	const t_mapss &cookies = req.getCookies();
+	const wbs_mapss_t &cookies = req.getCookies();
 	for (it = cookies.begin(); it != cookies.end(); it++)
 		os << "\t" << it->first << ": " << it->second << "\n";
 
@@ -72,7 +72,7 @@ int			Request::getPort(void) const
 	return (this->_port);
 }
 
-const t_mapss		&Request::getQueries(void) const
+const wbs_mapss_t	&Request::getQueries(void) const
 {
 	return (this->_query);
 }
@@ -80,7 +80,7 @@ const t_mapss		&Request::getQueries(void) const
 const std::string	Request::getQueryString(void) const
 {
 	std::string		query;
-	for (t_mapss::const_iterator it = this->_query.begin(); it != this->_query.end(); it++)
+	for (wbs_mapss_t::const_iterator it = this->_query.begin(); it != this->_query.end(); it++)
 	{
 		query += it->first + "=" + it->second;
 		if (it != --this->_query.end())
@@ -89,17 +89,17 @@ const std::string	Request::getQueryString(void) const
 	return (query);
 }
 
-const t_mapss		&Request::getHeaders(void) const
+const wbs_mapss_t	&Request::getHeaders(void) const
 {
 	return (this->_headers);
 }
 
-const std::string		&Request::getHeader(const std::string name) const
+const std::string	&Request::getHeader(const std::string name) const
 {
 	return (this->_headers.at(name));
 }
 
-const t_mapss		&Request::getCookies(void) const
+const wbs_mapss_t	&Request::getCookies(void) const
 {
 	return (this->_cookie);
 }
@@ -109,12 +109,12 @@ const std::string	&Request::getBody(void) const
 	return (this->_body);
 }
 
-int			Request::getStatus(void) const
+int	Request::getStatus(void) const
 {
 	return (this->_status);
 }
 
-int			Request::getClientSocket(void) const
+int	Request::getClientSocket(void) const
 {
 	return (this->_socket);
 }
@@ -129,7 +129,22 @@ const std::string	&Request::getIP(void) const
 	return (this->_ip);
 }
 
-time_t		Request::getRequestTime(void) const
+const std::string	&Request::getRawRequest(void) const
+{
+	return (this->_raw);
+}
+
+time_t	Request::getRequestTime(void) const
 {
 	return (this->request_time);
+}
+
+const std::string	Request::prepareForProxying(void) const
+{
+	std::string		res;
+
+	res = this->_method + " " + this->_raw_path + " " + "HTTP/" + this->_version + WBS_CRLF;
+	for (wbs_mapss_t::const_iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
+		res += it->first + ": " + it->second + WBS_CRLF;
+	return (res);
 }

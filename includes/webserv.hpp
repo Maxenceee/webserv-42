@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 22:08:13 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:23:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@
 #include <regex.h>
 #include <signal.h>
 #include <errno.h>
+#include <pthread.h>
 
 // C System Includes
 #include <sys/socket.h>
@@ -53,10 +54,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <sys/select.h>
 
 // C Network Includes
 #include <netinet/in.h>
 #include <netinet/ip.h> 
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include "pcolors.hpp"
 #include "utils/utils.hpp"
@@ -79,9 +83,29 @@
 
 #define WBS_RECV_SIZE	2 << 12
 
+#ifdef REQUEST_TIMEOUT
+#define WBS_REQUEST_TIMEOUT	REQUEST_TIMEOUT
+#else
 #define WBS_REQUEST_TIMEOUT	60000 // 1 minute in milliseconds
+#endif /* REQUEST_TIMEOUT */
+
+#ifdef POLL_TIMEOUT
+#define WBS_POLL_TIMEOUT	POLL_TIMEOUT
+#else
+#define WBS_POLL_TIMEOUT	100
+#endif /* POLL_TIMEOUT */
+
+#define WBS_DEFAULT_MAX_WORKERS	1024
+
+/* */
+
+#define WBS_CRLF "\r\n"
 
 /* typedef */
-typedef std::map<std::string, std::string> t_mapss;
+
+// std::map<std::string, std::string>
+typedef std::map<std::string, std::string>	wbs_mapss_t;
+// std::map<int, std::string>
+typedef std::map<int, std::string>			wbs_mapis_t;
 
 #endif /* WEBSERV_HPP */
