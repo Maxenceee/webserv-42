@@ -318,4 +318,4 @@ server {
 }
 ```
 
-If an underscore (_) is used as server name, the server with the address:port pair will be the default server for this pair.
+If an underscore (_) is used as the server name for a server with an address:port pair, the server will be the default server for that pair.
