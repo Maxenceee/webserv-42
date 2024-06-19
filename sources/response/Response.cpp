@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/16 11:30:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:54:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,7 +316,7 @@ Response	&Response::end()
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
 		(void)ret;
 		this->_sent = true;
-		Logger::debug(B_YELLOW"------------------Response sent-------------------\n");
+		Logger::debug(B_YELLOW"------------------Response sent-------------------");
 	}
 	return (*this);
 }

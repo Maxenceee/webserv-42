@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/17 23:08:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:41:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,4 +137,14 @@ const std::string	&Request::getRawRequest(void) const
 time_t	Request::getRequestTime(void) const
 {
 	return (this->request_time);
+}
+
+const std::string	Request::prepareForProxying(void) const
+{
+	std::string		res;
+
+	res = this->_method + " " + this->_raw_path + " " + "HTTP/" + this->_version + WBS_CRLF;
+	for (wbs_mapss_t::const_iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
+		res += it->first + ": " + it->second + WBS_CRLF;
+	return (res);
 }

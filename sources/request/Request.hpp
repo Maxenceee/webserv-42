@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/17 23:08:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:37:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,6 @@ private:
 
 	time_t				request_time;
 
-
 	int		getRequestLine(const std::string &str);
 	int		getRequestPath(const std::string &str);
 	int		getRequestVersion(const std::string &str);
@@ -74,6 +73,7 @@ public:
 	bool					headersReceived(void) const;
 	bool					bodyReceived(void) const;
 	bool					hasContentLength(void) const;
+	void					updateHost(const std::string &host);
 
 	const std::string		&getMethod(void) const;
 	const std::string		&getVersion(void) const;
@@ -93,6 +93,8 @@ public:
 	const std::string		&getIP(void) const;
 	const std::string		&getRawRequest(void) const;
 	time_t					getRequestTime(void) const;
+
+	const std::string		prepareForProxying(void) const;
 };
 
 std::ostream	&operator<<(std::ostream &os, const Request &req);

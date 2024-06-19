@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 14:40:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:52:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -468,7 +468,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			protocol = "https";
 			url = url.substr(8);
 		} else {
-			protocol = "http"; // Par défaut
+			this->throwError(key, val, raw_line);
+		}
+
+		if (protocol == "https") {
+			Logger::warning("parser info: unsupported protocol (https:), using http instead.");
 		}
 		
 		size_t pos = url.find('/');
@@ -491,11 +495,16 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		if (!isNumber(port))
 			this->throwError(key, val, raw_line);
 
-		if (!isIPAddress(host))
-		{
-			Logger::error("parser error: the server won't do the dns resolution, please provide an IP address.");
-			this->throwError(key, val, raw_line);
-		}
+		/**
+		 * INFO:
+		 * Grace au fonctions standards de la librairie C, on peut facilement faire des resolution DNS.
+		 * Plus besoin de restreiendre l'utilisateur à fournir une adresse IP.
+		 */
+		// if (!isIPAddress(host))
+		// {
+		// 	Logger::error("parser error: the server won't do the dns resolution, please provide an IP address.");
+		// 	this->throwError(key, val, raw_line);
+		// }
 
 		// std::cout << "Protocol: " << protocol << std::endl;
 		// std::cout << "Host: " << host << std::endl;

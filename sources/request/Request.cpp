@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/17 23:12:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:29:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,6 @@ Request::~Request(void)
 
 int	Request::processLine(const std::string &line)
 {
-	this->_raw.append(line);
-	this->_raw.append(WBS_CRLF);
 	if (!this->_request_line_received)
 	{
 		/**
@@ -454,4 +452,9 @@ bool	Request::bodyReceived(void) const
 bool	Request::hasContentLength(void) const
 {
 	return (this->_headers.count("Content-Length"));
+}
+
+void	Request::updateHost(const std::string &host)
+{
+	this->_headers["Host"] = host;
 }
