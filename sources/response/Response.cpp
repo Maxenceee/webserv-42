@@ -91,7 +91,7 @@ wbs_mapis_t	Response::initCodes()
 	 */
 	codes[500] = "Internal Server Error";
 	codes[501] = "Not Implemented";
-	codes[502] = "Bad Gateway ou Proxy Error";
+	codes[502] = "Bad Gateway";
 	codes[503] = "Service Unavailable";
 	codes[504] = "Gateway Time-out";
 	codes[505] = "HTTP Version not supported";
