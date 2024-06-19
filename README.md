@@ -23,6 +23,28 @@ Log file will be in `/var/log/webserv.log` and `/var/log/webserv.err`.
 
 # Features
 
+## Table of contents
+
+- [add_header](#add_header)
+- [alias](#alias)
+- [allow_methods](#allow_methods)
+- [autoindex](#autoindex)
+- [client_max_body_size](#client_max_body_size)
+- [error_page](#error_page)
+- [fastcgi_param](#fastcgi_param)
+- [fastcgi_pass](#fastcgi_pass)
+- [index](#index)
+- [listen](#listen)
+- [location](#location)
+- [proxy_pass](#proxy_pass)
+- [proxy_pass_header](#proxy_pass_header)
+- [return](#return)
+- [root](#root)
+- [server](#server)
+- [server_name](#server_name)
+
+## Documentation
+
 ### `add_header`
 
 ```
