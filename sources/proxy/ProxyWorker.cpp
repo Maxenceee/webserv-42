@@ -6,11 +6,16 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:53:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 16:00:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
+
+/**
+ * TODO:
+ * voir pour implementer la directive `proxy_set_header` et autres directives liées au proxy
+ */
 
 ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
 	_client(client),
