@@ -1,6 +1,6 @@
 # Webserv
 
-My Webserv project for the 42 School, a web server made in c++98. This project is much more complete and complex than what is required by the subject to be validated at 125. It includes many [`Nginx`](https://nginx.org) directives and advanced features such as proxies. See the [Features](#features) section below.
+My Webserv project for the 42 School, a Nginx like web server made in c++98. This project is much more complete and complex than what is required by the subject to be validated at 125. It includes many [`Nginx`](https://nginx.org) directives and advanced features such as proxies. See the [Features](#features) section below.
 
 ## Getting started
 
