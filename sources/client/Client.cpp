@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 15:23:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:53:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ Client::~Client(void)
 		 */
 		this->response->cancel();
 		delete this->response;
-		Logger::debug("------------------Client upgraded to proxy and closed-------------------\n", B_YELLOW);
+		Logger::debug("------------------Client upgraded to proxy and closed-------------------", B_YELLOW);
 		return ;
 	}
 	if (this->response)
@@ -48,7 +48,7 @@ Client::~Client(void)
 		delete this->response;
 	}
 	close(this->_client);
-	Logger::debug("------------------Client closed-------------------\n", B_YELLOW);
+	Logger::debug("------------------Client closed-------------------", B_YELLOW);
 }
 
 int	Client::process(void)
@@ -189,6 +189,7 @@ int	Client::processLines(void) {
 			 * Gerer le proxybuffering on;
 			 * consiste à stocker le contenu recu depuis le client jusqu'a ce que la taille du buffer soit atteinte 
 			 * puis d'envoyer tout le buffer au serveur distant
+			 * edit: pas sur de la faire
 			 */
 			if (this->_current_router->isProxy())
 			{
@@ -198,9 +199,9 @@ int	Client::processLines(void) {
 				 */
 				// On concatène les parties déjà traitée et non traitée de la requête
 				// en un seul tampon à transmettre.
-				std::string raw(this->request.getRawRequest());
-				raw.append(this->_buffer);
-				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), raw)())
+				// std::string raw(this->request.getRawRequest());
+				// raw.append(this->_buffer);
+				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
 				{
 					/**
 					 * S une erreur s'est produite lors de la création du ProxyWorker,

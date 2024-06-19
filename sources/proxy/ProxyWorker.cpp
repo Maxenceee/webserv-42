@@ -6,17 +6,18 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 10:44:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:53:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
 
-ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, const std::string &buffer):
+ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
 	_client(client),
 	_config(config),
 	socket_fd(-1),
-	_buffer(buffer)
+	_buffer(buffer),
+	_req(req)
 	// _tid(0)
 {
 	// std::cout << "ProxyWorker: " << buffer << std::endl;
@@ -44,7 +45,14 @@ int	ProxyWorker::operator()()
 		close(this->socket_fd);
 		return (WBS_PROXY_ERROR);
 	}
-	if (::send(this->socket_fd, this->_buffer.c_str(), this->_buffer.size(), 0) < 0)
+	std::string data = this->_req.prepareForProxying();
+	data.append(WBS_CRLF);
+	if (this->_buffer.length() > 0) {
+		data.append(this->_buffer);
+	}
+
+	// std::cout << data << std::endl;
+	if (::send(this->socket_fd, data.c_str(), data.size(), 0) < 0)
 	{
 		perror("send");
 		return (WBS_PROXY_ERROR);
@@ -70,15 +78,51 @@ int	ProxyWorker::connect()
 		return (WBS_SOCKET_ERR);
 	}
 
+	struct hostent *hostent = gethostbyname(this->_config.host.c_str());
+	if (hostent == nullptr) {
+		if (h_errno == HOST_NOT_FOUND)
+			Logger::error("proxy error: host not found");
+		else
+			perror("gethostbyname");
+		return (WBS_SOCKET_ERR);
+	}
+
+	Logger::debug("DNS resolution for " + this->_config.host + " successful");
+	std::stringstream ss;
+	ss << "Official name: " << hostent->h_name;
+	Logger::debug(ss.str());
+	ss.str("");
+
+	bool connected = false;
+
 	struct sockaddr_in addr;
 	bzero(&this->socket_addr, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->_config.port);
-	this->socket_addr.sin_addr.s_addr = htonl(setIPAddress(this->_config.host));
 
-	if (::connect(this->socket_fd, (struct sockaddr *)&this->socket_addr, sizeof(this->socket_addr)) < 0)
-	{
-		perror("connect");
+	for (char **addr = hostent->h_addr_list; *addr != nullptr; ++addr) {
+		struct in_addr inAddr;
+		memcpy(&inAddr, *addr, sizeof(struct in_addr));
+
+		ss << "Trying IP Address: " << inet_ntoa(inAddr);
+		Logger::debug(ss.str());
+		ss.str("");
+
+		memcpy(&this->socket_addr.sin_addr, &inAddr, sizeof(inAddr));
+
+		if (::connect(this->socket_fd, (struct sockaddr *)&this->socket_addr, sizeof(this->socket_addr)) == 0) {
+			ss << "Connected to " << inet_ntoa(inAddr);
+			Logger::debug(ss.str());
+			ss.str("");
+			connected = true;
+			this->_req.updateHost(this->_config.host);
+			break;
+		} else {
+			perror("connect");
+		}
+	}
+
+	if (!connected) {
 		return (WBS_PROXY_ERROR);
 	}
 
@@ -144,5 +188,5 @@ void relay_data(int client_fd, int backend_fd)
 
     close(client_fd);
     close(backend_fd);
-	Logger::debug("------------------Proxy task ended-------------------\n", B_YELLOW);
+	Logger::debug("------------------Proxy task ended-------------------", B_YELLOW);
 }

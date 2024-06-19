@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:32:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/19 11:23:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@
 #include <regex.h>
 #include <signal.h>
 #include <errno.h>
+#include <pthread.h>
 
 // C System Includes
 #include <sys/socket.h>
@@ -53,10 +54,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <sys/select.h>
 
 // C Network Includes
 #include <netinet/in.h>
 #include <netinet/ip.h> 
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include "pcolors.hpp"
 #include "utils/utils.hpp"
