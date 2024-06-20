@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 19:50:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 21:19:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ int	Request::processLine(const std::string &line)
 				 * On s'assure que l'en-tête `Host` est présent dans la
 				 * requête. La cas échéant la requête est invalide.
 				 */
-				if (this->getRequestHostname(this->_headers["Host"]))
+				if (this->_host.empty())
 				{
 					return (WBS_REQ_ERROR);
 				}
@@ -141,6 +141,15 @@ int	Request::processLine(const std::string &line)
 			if (this->_headers.count("Transfer-Encoding") && this->_headers.count("Content-Length"))
 			{
 				return (WBS_REQ_ERROR);
+			}
+
+			/**
+			 * On vérifie si l'en-tête `Host` est présent dans la requête. Si c'est le cas, on extrait
+			 * le nom d'hôte et le port de l'en-tête.
+			 */
+			if (this->_headers.count("Host") && this->_host.empty())
+			{
+				this->getRequestHostname(this->_headers["Host"]);
 			}
 		}
 		else if (!this->_body_received)
