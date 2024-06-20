@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 18:39:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 22:22:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,7 @@ struct wbs_router_proxy {
 	bool			enabled;
 	std::string		host;
 	int				port;
+	std::string		path;
 	bool			buffering;
 
 	wbs_mapss_t		headers;
@@ -90,9 +91,11 @@ struct wbs_router_proxy {
 
 struct wbs_router_timeout {
 	time_t			header_timeout;
+	bool			header_set;
 	time_t			body_timeout;
+	bool			body_set;
 
-	wbs_router_timeout() : header_timeout(WBS_REQUEST_TIMEOUT), body_timeout(WBS_REQUEST_TIMEOUT) {}
+	wbs_router_timeout() : header_timeout(WBS_REQUEST_TIMEOUT), body_timeout(WBS_REQUEST_TIMEOUT), header_set(false), body_set(false) {}
 };
 
 typedef struct wbs_router_headers::wbs_router_header	wbs_router_header_t;
@@ -136,8 +139,6 @@ private:
 	void	handleTRACEMethod(Request &request, Response &response);
 
 	void	handleCGI(Request &request, Response &response);
-
-	void	handleProxy(Request &request, Response &response);
 
 	bool	matchRoute(const std::string &route, Response &response) const;
 
@@ -198,10 +199,10 @@ public:
 
 	void				sendResponse(Response &response);
 
-	void							setProxy(const std::string host, const int port);
-	void							addProxyHeader(const std::string key, const std::string value);
-	void							enableProxyHeader(const std::string key);
-	void							hideProxyHeader(const std::string key);
+	void							setProxy(const std::string &host, const int port, const std::string &path);
+	void							addProxyHeader(const std::string &key, const std::string &value);
+	void							enableProxyHeader(const std::string &key);
+	void							hideProxyHeader(const std::string &key);
 	bool							isProxy(void) const;
 	const struct wbs_router_proxy	&getProxyConfig(void) const;
 

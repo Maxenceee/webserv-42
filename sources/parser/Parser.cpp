@@ -6,22 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 18:38:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 22:20:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
-
-/**
- * TODO:
- * add client_header_timeout directive
- * client_body_timeout
- */
-/**
- * TODO: mais pas sur
- * fastcgi_pass_header
- */
 
 #define PARSER_ERR		"parser error: invalid file path"
 
@@ -523,7 +513,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		// std::cout << "Port: " << port << std::endl;
 		// std::cout << "Path: " << path << std::endl;
 
-		this->tmp_router->setProxy(host, std::atoi(port.c_str()));
+		this->tmp_router->setProxy(host, std::atoi(port.c_str()), path);
 		return ;
 	}
 

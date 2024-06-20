@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 19:06:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 22:22:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,13 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 		this->_client_body.set = true;
 	} else {
 		this->_client_body.size = 1024 * 1024; // 1MB
+	}
+
+	/**
+	 * 
+	 */
+	if (parent) {
+		this->_timeout = parent->getTimeout();
 	}
 
 	this->_redirection.enabled = false;
@@ -348,7 +355,7 @@ const std::string	&Router::getCGIPath(void) const
 	return (this->_cgi.path);
 }
 
-void	Router::setProxy(const std::string host, const int port)
+void	Router::setProxy(const std::string &host, const int port, const std::string &path)
 {
 	if (this->_proxy.enabled)
 	{
@@ -358,20 +365,21 @@ void	Router::setProxy(const std::string host, const int port)
 
 	this->_proxy.enabled = true;
 	this->_proxy.host = host;
-	this->_proxy.port = port;	
+	this->_proxy.port = port;
+	this->_proxy.path = path;
 }
 
-void	Router::addProxyHeader(const std::string key, const std::string value)
+void	Router::addProxyHeader(const std::string &key, const std::string &value)
 {
 	this->_proxy.headers[key] = value;
 }
 
-void	Router::enableProxyHeader(const std::string key)
+void	Router::enableProxyHeader(const std::string &key)
 {
 	this->_proxy.forwared.push_back(key);
 }
 
-void	Router::hideProxyHeader(const std::string key)
+void	Router::hideProxyHeader(const std::string &key)
 {
 	this->_proxy.hidden.push_back(key);
 }
@@ -392,12 +400,17 @@ void	Router::setTimeout(const std::string &time, const std::string &type)
 	if (t < 0) {
 		throw std::invalid_argument("router error: Invalid time: "+time);
 	}
-	if (type == "header")
+	if (type == "header") {
 		this->_timeout.header_timeout = t;
-	else if (type == "body")
+		this->_timeout.header_set = true;
+	}
+	else if (type == "body") {
 		this->_timeout.body_timeout = t;
+		this->_timeout.body_set = true;
+	}
 	else
 		throw std::invalid_argument("router error: Invalid usage of setTimeout()");
+	this->reloadChildren();
 }
 
 const struct wbs_router_timeout	&Router::getTimeout() const
@@ -478,14 +491,6 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	 */
 	if (!response.canSend())
 		return (false);
-
-	if (this->_proxy.enabled) {
-		/**
-		 * Si le router est configuré comme étant un proxy, on envoie la requête au server distant.
-		 */
-		this->handleProxy(request, response);
-		return (true);
-	}
 
 	/**
 	 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
@@ -729,11 +734,6 @@ void	Router::handleCGI(Request &request, Response &response)
 	response.sendCGI(CGIWorker::run(request, fullpath, this->_cgi.params, this->_cgi.path, body)).end();
 }
 
-void	Router::handleProxy(Request &request, Response &response)
-{
-	Logger::debug("<------------ "B_BLUE"Proxy"B_GREEN" handler"RESET" ------------>");
-}
-
 void	Router::call(std::string method, Request &request, Response &response)
 {
 	(this->*Router::_method_handlers[method])(request, response);
@@ -915,10 +915,13 @@ void	Router::reload(void)
 	} else if (!this->_client_body.set) {
 		this->_client_body = this->_parent->_client_body;
 	}
-	/**
-	 * TODO:
-	 * gerer l'heritage des nouvelles directives 
-	 */
+	std::cout << "reload: " << this->_timeout.header_set << " " << this->_timeout.body_set << std::endl;
+	if (!this->_timeout.header_set) {
+		this->_timeout.header_timeout = this->_parent->getTimeout().header_timeout;
+	}
+	if (!this->_timeout.body_set) {
+		this->_timeout.body_timeout = this->_parent->getTimeout().body_timeout;
+	}
 	this->reloadChildren();
 }
 
