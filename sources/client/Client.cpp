@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 19:50:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 21:21:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,15 +162,13 @@ int	Client::processLines(void) {
 		/**
 		 * Extraction du router correspondant à la requête dès l'arrivée de l'en-tête `Host`.
 		 */
-		std::cout << "this->_current_router " << (this->_current_router == NULL) << " [" << this->request.getHeader("Host") << "]" << std::endl;
-		if (this->_current_router == NULL && !this->request.getHost().empty())
+		if (this->_current_router == NULL && this->request.hasHeader("Host"))
 		{
 			/**
 			 * La fonction Server::eval() retourne un pointeur vers le router correspondant à la requête
 			 * ou le router par défaut du server si aucun router correspondant n'a été trouvé, cette fonction
 			 * n'est donc jamais censée retourner NULL, mais on sécurise tout de même.
 			 */
-			std::cout << "host received" << std::endl;
 			this->_current_router = this->_server->eval(this->request, *this->response);
 			if (this->_current_router == NULL)
 			{
@@ -264,7 +262,6 @@ bool	Client::timeout(void) {
 	if (!handler)
 		handler = this->_server->getDefault()->getDefaultHandler();
 
-	// std::cout << *handler << std::endl;
 	if (!this->_headers_received)
 	{
 		max = handler->getTimeout().header_timeout;
