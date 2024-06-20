@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 17:12:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 18:38:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,7 @@
 /**
  * TODO:
  * add client_header_timeout directive
- */
-/**
- * TODO:
- * if no port provided with, check if the prog has the privileges to use port 80 otherwise use 8000
+ * client_body_timeout
  */
 /**
  * TODO: mais pas sur
@@ -559,6 +556,26 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 */
 	if (key == "proxy_hide_header") {
 		this->tmp_router->hideProxyHeader(valtokens[0]);
+		return ;
+	}
+
+	/**
+	 * Directive client_header_timeout
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_header_timeout)
+	 */
+	if (key == "client_header_timeout") {
+		this->tmp_router->setTimeout(valtokens[0], "header");
+		return ;
+	}
+
+	/**
+	 * Directive client_body_timeout
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_body_timeout)
+	 */
+	if (key == "client_body_timeout") {
+		this->tmp_router->setTimeout(valtokens[0], "body");
 		return ;
 	}
 

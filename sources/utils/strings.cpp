@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 17:07:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 18:44:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,7 +263,7 @@ std::string &replaceAll(std::string &buffer, char searchValue, char replaceValue
     return buffer;
 }
 
-int	parseSize(std::string size)
+int	parseSize(const std::string &size)
 {
 	int		ret = 0;
 	size_t	i = 0;
@@ -302,6 +302,48 @@ std::string	getSize(int size)
 		ret = toString(size / (1024 * 1024)) + "MB";
 	else
 		ret = toString(size / (1024 * 1024 * 1024)) + "GB";
+	return (ret);
+}
+
+time_t	parseTime(const std::string &timeStr)
+{
+	time_t	ret = 0;
+	size_t	i = 0;
+
+	while (i < timeStr.size() && timeStr[i] >= '0' && timeStr[i] <= '9')
+	{
+		ret = ret * 10 + timeStr[i] - '0';
+		i++;
+	}
+	if (i < timeStr.size())
+	{
+		if (timeStr[i] == 's' || timeStr[i] == 'S')
+			ret *= 1000;
+		else if (timeStr[i] == 'm' || timeStr[i] == 'M')
+			ret *= 60 * 1000;
+		else if (timeStr[i] == 'h' || timeStr[i] == 'H')
+			ret *= 60 * 60 * 1000;
+		else if (timeStr[i] == 'd' || timeStr[i] == 'D')
+			ret *= 24 * 60 * 60 * 1000;
+		else
+			return (-1);
+		if (i + 1 < timeStr.size())
+			return (-1);
+	}
+	return (ret);
+}
+
+std::string	getTime(time_t time)
+{
+	std::string	ret;
+	if (time < 60 * 1000)
+		ret = toString(time / 1000) + "s";
+	else if (time < 60 * 60 * 1000)
+		ret = toString(time / (60 * 1000)) + "m";
+	else if (time < 24 * 60 * 60 * 1000)
+		ret = toString(time / (60 * 60 * 1000)) + "h";
+	else
+		ret = toString(time / (24 * 60 * 60 * 1000)) + "d";
 	return (ret);
 }
 

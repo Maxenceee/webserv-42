@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 12:21:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 19:50:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,31 +159,22 @@ int	Client::processLines(void) {
 			}
 		}
 
-		if (!this->_headers_received && this->request.headersReceived())
+		/**
+		 * Extraction du router correspondant à la requête dès l'arrivée de l'en-tête `Host`.
+		 */
+		std::cout << "this->_current_router " << (this->_current_router == NULL) << " [" << this->request.getHeader("Host") << "]" << std::endl;
+		if (this->_current_router == NULL && !this->request.getHost().empty())
 		{
-			this->_headers_received = true;
-			/**
-			 * Extraction du router correspondant à la requête.
-			 */
-			this->_current_router = this->_server->eval(this->request, *this->response);
 			/**
 			 * La fonction Server::eval() retourne un pointeur vers le router correspondant à la requête
 			 * ou le router par défaut du server si aucun router correspondant n'a été trouvé, cette fonction
 			 * n'est donc jamais censée retourner NULL, mais on sécurise tout de même.
 			 */
+			std::cout << "host received" << std::endl;
+			this->_current_router = this->_server->eval(this->request, *this->response);
 			if (this->_current_router == NULL)
 			{
 				this->response->status(404).sendDefault().end();
-				return (WBS_ERR);
-			}
-
-			/**
-			 * Si lors de l'évaluation de la requête, on il y a eu une erreur, le code de statut de la réponse
-			 * est alors différent de 200, on envoie donc une réponse d'erreur.
-			 */
-			if (this->response->getStatus() != 200)
-			{
-				this->_current_router->sendResponse(*this->response);
 				return (WBS_ERR);
 			}
 
@@ -201,10 +192,6 @@ int	Client::processLines(void) {
 				 * Si le router est un proxy, on crée un ProxyWorker qui va se charger de la communication
 				 * avec le serveur distant.
 				 */
-				// On concatène les parties déjà traitée et non traitée de la requête
-				// en un seul tampon à transmettre.
-				// std::string raw(this->request.getRawRequest());
-				// raw.append(this->_buffer);
 				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
 				{
 					/**
@@ -217,6 +204,21 @@ int	Client::processLines(void) {
 				}
 				this->upgraded_to_proxy = true;
 				return (WBS_POLL_CLIENT_CLOSED);
+			}
+		}
+
+		if (!this->_headers_received && this->request.headersReceived())
+		{
+			this->_headers_received = true;
+
+			/**
+			 * Si lors de l'évaluation de la requête, on il y a eu une erreur, le code de statut de la réponse
+			 * est alors différent de 200, on envoie donc une réponse d'erreur.
+			 */
+			if (this->response->getStatus() != 200)
+			{
+				this->_current_router->sendResponse(*this->response);
+				return (WBS_ERR);
 			}
 		}
 	}
@@ -246,11 +248,46 @@ int	Client::processLines(void) {
 }
 
 bool	Client::timeout(void) {
-	if ((time_t)getTimestamp() > this->request.getRequestTime() + WBS_REQUEST_TIMEOUT)
+	/**
+	 * Si le client n'a pas envoyé les en-têtes de la requête dans le délai imparti,
+	 * on envoie une réponse d'erreur 408 (Request Timeout) et on ferme la connexion.
+	 */
+	time_t now = getTimestamp();
+	time_t max = WBS_REQUEST_TIMEOUT;
+	Router *handler = this->_current_router;
+
+	/**
+	 * Étant donné que le server a besoin d'avoir reçu l'en-tête `Host` pour savoir 
+	 * à quel server virtuel la requête est destinée, temps que cet en-tête n'est pas reçu,
+	 * on utilise la configuration du server par défault pour déterminer le timeout.
+	 */
+	if (!handler)
+		handler = this->_server->getDefault()->getDefaultHandler();
+
+	// std::cout << *handler << std::endl;
+	if (!this->_headers_received)
 	{
-		Logger::debug("Client timeout");
-		this->response->status(408).sendDefault().end();
-		return (true);
+		max = handler->getTimeout().header_timeout;
+
+		if (now > this->request.getRequestTime().header + max)
+		{		
+			Logger::debug("Client timeout");
+			if (this->response)
+				this->response->status(408).sendDefault().end();
+			return (true);
+		}
+	}
+	else
+	{
+		max = handler->getTimeout().body_timeout;
+
+		if (now > this->request.getRequestTime().body + max)
+		{
+			Logger::debug("Client timeout");
+			if (this->response)
+				this->response->status(408).sendDefault().end();
+			return (true);
+		}
 	}
 	return (false);
 }

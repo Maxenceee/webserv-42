@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:36:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:41:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 19:52:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,8 @@ const wbs_mapss_t	&Request::getHeaders(void) const
 
 const std::string	&Request::getHeader(const std::string name) const
 {
+	if (this->_headers.count(name) == 0)
+		return ("");
 	return (this->_headers.at(name));
 }
 
@@ -134,7 +136,7 @@ const std::string	&Request::getRawRequest(void) const
 	return (this->_raw);
 }
 
-time_t	Request::getRequestTime(void) const
+const struct wbs_request_time	&Request::getRequestTime(void) const
 {
 	return (this->request_time);
 }

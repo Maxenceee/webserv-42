@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 11:17:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 18:39:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,13 @@ struct wbs_router_proxy {
 	wbs_router_proxy() : enabled(false), host(""), port(0), buffering(false) {}
 };
 
+struct wbs_router_timeout {
+	time_t			header_timeout;
+	time_t			body_timeout;
+
+	wbs_router_timeout() : header_timeout(WBS_REQUEST_TIMEOUT), body_timeout(WBS_REQUEST_TIMEOUT) {}
+};
+
 typedef struct wbs_router_headers::wbs_router_header	wbs_router_header_t;
 
 class Router
@@ -105,6 +112,7 @@ private:
 	std::vector<std::string>		_index;
 	wbs_mapis_t						_error_page;
 	struct wbs_router_proxy			_proxy;
+	struct wbs_router_timeout		_timeout;
 
 	std::vector<Router *>			_routes;
 
@@ -196,6 +204,9 @@ public:
 	void							hideProxyHeader(const std::string key);
 	bool							isProxy(void) const;
 	const struct wbs_router_proxy	&getProxyConfig(void) const;
+
+	void							setTimeout(const std::string &time, const std::string &type);
+	const struct wbs_router_timeout	&getTimeout() const;
 
 	void	print(std::ostream &os) const;
 };
