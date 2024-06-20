@@ -39,8 +39,10 @@ Log file will be `/var/log/webserv.log` and `/var/log/webserv.err`.
 - [index](#index)
 - [listen](#listen)
 - [location](#location)
+- [proxy_hide_header](#proxy_hide_header)
 - [proxy_pass](#proxy_pass)
 - [proxy_pass_header](#proxy_pass_header)
+- [proxy_set_header](#proxy_set_header)
 - [return](#return)
 - [root](#root)
 - [server](#server)
@@ -62,7 +64,7 @@ Adds the specified field to a response header provided that the response code eq
 
 There could be several **add_header** directives. These directives are inherited from the previous configuration level if and only if there are no **add_header** directives defined on the current level.
 
-If the always parameter is specified, the header field will be added regardless of the response code.
+If the **always** parameter is specified, the header field will be added regardless of the response code.
 
 ### `alias`
 
@@ -222,6 +224,16 @@ location ~* \.(gif|jpg|jpeg)$ {
 
 The **“/”** request will match configuration A, the **“/index.html”** request will match configuration B, the **“/documents/document.html”** request will match configuration C, the **“/images/1.gif”** request will match configuration D, and the **“/documents/1.jpg”** request will match configuration E.
 
+### `proxy_hide_header`
+
+```
+Syntax:     proxy_hide_header field;
+Default:	—
+Context:	server, location
+```
+
+By default, the server does not pass the header fields “Date”, “Server”, “X-Pad”, and “X-Accel-...” from the response of a proxied server to a client. The **proxy_hide_header** directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the [proxy_pass_header](#proxy_pass_header) directive can be used.
+
 ### `proxy_pass`
 
 ```
@@ -262,7 +274,18 @@ Default:	—
 Context:	server, location
 ```
 
-Permits passing header fields from a proxied server to a client.
+Permits passing [otherwise disabled](#proxy_hide_header) header fields from a proxied server to a client.
+
+### `proxy_set_header`
+
+```
+Syntax:	    proxy_set_header field value;
+Default:	proxy_set_header Host proxy_host;
+            proxy_set_header Connection close;
+Context:	server, location
+```
+
+Allows redefining or appending fields to the request header passed to the proxied server. These directives are inherited from the previous configuration level if and only if there are no **proxy_set_header** directives defined on the current level.
 
 ### `return`
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:29:55 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 11:45:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -457,4 +457,17 @@ bool	Request::hasContentLength(void) const
 void	Request::updateHost(const std::string &host)
 {
 	this->_headers["Host"] = host;
+}
+
+void	Request::addHeader(const std::string &header, const std::string &value)
+{
+	this->_headers[header] = value;
+}
+
+void	Request::removeHeader(const std::string &header)
+{
+	if (this->_headers.count(header))
+	{
+		this->_headers.erase(header);
+	}
 }

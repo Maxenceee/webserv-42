@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 14:42:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 12:22:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -366,6 +366,16 @@ void	Router::addProxyHeader(const std::string key, const std::string value)
 	this->_proxy.headers[key] = value;
 }
 
+void	Router::enableProxyHeader(const std::string key)
+{
+	this->_proxy.forwared.push_back(key);
+}
+
+void	Router::hideProxyHeader(const std::string key)
+{
+	this->_proxy.hidden.push_back(key);
+}
+
 bool	Router::isProxy(void) const
 {
 	return (this->_proxy.enabled);
@@ -414,6 +424,7 @@ Router	*Router::eval(const std::string &path, const std::string &method, Respons
 void	Router::sendResponse(Response &response)
 {
 	if (response.canSend()) {
+		std::cout << "adding eahderw\n";
 		for (std::vector<wbs_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
 			if (it->always || response.canAddHeader())
 				response.setHeader(it->key, it->value);
@@ -952,6 +963,13 @@ void	Router::print(std::ostream &os) const
 	if (this->_proxy.enabled) {
 		os << space << B_CYAN"Proxy host: " << RESET << this->_proxy.host << "\n";
 		os << space << B_CYAN"Proxy port: " << RESET << this->_proxy.port << "\n";
+		os << space << B_CYAN"Proxy set headers: " << RESET << "\n";
+		for (wbs_mapss_t::const_iterator it = this->_proxy.headers.begin(); it != this->_proxy.headers.end(); it++)
+			os << space << it->first << ": " << it->second << "\n";
+		os << space << B_CYAN"Proxy hidden headers: " << RESET;
+		for (std::vector<std::string>::const_iterator it = this->_proxy.hidden.begin(); it != this->_proxy.hidden.end(); it++)
+			os << *it << " ";
+		os << "\n";
 	}
 	os << space << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
 	if (this->_headers.list.size()) {
