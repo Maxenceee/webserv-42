@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:13:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 16:44:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,14 @@ std::ostream	&operator<<(std::ostream &os, const ServerConfig &config)
 ServerConfig::ServerConfig(Server *server): _server(server), used(false)
 {
 	this->_default = new Router(NULL, wbs_router_location());
-	this->port = 80;
+	/**
+	 * On verifie si le serveur est lancé en tant que root ou non. Si c'est le cas, on
+	 * configure le serveur pour que le port par defaut soit 80, sinon on utilise le port 8080.
+	 */
+	if (getuid() == 0)
+		this->port = 80;
+	else
+		this->port = 8000;
 	this->address = INADDR_ANY;
 }
 
@@ -86,7 +93,12 @@ void	ServerConfig::use(Router *router)
 void	ServerConfig::setAddress(const std::string address)
 {
 	if (!this->_server || !this->_server->isInit())
-		this->address = setIPAddress(address);
+	{
+		if (address == "*")
+			this->address = INADDR_ANY;
+		else
+			this->address = setIPAddress(address);
+	}
 	else
 		Logger::error("server error: could not set address after server startup");
 }

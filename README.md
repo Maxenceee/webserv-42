@@ -165,7 +165,7 @@ Defines files that will be used as an index. Files are checked in the specified 
 
 ```
 Syntax:		listen address[:port]
-Default:	listen *:80;
+Default:	listen *:80 | *:8000;
 Context:	server
 ```
 
@@ -179,6 +179,8 @@ listen localhost:8000;
 ```
 
 If only address is given, the port 80 is used.
+
+If the directive is not present then either **\*:80** is used if nginx runs with the superuser privileges, or **\*:8000** otherwise.
 
 If none of the directives have the server_name set to **_** then the first server with the address:port pair will be the default server for this pair.
 

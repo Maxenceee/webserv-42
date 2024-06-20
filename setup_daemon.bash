@@ -14,7 +14,7 @@ setup_launchd() {
         exit 1
     fi
     sudo cp "$SOURCE_DIR$PLIST_FILE" /Library/LaunchDaemons/
-    sudo launchctl load /Library/LaunchDaemons/"$PLIST_FILE"
+    sudo launchctl load -w /Library/LaunchDaemons/"$PLIST_FILE"
     sudo launchctl start "dev.maxencegama.$SERVICE_NAME"
     echo "$SERVICE_NAME started with launchd."
 }
@@ -40,7 +40,7 @@ sudo cp $PROG_FILE /usr/local/bin
 # Détection du système d'exploitation et appel des fonctions appropriées
 if [[ "$OSTYPE" == "darwin"* ]]; then
     if [ -f "/Library/LaunchDaemons/$PLIST_FILE" ]; then
-        sudo launchctl stop "dev.maxencegama.$SERVICE_NAME"
+        # sudo launchctl stop "dev.maxencegama.$SERVICE_NAME"
         sudo launchctl unload -w /Library/LaunchDaemons/"$PLIST_FILE"
         sudo rm "/Library/LaunchDaemons/$PLIST_FILE"
     fi
