@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 12:15:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 12:32:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,7 +246,12 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
-	/**`
+	/**
+	 * TODO:
+	 * create tokens variable = parseQuotedAndSplit so the `val` is already parsed and splitted and can be used
+	 * by all the directives
+	 */
+	/**
 	 * Directive Listen
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
@@ -478,7 +483,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass)
 	 */
 	if (key == "proxy_pass") {
-		std::string url = val;
+		std::string url = parseQuotedAndSplit(val)[0];
     
 		std::string protocol;
 		std::string host;
