@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 12:22:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 17:04:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -491,9 +491,9 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		}
 		Logger::debug("redirect to: " + this->_redirection.path);
 		if (this->_redirection.status % 300 < 100) {
-			response.redirect(this->_redirection.path, this->_redirection.status).end();
+			response.redirect(this->_redirection.path, this->_redirection.status);
 		} else {
-			response.status(this->_redirection.status).send(this->_redirection.data).end();
+			response.status(this->_redirection.status).send(this->_redirection.data);
 		}
 		return (true);
 	}

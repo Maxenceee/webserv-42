@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/15 18:24:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 17:07:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,34 @@ std::vector<std::string>	split(const std::string &str, char c)
 	while (std::getline(tokenStream, token, c))
 		tokens.push_back(token);
 	return (tokens);
+}
+
+std::vector<std::string>	parseQuotedAndSplit(const std::string &input)
+{
+    std::vector<std::string> result;
+    std::string current;
+    bool inQuotes = false;
+
+    for (size_t i = 0; i < input.size(); ++i) {
+        char c = input[i];
+
+        if (c == '"') {
+            inQuotes = !inQuotes; // Toggle the state
+        } else if (c == ' ' && !inQuotes) {
+            if (!current.empty()) {
+                result.push_back(current);
+                current.clear();
+            }
+        } else {
+            current += c;
+        }
+    }
+
+    if (!current.empty()) {
+        result.push_back(current);
+    }
+
+    return result;
 }
 
 struct StringConcatenator {
@@ -193,7 +221,7 @@ bool	isIPAddress(std::string addr)
 	if (addr == "localhost")
 		return (true);
 
-	std::vector<std::string>	tokens = split(addr, '.');
+	std::vector<std::string> tokens = split(addr, '.');
 	if (tokens.size() != 4)
 		return (false);
 	for (size_t i = 0; i < tokens.size(); i++)

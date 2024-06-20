@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 14:07:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 17:12:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,11 @@
  * if no port provided with, check if the prog has the privileges to use port 80 otherwise use 8000
  */
 /**
- * TODO:
- * handle quotes in conf file
- */
-/**
  * TODO: mais pas sur
  * fastcgi_pass_header
  */
 
 #define PARSER_ERR		"parser error: invalid file path"
-
-std::vector<std::string>	parseQuotedAndSplit(const std::string &line);
 
 Parser::Parser(Cluster &c): cluster(c)
 {
@@ -71,7 +65,10 @@ int		Parser::open_and_read_file(const std::string &file_name)
 void	Parser::parse(const std::string &configPath)
 {
 	if (!isFile(configPath))
+	{
+		Logger::error("parser error: could not open file " + configPath);
 		throw std::invalid_argument(PARSER_ERR);
+	}
 	this->open_and_read_file(configPath);
 	this->extract(this->buffer);
 	this->cluster.initConfigs(this->configs);
@@ -219,23 +216,34 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() > 2 || tokens.size() < 1)
 		this->throwError(key, val, raw_line);
+
 	trim(tokens[0]);
 	if (tokens.size() == 2 && this->isValidModifier(tokens[0])) {
 		location.modifier = tokens[0];
 		if (location.modifier == "=")
 			location.strict = true;
 	}
-	else if (tokens.size() == 2)
+	else if (tokens.size() == 2) {
 		this->throwError(key, val, raw_line);
+	}
 	location.path = trim(tokens[tokens.size() - 1]);
+
 	Router *tmp = this->tmp_router;
 	this->tmp_router = new Router(tmp, location, tmp->level + 1);
+
 	if (parent == "server.location")
 		this->new_server->use(this->tmp_router);
 	else
 		tmp->use(this->tmp_router);
+
 	const struct wbs_router_location &parent_l = tmp->getLocation();
 	const struct wbs_router_location &child_l = this->tmp_router->getLocation();
+
+	/**
+	 * Cette horreur permet de vérifier si le block `location` enfant peut être imbriqué dans le block `location` parent.
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
+	 */
 	if ((!parent_l.modifier.empty() && parent_l.modifier != "^~" && (child_l.modifier.empty() || child_l.modifier == "^~"))
 		|| (((parent_l.modifier.empty() || parent_l.modifier == "^~") && (child_l.modifier.empty() || child_l.modifier == "^~"))
 			&& (child_l.path.size() < parent_l.path.size() || child_l.path.substr(0, parent_l.path.size()) != parent_l.path))) {
@@ -246,40 +254,41 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
-	/**
-	 * TODO:
-	 * create tokens variable = parseQuotedAndSplit so the `val` is already parsed and splitted and can be used
-	 * by all the directives
-	 */
+	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
+	for (std::vector<std::string>::iterator it = valtokens.begin(); it != valtokens.end(); ++it) {
+		std::cout << *it << std::endl;
+	}
 	/**
 	 * Directive Listen
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
 	 */
-	/**
-	 * TODO:
-	 * fix le fait de ne pas pouvoir utiliser listen avec simplement l'adresse IP
-	 * check avec getuid() si l'utilisateur a les droits pour utiliser le port 80
-	 * sinon utiliser le port 8000
-	 */
 	if (key == "listen" && parent != "server")
 		this->throwError(key, val);
 	else if (key == "listen") {
 		// check if there is a column in the value
-		if (val.find(':') == std::string::npos) {
-			if (!isDigit(val))
+		std::string line = valtokens[0];
+		if (line.find(':') == std::string::npos) {
+			if (isIPAddress(line)) {
+				// Adresse IP seule, utiliser le port par défaut (80)
+				this->new_server->setAddress(line);
+			} else if (isDigit(line)) {
+				// Numéro de port seul, utiliser l'adresse par défaut (0.0.0.0)
+				this->new_server->setPort(std::atoi(line.c_str()));
+			} else {
 				this->throwError(key, val);
-			this->new_server->setPort(std::atoi(val.c_str()));
+			}
 		} else {
-			std::vector<std::string> tokens = split(val, ':');
+			std::vector<std::string> tokens = split(line, ':');
 			if (tokens.size() == 2) {
-				if (!isIPAddress(tokens[0]) || !isDigit(tokens[1]))
+				if ((!isIPAddress(tokens[0]) && tokens[0] != "*") || !isDigit(tokens[1])) {
 					this->throwError(key, val);
+				}
 				this->new_server->setAddress(tokens[0]);
 				this->new_server->setPort(std::atoi(tokens[1].c_str()));
-			}
-			else
+			} else {
 				this->throwError(key, val);
+			}
 		}
 		return ;
 	}
@@ -292,8 +301,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "server_name" && parent != "server")
 		this->throwError(key, val);
 	else if (key == "server_name") {
-		std::vector<std::string> names = parseQuotedAndSplit(val);
-		this->new_server->addNames(names);
+		this->new_server->addNames(valtokens);
 		return ;
 	}
 
@@ -304,11 +312,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#alias)
 	 */
 	if (key == "root") {
-		this->tmp_router->setRoot(val);
+		this->tmp_router->setRoot(valtokens[0]);
 		return ;
 	}
 	else if (key == "alias" && parent != "server") {
-		this->tmp_router->setAlias(val);
+		this->tmp_router->setAlias(valtokens[0]);
 		return ;
 	} else if (key == "alias") {
 		this->throwError(key, val);
@@ -321,10 +329,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_index_module.html#index)
 	 */
 	if (key == "index") {
-		/**
-		 */
-		std::vector<std::string> index = parseQuotedAndSplit(val);
-		this->tmp_router->setIndex(index);
+		this->tmp_router->setIndex(valtokens);
 		return ;
 	}
 
@@ -334,9 +339,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_autoindex_module.html#autoindex)
 	 */
 	if (key == "autoindex") {
-		if (val == "on")
+		if (valtokens[0] == "on")
 			this->tmp_router->setAutoIndex(true);
-		else if (val != "off")
+		else if (valtokens[0] != "off")
 			this->throwError(key, val);
 		return ;
 	}
@@ -348,29 +353,22 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 */
 	if (key == "return") {
 		int status = 302;
-		std::string loc = val;
+		std::string loc = valtokens[0];
 
-		if (val.find(' ') != std::string::npos)
+		if (valtokens.size() == 1 && isDigit(loc))
 		{
-			std::vector<std::string> tokens = parseQuotedAndSplit(val);
-
-			if (tokens.size() == 2)
-			{
-				if (!isDigit(tokens[0]))
-					this->throwError(key, val);
-				status = std::atoi(tokens[0].c_str());
-				loc = tokens[1];
-			}
-			else if (tokens.size() > 2)
-			{
-				this->throwError(key, val);
-			}
-		}
-		else if (isDigit(val))
-		{
-			status = std::atoi(val.c_str());
+			status = std::atoi(loc.c_str());
 			loc = "";
 		}
+		else if (valtokens.size() == 2)
+		{
+			if (!isDigit(valtokens[0]))
+				this->throwError(key, val);
+			status = std::atoi(valtokens[0].c_str());
+			loc = valtokens[1];
+		}
+		else
+			this->throwError(key, val);
 
 		if (!Response::isValidStatus(status)) {
 			Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
@@ -383,11 +381,10 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Directive allow_methods
 	 */
 	if (key == "allow_methods") {
-		std::vector<std::string> tokens = parseQuotedAndSplit(val);
-		for (size_t i = 0; i < tokens.size(); i++) {
-			if (!Server::isValidMethod(tokens[i]))
+		for (size_t i = 0; i < valtokens.size(); i++) {
+			if (!Server::isValidMethod(valtokens[i]))
 				this->throwError(key, val);
-			this->tmp_router->allowMethod(tokens[i]);
+			this->tmp_router->allowMethod(valtokens[i]);
 		}
 		return ;
 	}
@@ -398,18 +395,18 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
 	 */
 	if (key == "error_page") {
-		std::vector<std::string> tokens = parseQuotedAndSplit(val);
-		if (tokens.size() < 2)
+		if (valtokens.size() < 2)
 			this->throwError(key, val);
-		for (size_t i = 0; i < tokens.size() - 1; i++) {
-			if (!isDigit(tokens[i])) {
+
+		for (size_t i = 0; i < valtokens.size() - 1; i++) {
+			if (!isDigit(valtokens[i])) {
 				this->throwError(key, val);
 			}
-			int code = std::atoi(tokens[i].c_str());
+			int code = std::atoi(valtokens[i].c_str());
 			if (code < 300 || code > 599) {
 				this->throwError(key, val, raw_line);
 			}
-			this->tmp_router->setErrorPage(code, tokens[tokens.size() - 1]);
+			this->tmp_router->setErrorPage(code, valtokens[valtokens.size() - 1]);
 		}
 		return ;
 	}
@@ -420,19 +417,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
 	 */
 	if (key == "client_max_body_size") {
-		this->tmp_router->setClientMaxBodySize(val);
+		this->tmp_router->setClientMaxBodySize(valtokens[0]);
 		return ;
 	}
-
-	/**
-	 * Directive cgi_extension
-	 * see fastcgi_pass
-	 */
-	// if (key == "cgi") {
-	// 	if (val == "on")
-	// 		this->tmp_router->enableCGI();
-	// 	return ;
-	// }
 
 	/**
 	 * Directive fastcgi_pass
@@ -440,7 +427,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass)
 	 */
 	if (key == "fastcgi_pass") {
-		this->tmp_router->setCGI(val);
+		this->tmp_router->setCGI(valtokens[0]);
 		return ;
 	}
 
@@ -450,10 +437,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
-		std::vector<std::string> tokens = parseQuotedAndSplit(val);
-		if (tokens.size() < 2)
+		if (valtokens.size() < 2)
 			this->throwError(key, val);
-		this->tmp_router->addCGIParam(tokens[0], tokens[1]);
+		this->tmp_router->addCGIParam(valtokens[0], valtokens[1]);
 		return ;
 	}
 
@@ -463,16 +449,15 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)
 	 */
 	if (key == "add_header") {
-		std::vector<std::string> tokens = parseQuotedAndSplit(val);
 		bool always = false;
-		if (tokens.size() < 2 || tokens.size() > 3)
+		if (valtokens.size() < 2 || valtokens.size() > 3)
 			this->throwError(key, val);
-		if (tokens.size() == 3) {
-			if (tokens[2] != "always")
+		if (valtokens.size() == 3) {
+			if (valtokens[2] != "always")
 				this->throwError(key, val);
 			always = true;
 		}
-		this->tmp_router->addHeader(tokens[0], tokens[1], always);
+		this->tmp_router->addHeader(valtokens[0], valtokens[1], always);
 		return ;
 	
 	}
@@ -483,7 +468,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass)
 	 */
 	if (key == "proxy_pass") {
-		std::string url = parseQuotedAndSplit(val)[0];
+		std::string url = valtokens[0];
     
 		std::string protocol;
 		std::string host;
@@ -551,10 +536,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header)
 	 */
 	if (key == "proxy_set_header") {
-		std::vector<std::string> tokens = parseQuotedAndSplit(val);
-		if (tokens.size() < 2 || tokens.size() > 3)
+		if (valtokens.size() < 2 || valtokens.size() > 3)
 			this->throwError(key, val);
-		this->tmp_router->addProxyHeader(tokens[0], tokens[1]);
+		this->tmp_router->addProxyHeader(valtokens[0], valtokens[1]);
 		return ;
 	}
 
@@ -564,7 +548,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_header)
 	 */
 	if (key == "proxy_pass_header") {
-		this->tmp_router->enableProxyHeader(val);
+		this->tmp_router->enableProxyHeader(valtokens[0]);
 		return ;
 	}
 
@@ -574,7 +558,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_hide_header)
 	 */
 	if (key == "proxy_hide_header") {
-		this->tmp_router->hideProxyHeader(val);
+		this->tmp_router->hideProxyHeader(valtokens[0]);
 		return ;
 	}
 
@@ -587,31 +571,4 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 bool	Parser::isValidModifier(const std::string &modifier) const
 {
 	return (modifier == "=" || modifier == "~" || modifier == "~*" || modifier == "^~");
-}
-
-std::vector<std::string> parseQuotedAndSplit(const std::string &input) {
-    std::vector<std::string> result;
-    std::string current;
-    bool inQuotes = false;
-
-    for (size_t i = 0; i < input.size(); ++i) {
-        char c = input[i];
-
-        if (c == '"') {
-            inQuotes = !inQuotes; // Toggle the state
-        } else if (c == ' ' && !inQuotes) {
-            if (!current.empty()) {
-                result.push_back(current);
-                current.clear();
-            }
-        } else {
-            current += c;
-        }
-    }
-
-    if (!current.empty()) {
-        result.push_back(current);
-    }
-
-    return result;
 }

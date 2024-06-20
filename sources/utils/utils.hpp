@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 14:03:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 17:07:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ template <typename T>
 std::string					toString(T val);
 
 std::vector<std::string>	split(const std::string &str, char c);
+std::vector<std::string>	parseQuotedAndSplit(const std::string &input);
 std::string					join(std::vector<std::string> &list, const std::string &c);
 std::string					&pop(std::string &str);
 std::string					&shift(std::string &str);
