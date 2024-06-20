@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 17:04:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 19:06:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -384,6 +384,25 @@ bool	Router::isProxy(void) const
 const struct wbs_router_proxy	&Router::getProxyConfig(void) const
 {
 	return (this->_proxy);
+}
+
+void	Router::setTimeout(const std::string &time, const std::string &type)
+{
+	time_t	t = parseTime(time);
+	if (t < 0) {
+		throw std::invalid_argument("router error: Invalid time: "+time);
+	}
+	if (type == "header")
+		this->_timeout.header_timeout = t;
+	else if (type == "body")
+		this->_timeout.body_timeout = t;
+	else
+		throw std::invalid_argument("router error: Invalid usage of setTimeout()");
+}
+
+const struct wbs_router_timeout	&Router::getTimeout() const
+{
+	return (this->_timeout);
 }
 
 void	Router::use(Router *router)
@@ -896,6 +915,10 @@ void	Router::reload(void)
 	} else if (!this->_client_body.set) {
 		this->_client_body = this->_parent->_client_body;
 	}
+	/**
+	 * TODO:
+	 * gerer l'heritage des nouvelles directives 
+	 */
 	this->reloadChildren();
 }
 
@@ -972,6 +995,8 @@ void	Router::print(std::ostream &os) const
 		os << "\n";
 	}
 	os << space << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
+	os << space << B_CYAN"Header timeout: " << RESET << getTime(this->_timeout.header_timeout) << "\n";
+	os << space << B_CYAN"Body timeout: " << RESET << getTime(this->_timeout.body_timeout) << "\n";
 	if (this->_headers.list.size()) {
 		os << space << B_CYAN"Response headers: " << RESET << "\n";
 		for (std::vector<struct wbs_router_headers::wbs_router_header>::const_iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++)

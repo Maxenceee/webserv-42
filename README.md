@@ -34,6 +34,8 @@ Log file will be `/var/log/webserv.log` and `/var/log/webserv.err`.
 - [alias](#alias)
 - [allow_methods](#allow_methods)
 - [autoindex](#autoindex)
+- [client_body_timeout](#client_body_timeout)
+- [client_header_timeout](#client_header_timeout)
 - [client_max_body_size](#client_max_body_size)
 - [error_page](#error_page)
 - [fastcgi_param](#fastcgi_param)
@@ -105,6 +107,26 @@ Context:	http, server, location
 ```
 
 Enables or disables the directory listing output.
+
+### `client_body_timeout`
+
+```
+Syntax:	    client_body_timeout time;
+Default:	client_body_timeout 60s;
+Context:	server, location
+```
+
+Defines a timeout for reading client request body. The timeout is set only for a period between two successive read operations, not for the transmission of the whole request body. If a client does not transmit anything within this time, the request is terminated with the 408 (Request Time-out) error.
+
+### `client_header_timeout`
+
+```
+Syntax:	    client_header_timeout time;
+Default:	client_header_timeout 60s;
+Context:	server, location
+```
+
+Defines a timeout for reading client request header. If a client does not transmit the entire header within this time, the request is terminated with the 408 (Request Time-out) error.
 
 ### `client_max_body_size`
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 11:31:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 18:50:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,11 @@ enum ChunkProcessResult {
 };
 
 class Server;
+
+struct wbs_request_time {
+	time_t		header;
+	time_t		body;
+};
 
 class Request
 {
@@ -52,7 +57,7 @@ private:
 	std::string			_ip;
 	std::string			_chunkBuffer;
 
-	time_t				request_time;
+	struct wbs_request_time		request_time;
 
 	int		getRequestLine(const std::string &str);
 	int		getRequestPath(const std::string &str);
@@ -94,7 +99,8 @@ public:
 	const sockaddr_in		&getClientAddr(void) const;
 	const std::string		&getIP(void) const;
 	const std::string		&getRawRequest(void) const;
-	time_t					getRequestTime(void) const;
+	
+	const struct wbs_request_time	&getRequestTime(void) const;
 
 	const std::string		prepareForProxying(void) const;
 };
