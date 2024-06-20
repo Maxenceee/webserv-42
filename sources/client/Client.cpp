@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 21:21:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 21:29:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,6 +175,21 @@ int	Client::processLines(void) {
 				this->response->status(404).sendDefault().end();
 				return (WBS_ERR);
 			}
+		}
+
+		if (!this->_headers_received && this->request.headersReceived())
+		{
+			this->_headers_received = true;
+
+			/**
+			 * Si lors de l'évaluation de la requête, on il y a eu une erreur, le code de statut de la réponse
+			 * est alors différent de 200, on envoie donc une réponse d'erreur.
+			 */
+			if (this->response->getStatus() != 200)
+			{
+				this->_current_router->sendResponse(*this->response);
+				return (WBS_ERR);
+			}
 
 			/**
 			 * TODO:
@@ -202,21 +217,6 @@ int	Client::processLines(void) {
 				}
 				this->upgraded_to_proxy = true;
 				return (WBS_POLL_CLIENT_CLOSED);
-			}
-		}
-
-		if (!this->_headers_received && this->request.headersReceived())
-		{
-			this->_headers_received = true;
-
-			/**
-			 * Si lors de l'évaluation de la requête, on il y a eu une erreur, le code de statut de la réponse
-			 * est alors différent de 200, on envoie donc une réponse d'erreur.
-			 */
-			if (this->response->getStatus() != 200)
-			{
-				this->_current_router->sendResponse(*this->response);
-				return (WBS_ERR);
 			}
 		}
 	}
