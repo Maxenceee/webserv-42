@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 00:31:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 12:15:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@
  */
 
 #define PARSER_ERR		"parser error: invalid file path"
+
+std::vector<std::string>	parseQuotedAndSplit(const std::string &line);
 
 Parser::Parser(Cluster &c): cluster(c)
 {
@@ -285,7 +287,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "server_name" && parent != "server")
 		this->throwError(key, val);
 	else if (key == "server_name") {
-		std::vector<std::string> names = split(val, ' ');
+		std::vector<std::string> names = parseQuotedAndSplit(val);
 		this->new_server->addNames(names);
 		return ;
 	}
@@ -316,7 +318,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	if (key == "index") {
 		/**
 		 */
-		std::vector<std::string> index = split(val, ' ');
+		std::vector<std::string> index = parseQuotedAndSplit(val);
 		this->tmp_router->setIndex(index);
 		return ;
 	}
@@ -345,7 +347,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 
 		if (val.find(' ') != std::string::npos)
 		{
-			std::vector<std::string> tokens = split(val, ' ');
+			std::vector<std::string> tokens = parseQuotedAndSplit(val);
 
 			if (tokens.size() == 2)
 			{
@@ -376,7 +378,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Directive allow_methods
 	 */
 	if (key == "allow_methods") {
-		std::vector<std::string> tokens = split(val, ' ');
+		std::vector<std::string> tokens = parseQuotedAndSplit(val);
 		for (size_t i = 0; i < tokens.size(); i++) {
 			if (!Server::isValidMethod(tokens[i]))
 				this->throwError(key, val);
@@ -391,7 +393,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
 	 */
 	if (key == "error_page") {
-		std::vector<std::string> tokens = split(val, ' ');
+		std::vector<std::string> tokens = parseQuotedAndSplit(val);
 		if (tokens.size() < 2)
 			this->throwError(key, val);
 		for (size_t i = 0; i < tokens.size() - 1; i++) {
@@ -443,7 +445,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
-		std::vector<std::string> tokens = split(val, ' ');
+		std::vector<std::string> tokens = parseQuotedAndSplit(val);
 		if (tokens.size() < 2)
 			this->throwError(key, val);
 		this->tmp_router->addCGIParam(tokens[0], tokens[1]);
@@ -456,7 +458,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)
 	 */
 	if (key == "add_header") {
-		std::vector<std::string> tokens = split(val, ' ');
+		std::vector<std::string> tokens = parseQuotedAndSplit(val);
 		bool always = false;
 		if (tokens.size() < 2 || tokens.size() > 3)
 			this->throwError(key, val);
@@ -539,15 +541,35 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	}
 
 	/**
+	 * Directive proxy_set_header
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header)
+	 */
+	if (key == "proxy_set_header") {
+		std::vector<std::string> tokens = parseQuotedAndSplit(val);
+		if (tokens.size() < 2 || tokens.size() > 3)
+			this->throwError(key, val);
+		this->tmp_router->addProxyHeader(tokens[0], tokens[1]);
+		return ;
+	}
+
+	/**
 	 * Directive proxy_pass_header
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_header)
 	 */
 	if (key == "proxy_pass_header") {
-		std::vector<std::string> tokens = split(val, ' ');
-		if (tokens.size() < 2 || tokens.size() > 3)
-			this->throwError(key, val);
-		this->tmp_router->addProxyHeader(tokens[0], tokens[1]);
+		this->tmp_router->enableProxyHeader(val);
+		return ;
+	}
+
+	/**
+	 * Directive proxy_hide_header
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_hide_header)
+	 */
+	if (key == "proxy_hide_header") {
+		this->tmp_router->hideProxyHeader(val);
 		return ;
 	}
 
@@ -560,4 +582,31 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 bool	Parser::isValidModifier(const std::string &modifier) const
 {
 	return (modifier == "=" || modifier == "~" || modifier == "~*" || modifier == "^~");
+}
+
+std::vector<std::string> parseQuotedAndSplit(const std::string &input) {
+    std::vector<std::string> result;
+    std::string current;
+    bool inQuotes = false;
+
+    for (size_t i = 0; i < input.size(); ++i) {
+        char c = input[i];
+
+        if (c == '"') {
+            inQuotes = !inQuotes; // Toggle the state
+        } else if (c == ' ' && !inQuotes) {
+            if (!current.empty()) {
+                result.push_back(current);
+                current.clear();
+            }
+        } else {
+            current += c;
+        }
+    }
+
+    if (!current.empty()) {
+        result.push_back(current);
+    }
+
+    return result;
 }

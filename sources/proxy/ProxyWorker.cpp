@@ -6,21 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 00:03:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 12:26:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
 
-/**
- * TODO:
- * finish the implementation of the proxy_pass_header directive see router config struct
- */
-/**
- * TODO:
- * voir pour implementer la directive `proxy_set_header` et autres directives liées au proxy
- * il faut gere des variables pour celui la on va laisser tomber
- */
 /**
  * TODO:
  * supporter les uri dans la directive proxy_pass 
@@ -61,18 +52,29 @@ int	ProxyWorker::operator()()
 		close(this->socket_fd);
 		return (WBS_PROXY_ERROR);
 	}
+	for (size_t i = 0; i < this->_config.hidden.size(); i++)
+	{
+		this->_req.removeHeader(this->_config.hidden[i]);
+	}
+	for (wbs_mapss_t::const_iterator it = this->_config.headers.begin(); it != this->_config.headers.end(); it++)
+	{
+		this->_req.addHeader((*it).first, (*it).second);
+	}
+	
 	std::string data = this->_req.prepareForProxying();
 	data.append(WBS_CRLF);
 	if (this->_buffer.length() > 0) {
 		data.append(this->_buffer);
 	}
 
-	// std::cout << data << std::endl;
+	std::cout << data << std::endl;
 	if (::send(this->socket_fd, data.c_str(), data.size(), 0) < 0)
 	{
 		perror("send");
 		return (WBS_PROXY_ERROR);
 	}
+	if (Logger::_debug)
+		std::cout << this->_req << std::endl;
 	Cluster::pool.enqueueTask(relay_data, this->_client, this->socket_fd);
 	Logger::debug("new proxy task pushed to pool", RESET);
 	return (WBS_PROXY_OK);

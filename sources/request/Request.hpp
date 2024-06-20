@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:37:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 11:31:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,8 @@ public:
 	bool					bodyReceived(void) const;
 	bool					hasContentLength(void) const;
 	void					updateHost(const std::string &host);
+	void					addHeader(const std::string &header, const std::string &value);
+	void					removeHeader(const std::string &header);
 
 	const std::string		&getMethod(void) const;
 	const std::string		&getVersion(void) const;
