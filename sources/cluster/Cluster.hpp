@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 15:55:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 14:08:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ public:
 
 	int		start(void);
 
-	void	parse(const char *configPath);
+	void	parse(const std::string &configPath);
 	void	initConfigs(std::vector<ServerConfig *> &configs);
 	Server	*addConfig(ServerConfig *config);
 };

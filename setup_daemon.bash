@@ -41,7 +41,7 @@ sudo cp $PROG_FILE /usr/local/bin
 if [[ "$OSTYPE" == "darwin"* ]]; then
     if [ -f "/Library/LaunchDaemons/$PLIST_FILE" ]; then
         sudo launchctl stop "dev.maxencegama.$SERVICE_NAME"
-        sudo launchctl unload /Library/LaunchDaemons/"$PLIST_FILE"
+        sudo launchctl unload -w /Library/LaunchDaemons/"$PLIST_FILE"
         sudo rm "/Library/LaunchDaemons/$PLIST_FILE"
     fi
     setup_launchd
