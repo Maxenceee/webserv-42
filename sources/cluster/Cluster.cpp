@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 15:55:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 14:08:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ Cluster::~Cluster()
 	Logger::debug("Cluster destroyed");
 }
 
-void	Cluster::parse(const char *configPath)
+void	Cluster::parse(const std::string &configPath)
 {
 	this->parser->parse(configPath);
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)

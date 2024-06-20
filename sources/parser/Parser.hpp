@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:07:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 14:07:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ private:
 
 	std::vector<ServerConfig *>	configs;
 	
-	int		open_and_read_file(const char *file_name);
+	int		open_and_read_file(const std::string &file_name);
 
 	void	extract(const std::string &conf);
 	void	processInnerLines(std::string &lineRaw, std::string &chunkedLine, std::string &parent);
@@ -51,7 +51,7 @@ public:
 	Parser(Cluster &c);
 	~Parser(void);
 
-	void	parse(const char *configPath);
+	void	parse(const std::string &configPath);
 };
 
 #endif /* PARSER_HPP */

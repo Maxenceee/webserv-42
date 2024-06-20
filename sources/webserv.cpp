@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 12:35:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 14:09:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,19 +50,25 @@ int	main(int argc, char const **argv)
 		Logger::error("usage: [configuration file]", RESET);
 		return (EXIT_FAILURE);
 	}
+	std::string fpath;
+	if (std::string(argv[1]) == "--daemon")
+	{
+		fpath = "/etc/webserv/webserv.conf";
+	}
 	if (argc == 3) {
 		if (std::string(argv[1]) == "-d" || std::string(argv[1]) == "--debug") {
 			Logger::_debug = true;
-			argv[1] = argv[2];
+			fpath = argv[2];
 		} else if (std::string(argv[2]) == "-d" || std::string(argv[2]) == "--debug") {
 			Logger::_debug = true;
+			fpath = argv[1];
 		}
 	}
 	Logger::init();
 	Cluster	cluster;
 	try
 	{
-		cluster.parse(argv[1]);
+		cluster.parse(fpath);
 		// Logger::info("Attempting to become daemon");
 		// if (become_daemon(WBS_NO_CLOSE_FILES) < 0)
 		// {
