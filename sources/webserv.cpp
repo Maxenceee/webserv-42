@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 00:00:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 12:35:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,11 @@
 #include "cluster/Cluster.hpp"
 #include "parser/Parser.hpp"
 #include "daemon/daemon.hpp"
+
+/**
+ * TODO:
+ * add --daemon parameter to indicate to the program to search conf file in the /etc/webserv dir
+ */
 
 void	print_name(void)
 {
