@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 22:22:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 22:34:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -456,7 +456,6 @@ Router	*Router::eval(const std::string &path, const std::string &method, Respons
 void	Router::sendResponse(Response &response)
 {
 	if (response.canSend()) {
-		std::cout << "adding eahderw\n";
 		for (std::vector<wbs_router_header_t>::iterator it = this->_headers.list.begin(); it != this->_headers.list.end(); it++) {
 			if (it->always || response.canAddHeader())
 				response.setHeader(it->key, it->value);
@@ -915,7 +914,6 @@ void	Router::reload(void)
 	} else if (!this->_client_body.set) {
 		this->_client_body = this->_parent->_client_body;
 	}
-	std::cout << "reload: " << this->_timeout.header_set << " " << this->_timeout.body_set << std::endl;
 	if (!this->_timeout.header_set) {
 		this->_timeout.header_timeout = this->_parent->getTimeout().header_timeout;
 	}
