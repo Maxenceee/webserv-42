@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 22:20:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 22:33:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,9 +242,7 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
 	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
-	for (std::vector<std::string>::iterator it = valtokens.begin(); it != valtokens.end(); ++it) {
-		std::cout << *it << std::endl;
-	}
+
 	/**
 	 * Directive Listen
 	 * 

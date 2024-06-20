@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 14:08:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 22:35:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,8 +259,6 @@ int		Cluster::start(void)
 			poll_clients.erase(newClient);
 			delete client;
 		}
-		// std::cout << "clients: " << poll_clients.size() << std::endl;
-		// std::cout << "fds: " << poll_fds.size() << std::endl;
 	} while (!this->exit);
 
 	// On ferme les sockets des clients et libère la mémoire

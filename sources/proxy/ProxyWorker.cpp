@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 21:35:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/20 22:33:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,8 @@ int	ProxyWorker::operator()()
 		data.append(this->_buffer);
 	}
 
-	std::cout << data << std::endl;
+	if (Logger::_debug)
+		std::cout << data << std::endl;
 	if (::send(this->socket_fd, data.c_str(), data.size(), 0) < 0)
 	{
 		perror("send");
