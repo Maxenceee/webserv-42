@@ -137,7 +137,7 @@ while (true)
 
 To handle multiple clients, the server maintains a list of active connections and uses efficient I/O operations:
 
-- **Tracking Connections**: The server keeps track of all active connections using data structures like likne `pollfd` and `std::vector`. Each connection is monitored for specific events (e.g., readiness to read data).
+- **Tracking Connections**: The server keeps track of all active connections using data structures like like `pollfd` and `std::vector`. Each connection is monitored for specific events (e.g., readiness to read data).
 ``` c++
 std::vector<pollfd> poll_fds;
 ```
