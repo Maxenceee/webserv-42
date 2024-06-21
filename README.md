@@ -117,19 +117,16 @@ fds[0].events = POLLIN;
 fds[1].fd = client_fd;
 fds[1].events = POLLIN;
 
-while (true)
+poll(fds, 2, -1);
+
+if (fds[0].revents & POLLIN)
 {
-    poll(fds, 2, -1);
+    // Accept new connection
+}
 
-    if (fds[0].revents & POLLIN)
-    {
-        // Accept new connection
-    }
-
-    if (fds[1].revents & POLLIN)
-    {
-        // Handle client request
-    }
+if (fds[1].revents & POLLIN)
+{
+    // Handle client request
 }
 ```
 
