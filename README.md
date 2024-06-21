@@ -60,9 +60,9 @@ Binding a socket is a crucial step in setting up a server as it associates the s
 ``` c++
 // IPv4 Address Structure
 struct sockaddr_in {
-    sa_family_t    sin_family; // Address family (AF_INET for IPv4)
-    in_port_t      sin_port;   // Port number (16 bits)
-    struct in_addr sin_addr;   // Internet address (32 bits)
+    sa_family_t    sin_family   // Address family (AF_INET for IPv4)
+    in_port_t      sin_port;    // Port number (16 bits)
+    struct in_addr sin_addr;    // Internet address (32 bits)
     char           sin_zero[8]; // Padding to match size of sockaddr
 };
 ```
