@@ -26,6 +26,258 @@ In this case you need to place your config file in `/etc/webserv` with the name 
 
 Log file will be `/var/log/webserv.log` and `/var/log/webserv.err`.
 
+# Basic concept
+
+The server is based on a simple state machine. It reads the configuration file and creates a list of servers. Each server has a list of locations. Each location has a list of directives. When a request is received, the server will try to match the request URI with the locations of the server. If a location is found, the server will apply the directives of the location to the request.
+
+## Overview
+
+1. **Initialization**: When the server starts, it reads its configuration settings and prepares to handle requests. This includes setting up necessary resources and initializing server components.
+2. **Listening for Requests**: The server waits for incoming requests from users. It uses network sockets to listen for these requests on specified ports.
+3. **Processing Requests**: When a request arrives, the server processes it. This involves parsing the request, determining the appropriate action, and preparing the response.
+4. **Sending Responses**: After processing the request, the server sends back the appropriate response to the user. This could be the content of a web page, a file, or an error message if the request could not be fulfilled.
+5. **Handling Multiple Requests**: The server can manage multiple requests at the same time using efficient I/O operations and a thread pool to ensure quick and reliable service.
+6. **Graceful Shutdown**: When it’s time to shut down, the server stops accepting new requests and finishes processing any remaining ones. This ensures that all ongoing processes are completed smoothly.
+
+## How It Works
+
+### Server Initialization
+
+The server initialization involves setting up the necessary components to start listening for requests. This includes creating a socket, setting socket options, and binding the socket to a specific port and address.
+
+#### Creating a Socket
+
+The `socket()` function is used to create a network socket, which serves as an endpoint for communication. The socket is created using IPv4 (AF_INET) or IPv6 (AF_INET6) and TCP (SOCK_STREAM), which ensures reliable, connection-oriented communication.
+
+``` c++
+int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+```
+
+#### Binding the Socket
+
+Binding a socket is a crucial step in setting up a server as it associates the socket with a specific IP address and port on the local machine. This allows the server to listen for incoming connections on that address and port. Here’s a more detailed look at the structures and functions involved in the binding process.
+
+``` c++
+// IPv4 Address Structure
+struct sockaddr_in {
+    sa_family_t    sin_family; // Address family (AF_INET for IPv4)
+    in_port_t      sin_port;   // Port number (16 bits)
+    struct in_addr sin_addr;   // Internet address (32 bits)
+    char           sin_zero[8]; // Padding to match size of sockaddr
+};
+```
+``` c++
+// IPv6 Address Structure
+struct sockaddr_in6 {
+    sa_family_t     sin6_family;   // Address family (AF_INET6 for IPv6)
+    in_port_t       sin6_port;     // Port number (16 bits)
+    uint32_t        sin6_flowinfo; // IPv6 flow information
+    struct in6_addr sin6_addr;     // IPv6 address (128 bits)
+    uint32_t        sin6_scope_id; // IPv6 scope ID (interface index)
+};
+```
+
+The `bind()` function assigns the address specified in the sockaddr_in structure to the socket. This step is necessary for the socket to accept incoming connections on the specified IP address and port.
+
+``` c++
+struct sockaddr_in socket_addr;
+
+bzero(&socket_addr, sizeof(socket_addr));           // Clear the structure
+socket_addr.sin_family = AF_INET;                   // Set address family to IPv4
+socket_addr.sin_port = htons(80);                   // Convert port number to network byte order
+socket_addr.sin_addr.s_addr = htonl(IN_ANY_LOCAL);  // Convert IP address to network byte order
+
+bind(socket_fd, (sockaddr *)&socket_addr, sizeof(socket_addr));
+```
+
+#### Listening for Connections
+
+The `listen()` function marks the socket as a passive socket that will be used to accept incoming connection requests. It specifies the maximum number of pending connections that can be queued.
+
+``` c++
+listen(socket_fd, 1024);
+```
+
+#### Accepting Connections
+
+The `accept()` function accepts an incoming connection from a client. It returns a new socket file descriptor for the established connection, allowing the server to communicate with the client.
+
+``` c++
+int client_fd = accept(socket_fd, (sockaddr *)&client_addr, &client_addr_len);
+```
+
+#### Polling
+
+The `poll()` function is crucial for handling multiple connections simultaneously. It monitors an array of file descriptors to see if any are ready for reading, writing, or have encountered an error. This allows the server to efficiently manage multiple clients without blocking on a single connection.
+
+``` c++
+struct pollfd fds[2];
+fds[0].fd = socket_fd;
+fds[0].events = POLLIN;
+fds[1].fd = client_fd;
+fds[1].events = POLLIN;
+
+while (true)
+{
+    poll(fds, 2, -1);
+
+    if (fds[0].revents & POLLIN)
+    {
+        // Accept new connection
+    }
+
+    if (fds[1].revents & POLLIN)
+    {
+        // Handle client request
+    }
+}
+```
+
+### Managing Multiple Clients
+
+To handle multiple clients, the server maintains a list of active connections and uses efficient I/O operations:
+
+- **Tracking Connections**: The server keeps track of all active connections using data structures like likne `pollfd` and `std::vector`. Each connection is monitored for specific events (e.g., readiness to read data).
+``` c++
+std::vector<pollfd> poll_fds;
+```
+
+- **Processing Events**:  When `poll()` indicates that a socket is ready, the server processes the corresponding event. This could involve accepting a new connection, reading data from a client, or handling a client's request.
+```c++
+for (size_t i = 0; i < poll_fds.size(); ++i)
+{
+    if (poll_fds[i].revents & POLLHUP)
+    {
+        // Connection closed by the client
+    }
+    else if (poll_fds[i].revents & POLLIN)
+    {
+        // Read data from the client
+    }
+}
+```
+
+### Let's combine it all
+
+``` c++
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/poll.h>
+#include <vector>
+#include <iostream>
+
+#define MAX_EVENTS 1024
+#define PORT 3000
+
+int main() {
+	// Create socket
+	int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_fd == 0)
+	{
+		perror("Socket creation failed");
+		exit(EXIT_FAILURE);
+	}
+
+	int option = 1;
+	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
+	{
+		perror("setsockopt");
+		return (EXIT_FAILURE);
+	}
+
+	// Prepare sockaddr_in structure
+	struct sockaddr_in socket_addr;
+	socket_addr.sin_family = AF_INET;
+	socket_addr.sin_addr.s_addr = INADDR_ANY;
+	socket_addr.sin_port = htons(PORT);
+
+	// Bind socket to socket_addr and port
+	if (bind(socket_fd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) < 0)
+	{
+		perror("Bind failed");
+		exit(EXIT_FAILURE);
+	}
+
+	// Listen for incoming connections
+	if (listen(socket_fd, MAX_EVENTS) < 0)
+	{
+		perror("Listen failed");
+		exit(EXIT_FAILURE);
+	}
+
+	printf("Server listening on port %d...\n", PORT);
+
+	std::vector<pollfd>		poll_fds;
+
+	// Add server socket to poll set
+	poll_fds.push_back((pollfd){socket_fd, POLLIN, 0});
+
+	while (true)
+	{
+		// We cannot remove elements from poll_fds while iterating over it
+		std::vector<int>	to_remove;
+
+		if (poll(poll_fds.data(), poll_fds.size(), -1) < 0)
+		{
+			perror("Poll failed");
+			exit(EXIT_FAILURE);
+		}
+
+		for (size_t i = 0; i < poll_fds.size(); ++i)
+		{
+			if (poll_fds[i].revents & POLLIN)
+			{
+				if (poll_fds[i].fd == socket_fd)
+				{
+					// Accept new connection
+					int new_socket_fd = accept(socket_fd, NULL, NULL);
+					if (new_socket_fd < 0)
+					{
+						perror("Accept failed");
+						exit(EXIT_FAILURE);
+					}
+
+					printf("New connection accepted\n");
+
+					// Add new client to poll set
+					poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
+				}
+				else
+				{
+					// Read data from client
+					char buffer[1024] = {0};
+					int valread = read(poll_fds[i].fd, buffer, sizeof(buffer));
+					if (valread == 0)
+					{
+						// Client disconnected
+						printf("Client disconnected\n");
+						close(poll_fds[i].fd);
+						to_remove.push_back(i);
+					}
+					else
+					{
+						printf("Received: %s\n", buffer);
+					}
+				}
+			}
+		}
+
+		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
+		{
+			poll_fds.erase(poll_fds.begin() + *it);
+		}
+	}
+
+	return 0;
+}
+```
+
 # Features
 
 ## Table of contents
