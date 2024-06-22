@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 22:22:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:45:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ struct wbs_router_timeout {
 	time_t			body_timeout;
 	bool			body_set;
 
-	wbs_router_timeout() : header_timeout(WBS_REQUEST_TIMEOUT), body_timeout(WBS_REQUEST_TIMEOUT), header_set(false), body_set(false) {}
+	wbs_router_timeout() : header_timeout(WBS_REQUEST_TIMEOUT), header_set(false), body_timeout(WBS_REQUEST_TIMEOUT), body_set(false) {}
 };
 
 typedef struct wbs_router_headers::wbs_router_header	wbs_router_header_t;
@@ -162,8 +162,8 @@ public:
 	void	setRoot(const std::string path);
 	void	setAlias(const std::string path);
 
-	bool 			isDefault(void) const;
-	Router 			*getParent(void) const;
+	bool 	isDefault(void) const;
+	Router 	*getParent(void) const;
 
 	const struct wbs_router_location	&getLocation(void) const;
 
@@ -183,12 +183,12 @@ public:
 	void	addHeader(const std::string key, const std::string value, const bool always = false);
 	const std::vector<wbs_router_header_t>	&getHeaders(void) const;
 
-	void					setErrorPage(const int code, const std::string path);
-	const std::string		&getErrorPage(const int status) const;
-	bool					hasErrorPage(const int code) const;
+	void				setErrorPage(const int code, const std::string path);
+	const std::string	&getErrorPage(const int status) const;
+	bool				hasErrorPage(const int code) const;
 
 	void 		setClientMaxBodySize(const std::string &size);
-	void 		setClientMaxBodySize(const int size);
+	void 		setClientMaxBodySize(const size_t size);
 	size_t 		getClientMaxBodySize(void) const;
 	bool		hasClientMaxBodySize(void) const;
 

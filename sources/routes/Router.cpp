@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 22:34:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:44:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -295,7 +295,7 @@ bool	Router::hasErrorPage(const int code) const
 
 void	Router::setClientMaxBodySize(const std::string &size)
 {
-	int ts = parseSize(size);
+	size_t ts = parseSize(size);
 	if (ts < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+size);
 	}
@@ -308,7 +308,7 @@ void	Router::setClientMaxBodySize(const std::string &size)
 	this->reloadChildren();
 }
 
-void	Router::setClientMaxBodySize(const int size)
+void	Router::setClientMaxBodySize(const size_t size)
 {
 	if (size < 0) {
 		throw std::invalid_argument("router error: Invalid size: "+toString<int>(size));

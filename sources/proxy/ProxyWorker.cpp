@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 22:33:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:39:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,6 @@ int	ProxyWorker::connect()
 
 	bool connected = false;
 
-	struct sockaddr_in addr;
 	bzero(&this->socket_addr, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->_config.port);

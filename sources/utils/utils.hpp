@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 18:44:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:43:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ std::string					getIPAddress(int addr);
 uint32_t					setIPAddress(std::string addr);
 bool						isIPAddress(std::string addr);
 
-int							parseSize(const std::string &size);
+size_t						parseSize(const std::string &size);
 std::string					getSize(int size);
 
 time_t						parseTime(const std::string &timeStr);

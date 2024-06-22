@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/14 14:58:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 00:14:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:42:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,8 @@ class Client
 {
 private:
 	Server				*_server;
-	sockaddr_in			_clientAddr;
-	std::string 		_buffer;
 	int					_client;
+	std::string 		_buffer;
 	bool				_headers_received;
 
 	Router				*_current_router;
