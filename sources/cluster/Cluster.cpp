@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 22:35:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:39:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,6 @@ int		Cluster::start(void)
 	}
 
 	// Initialise le tableau des descripteurs à surveiller
-	int i = 0;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		int serverSocket = (*it)->getSocketFD();

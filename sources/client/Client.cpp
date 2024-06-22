@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 21:29:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:42:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_server(server),
 	_client(client),
-	_clientAddr(clientAddr),
 	_headers_received(false),
 	_current_router(NULL),
 	upgraded_to_proxy(false),

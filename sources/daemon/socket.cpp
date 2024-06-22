@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Socket.cpp                                         :+:      :+:    :+:   */
+/*   socket.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 15:29:54 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 15:39:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:40:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,6 @@ int	init_unix_socket()
 		return (WBS_ERR);
 	}
 	printf("En attente de connexion...\n");
-
-	// Acceptation de la connexion
-	int client_sockfd;
-	struct sockaddr_un client_addr;
-	socklen_t client_addr_len = sizeof(struct sockaddr_un);
 
 	struct pollfd fds[1];
 	fds[0].fd = sockfd;

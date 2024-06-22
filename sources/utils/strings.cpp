@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 18:44:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/22 15:43:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,9 +263,9 @@ std::string &replaceAll(std::string &buffer, char searchValue, char replaceValue
     return buffer;
 }
 
-int	parseSize(const std::string &size)
+size_t	parseSize(const std::string &size)
 {
-	int		ret = 0;
+	size_t	ret = 0;
 	size_t	i = 0;
 
 	while (i < size.size() && size[i] >= '0' && size[i] <= '9')
