@@ -6,6 +6,12 @@ SOURCE_DIR="daemon/"
 PLIST_FILE="dev.maxencegama.webserv.plist"
 SERVICE_FILE="webserv.service"
 
+# Allow only root execution
+if [ `id|sed -e s/uid=//g -e s/\(.*//g` -ne 0 ]; then
+    echo "This script requires root privileges"
+    exit 1
+fi
+
 # Fonction pour configurer et démarrer le service avec launchd (macOS)
 setup_launchd() {
     echo "Setting up $SERVICE_NAME with launchd (macOS)..."
