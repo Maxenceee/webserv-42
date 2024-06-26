@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 21:19:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/26 16:03:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ int	Request::processLine(const std::string &line)
 						return (WBS_REQ_ERROR);
 					}
 
-					this->_body_size = std::stoi(this->_headers["Content-Length"]);
+					this->_body_size = std::atoi(this->_headers["Content-Length"].c_str());
 					if (this->_body_size <= 0)
 					{
 						this->_body_received = true;
