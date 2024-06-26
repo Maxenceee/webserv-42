@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/20 14:04:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/26 16:04:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,10 +150,10 @@ int	deleteFile(const std::string &path)
 	return (WBS_NOERR);
 }
 
-std::string		resolve(std::string root, std::string path)
+std::string resolve(std::string root, std::string path)
 {
-	if (!root.empty() && root.back() == '/' && !path.empty() && path.front() == '/') {
-        root.pop_back(); // Supprimer le dernier '/' de root
+    if (!root.empty() && root[root.size() - 1] == '/' && !path.empty() && path[0] == '/') {
+        root.erase(root.size() - 1); // Supprimer le dernier '/' de root
     }
 
     // Vérifier si path est déjà présent à la fin de root

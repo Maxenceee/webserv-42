@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/22 15:39:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/26 16:06:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ int	ProxyWorker::connect()
 	}
 
 	struct hostent *hostent = gethostbyname(this->_config.host.c_str());
-	if (hostent == nullptr) {
+	if (hostent == NULL) {
 		if (h_errno == HOST_NOT_FOUND)
 			Logger::error("proxy error: host not found");
 		else
@@ -118,7 +118,7 @@ int	ProxyWorker::connect()
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->_config.port);
 
-	for (char **addr = hostent->h_addr_list; *addr != nullptr; ++addr) {
+	for (char **addr = hostent->h_addr_list; *addr != NULL; ++addr) {
 		struct in_addr inAddr;
 		memcpy(&inAddr, *addr, sizeof(struct in_addr));
 
@@ -159,7 +159,7 @@ void relay_data(int client_fd, int backend_fd)
         FD_SET(client_fd, &read_fds);
         FD_SET(backend_fd, &read_fds);
 
-        int activity = select(max_fd, &read_fds, nullptr, nullptr, nullptr);
+        int activity = select(max_fd, &read_fds, NULL, NULL, NULL);
         if (activity < 0) {
             perror("select");
             break;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 22:33:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/26 16:01:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ int		Parser::open_and_read_file(const std::string &file_name)
 	std::string		line;
 	std::vector<std::string>	tmp;
 	
-	this->file.open(file_name, std::ios::in);
+	this->file.open(file_name.c_str(), std::ios::in);
 	if (!this->file) {
 		Logger::error("parser error: Could not open file " + std::string(file_name), RESET);
 		return (EXIT_FAILURE);
