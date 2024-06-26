@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:23:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/06/27 00:36:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,8 @@
 #ifdef REQUEST_TIMEOUT
 #define WBS_REQUEST_TIMEOUT	REQUEST_TIMEOUT
 #else
-#define WBS_REQUEST_TIMEOUT	60000 // 1 minute in milliseconds
+// default timeout duration, 1 minute in milliseconds
+#define WBS_REQUEST_TIMEOUT	60000
 #endif /* REQUEST_TIMEOUT */
 
 #ifdef POLL_TIMEOUT
