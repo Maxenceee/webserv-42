@@ -21,7 +21,7 @@ Use `-d` or `--debug` parameter to enable debug mode.
 To daemonize the server:
 
 ``` sh
-$>  ./setup_daemon.bash
+$>  sudo ./setup_daemon.bash
 ```
 
 In this case you need to place your config file in `/etc/webserv` with the name `webserv.conf`.
