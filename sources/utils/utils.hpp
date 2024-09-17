@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/22 15:43:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 16:01:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ std::string					toString(T val);
 
 std::vector<std::string>	split(const std::string &str, char c);
 std::vector<std::string>	parseQuotedAndSplit(const std::string &input);
+std::vector<std::string>	tokenize(const std::string &input);
 std::string					join(std::vector<std::string> &list, const std::string &c);
 std::string					&pop(std::string &str);
 std::string					&shift(std::string &str);

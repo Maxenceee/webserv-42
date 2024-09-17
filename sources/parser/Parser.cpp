@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/26 16:01:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 18:04:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,70 +56,78 @@ void	Parser::parse(const std::string &configPath)
 		Logger::error("parser error: could not open file " + configPath);
 		throw std::invalid_argument(PARSER_ERR);
 	}
+	Logger::debug("Parsing: start reading from " + configPath, B_GREEN);
 	this->open_and_read_file(configPath);
+	Logger::debug("Parsing: extracting data", B_GREEN);
 	this->extract(this->buffer);
 	this->cluster.initConfigs(this->configs);
-	Logger::debug("\n");
+	if (!this->new_server)
+	{
+		throw std::invalid_argument("No server found in the configuration file");
+	}
+	Logger::debug("Parsing: done", B_GREEN);
 }
 
-void	Parser::processInnerLines(std::string &lineRaw, std::string &chunkedLine, std::string &parent)
+void	Parser::processInnerLines(std::vector<std::string> &tokens, std::string &parent)
 {
-	std::vector<std::string> innerLines = split(lineRaw, '\n');
+	std::string chunkedLine;
 
-	for (std::vector<std::string>::iterator innerIt = innerLines.begin(); innerIt != innerLines.end(); ++innerIt) {
-		std::string line = *innerIt;
-		trim(line);
-		line = chunkedLine.empty() ? line : chunkedLine + " " + line;
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        std::string token = tokens[i];
 
-		// Object opening line
-		if (line[line.length() - 1] == '{') {
-			chunkedLine = "";
-			std::string key = line.substr(0, line.length() - 1);
-			trim(key);
-			std::vector<std::string> tokens = split(key, ' ');
-			key = tokens[0];
-			trim(key);
-			shift(tokens);
-			std::string val = join(tokens, " ");
-			if (!parent.empty()) {
-				parent += '.' + key;
-			} else {
-				parent = key;
+        // Ouverture de bloc
+        if (token == "{") {
+            std::string key = chunkedLine;
+            trim(key);
+
+            if (!key.empty()) {
+                std::vector<std::string> keyTokens = split(key, ' ');
+                std::string key = keyTokens[0];
+                shift(keyTokens);
+                std::string val = join(keyTokens, " ");
+                if (!parent.empty()) {
+                    parent += '.' + key;
+                } else {
+                    parent = key;
+                }
+                this->switchConfigDirectives(key, val, parent, chunkedLine);
+            }
+            chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
+        }
+        // Fermeture de bloc
+        else if (token == "}") {
+            std::vector<std::string> parentTokens = split(parent, '.');
+            if (!parentTokens.empty()) {
+                parentTokens.pop_back();
+            }
+            parent = join(parentTokens, ".");
+            this->tmp_router = this->tmp_router->getParent();
+			if (!chunkedLine.empty()) {
+				this->throwError(chunkedLine, chunkedLine.length());
 			}
-			Logger::debug(YELLOW + key + RESET + "\t" + val + "\t" + GREEN + parent + RESET);
-			this->switchConfigDirectives(key, val, parent, line);
-		}
-		// Standard property line
-		else if (line[line.length() - 1] == ';') {
-			chunkedLine = "";
-			std::istringstream iss(line);
-			std::vector<std::string> tokens;
-			std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(tokens));
-			std::string key = tokens[0];
-			tokens.erase(tokens.begin());
-			std::string val = join(tokens, " ");
-			trim(key);
-			trim(val);
-			if (key[key.length() - 1] == ';') {
-				pop(key);
-			}
-			pop(val);
-			Logger::debug(RED + key + RESET + "\t" + val + "\t" + GREEN + parent + RESET);
-			this->switchConfigDirectives(key, val, parent, line);
-		}
-		// Object closing line
-		else if (line[line.length() - 1] == '}') {
-			chunkedLine = "";
-			std::vector<std::string> parentTokens = split(parent, '.');
-			parentTokens.pop_back();
-			parent = join(parentTokens, ".");
-			this->tmp_router = this->tmp_router->getParent();
-		}
-		// Line may not contain '{' ';' '}' symbols at the end
-		else {
-			chunkedLine = line;
-		}
-	}
+            chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
+        }
+        // Fin de ligne
+        else if (token == ";") {
+            std::vector<std::string> keyValTokens = split(chunkedLine, ' ');
+            if (!keyValTokens.empty()) {
+                std::string key = keyValTokens[0];
+                shift(keyValTokens);
+                std::string val = join(keyValTokens, " ");
+                trim(key);
+                trim(val);
+                this->switchConfigDirectives(key, val, parent, chunkedLine);
+            }
+            chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
+        }
+        // On accumule si la ligne ne contient pas de token de fin
+        else {
+            if (!chunkedLine.empty()) {
+                chunkedLine += " ";
+            }
+            chunkedLine += token;
+        }
+    }
 }
 
 void	Parser::extract(const std::string &conf)
@@ -127,53 +135,88 @@ void	Parser::extract(const std::string &conf)
 	std::vector<std::string> lines = split(conf, '\n');
 	std::string parent = "";
 	std::string chunkedLine = "";
+	int braceCount = 0;
+	std::string lastProcessedLine;
 
 	for (std::vector<std::string>::iterator lineIt = lines.begin(); lineIt != lines.end(); ++lineIt) {
 		std::string lineRaw = *lineIt;
 		trim(lineRaw);
 
-		// If line is blank line or is comment, do not process it
+		// Si le ligne est vide ou si elle commence par un commentaire, on l'ignore
 		if (lineRaw.empty() || lineRaw[0] == '#') continue;
 
-		// Line can contain comments, we need to remove them
+		// Les lignes peuvent contenir des commentaires, donc on les ignore
 		lineRaw = split(lineRaw, '#')[0];
 		trim(lineRaw);
-		replace(lineRaw, "\t", " ");
-		replaceAll(lineRaw, ' ', ' ');
-		replace(lineRaw, "{", "{\n");
-		// replace(lineRaw, "}", "\n}");
-		this->processInnerLines(lineRaw, chunkedLine, parent);
+
+		// Accumuler les lignes tant qu'on ne rencontre pas un '{', '}' ou ';'
+		chunkedLine += (chunkedLine.empty() ? "" : " ") + lineRaw;
+
+		// Vérification et mise à jour du compteur d'accolades
+        for (size_t i = 0; i < lineRaw.length(); ++i) {
+            if (lineRaw[i] == '{') {
+                braceCount++;  // Incrémenter lors d'une accolade ouvrante
+            } else if (lineRaw[i] == '}') {
+                braceCount--;  // Décrémenter lors d'une accolade fermante
+            }
+        }
+
+		// Si la ligne contient une accolade ouvrante, fermante ou un point-virgule
+        if (lineRaw.find('{') != std::string::npos || lineRaw.find('}') != std::string::npos || lineRaw.find(';') != std::string::npos) {
+            std::vector<std::string> tokens = tokenize(chunkedLine);
+			if (!tokens.empty()) {
+				lastProcessedLine = lineRaw; // Stock la dernière ligne traitée pour les erreurs
+				// Pass the tokens to be processed by processInnerLines
+				this->processInnerLines(tokens, parent);
+			}
+
+            // Réinitialiser la ligne accumulée une fois traitée
+            chunkedLine.clear();
+        }
+	}
+
+	if (braceCount != 0) {
+		replaceAll(lastProcessedLine, '\t', ' ');
+		this->throwError(lastProcessedLine, "expected '}'", lastProcessedLine.length());
 	}
 }
 
-void	Parser::throwError(const std::string key, const std::string val, const std::string raw_line)
+void	Parser::throwError(const std::string &raw_line, const int pos)
 {
-	std::string	tmp("parser error: invalid directive found");
-	if (raw_line.size() > 0) {
-		tmp += RESET;
-		tmp += "\n\t" + raw_line;
-		tmp += "\n"B_GREEN"\t^\n"RESET;
-		tmp += "1 error generated.";
-	}
-	else
-		tmp += ": " + key + " " + val;
+	this->throwError(raw_line, "invalid directive found", pos);
+}
+
+void	Parser::throwError(const std::string &raw_line, const std::string message, const int pos)
+{
+	std::string	tmp("parser error: ");
+	tmp += message;
+	tmp += RESET;
+	tmp += "\n\t" + raw_line;
+	tmp += "\n";
+	tmp += B_GREEN;
+	tmp += "\t"+std::string(pos, ' ')+"^\n";
+	tmp += RESET;
+	tmp += "1 error generated.";
 	tmp += RESET;
 	throw std::invalid_argument(tmp.c_str());
 }
 
 void	Parser::switchConfigDirectives(std::string key, std::string val, const std::string parent, const std::string raw_line)
 {
+	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + RESET);
 	/**
 	 * Directive server
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#server)
 	 */
 	if (!this->new_server && key != "server")
-		this->throwError(key, val, raw_line);
+		this->throwError(raw_line, "directive out of server block");
 	else if (key == "server") {
 		// On empeche l'imbrication de blocs server
 		if (parent != "server")
-			this->throwError(key, val, raw_line);
+			this->throwError(raw_line, "server block cannot be nested");
+		if (!val.empty())
+			this->throwError(raw_line);
 		this->new_server = new ServerConfig();
 		this->configs.push_back(this->new_server);
 		this->tmp_router = this->new_server->getDefaultHandler();
@@ -191,7 +234,7 @@ void	Parser::switchConfigDirectives(std::string key, std::string val, const std:
 		if (parent == "server")
 			this->tmp_router = this->new_server->getDefaultHandler();
 		if (val.empty())
-			this->throwError(key, val, raw_line);
+			this->throwError(raw_line, "missing directive value", raw_line.length());
 		this->addRule(key, val, parent, raw_line);
 	}
 }
@@ -200,9 +243,14 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 {
 	struct wbs_router_location	location;
 
+	if (parent == "location")
+		this->throwError(raw_line);
+
 	std::vector<std::string> tokens = split(val, ' ');
-	if (tokens.size() > 2 || tokens.size() < 1)
-		this->throwError(key, val, raw_line);
+	if (tokens.size() < 1)
+		this->throwError(raw_line, "missing location path", key.length() + 1);
+	else if (tokens.size() > 2)
+		this->throwError(raw_line, "too many entries", key.length() + 1 + val.length() - tokens[tokens.size() - 1].length());
 
 	trim(tokens[0]);
 	if (tokens.size() == 2 && this->isValidModifier(tokens[0])) {
@@ -211,7 +259,7 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 			location.strict = true;
 	}
 	else if (tokens.size() == 2) {
-		this->throwError(key, val, raw_line);
+		this->throwError(raw_line, "invalid modifier", key.length() + 1);
 	}
 	location.path = trim(tokens[tokens.size() - 1]);
 
@@ -227,21 +275,25 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 	const struct wbs_router_location &child_l = this->tmp_router->getLocation();
 
 	/**
-	 * Cette horreur permet de vérifier si le block `location` enfant peut être imbriqué dans le block `location` parent.
+	 * Cette horreur permet de vérifier si le bloc `location` enfant peut être imbriqué dans le bloc `location` parent.
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
 	 */
 	if ((!parent_l.modifier.empty() && parent_l.modifier != "^~" && (child_l.modifier.empty() || child_l.modifier == "^~"))
 		|| (((parent_l.modifier.empty() || parent_l.modifier == "^~") && (child_l.modifier.empty() || child_l.modifier == "^~"))
 			&& (child_l.path.size() < parent_l.path.size() || child_l.path.substr(0, parent_l.path.size()) != parent_l.path))) {
-		Logger::error("parser error: location \""+child_l.path+"\" is outside location \""+parent_l.path+"\"");
-		this->throwError(key, val, raw_line);
+		this->throwError(raw_line, "location \""+child_l.path+"\" is outside location \""+parent_l.path+"\"", key.length() + 1);
 	}
 }
 
 void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
 {
 	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
+	const size_t key_length = key.length() + 1; // +1 pour l'espace après la clé
+
+	// On vérifie que la directive est bien dans un contexte
+	if (parent.empty())
+		this->throwError(raw_line, "directive outside of context");
 
 	/**
 	 * Directive Listen
@@ -249,9 +301,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
 	 */
 	if (key == "listen" && parent != "server")
-		this->throwError(key, val);
+		this->throwError(raw_line, "listen directive must be inside server block");
 	else if (key == "listen") {
-		// check if there is a column in the value
+		// Si la directive listen contient `:` on s'assure que le port est correct
 		std::string line = valtokens[0];
 		if (line.find(':') == std::string::npos) {
 			if (isIPAddress(line)) {
@@ -261,18 +313,20 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 				// Numéro de port seul, utiliser l'adresse par défaut (0.0.0.0)
 				this->new_server->setPort(std::atoi(line.c_str()));
 			} else {
-				this->throwError(key, val);
+				this->throwError(raw_line, "invalid port", key_length);
 			}
 		} else {
 			std::vector<std::string> tokens = split(line, ':');
 			if (tokens.size() == 2) {
-				if ((!isIPAddress(tokens[0]) && tokens[0] != "*") || !isDigit(tokens[1])) {
-					this->throwError(key, val);
+				if ((!isIPAddress(tokens[0]) && tokens[0] != "*")) {
+					this->throwError(raw_line, "invalid address", key_length);
+				} else if (!isDigit(tokens[1])) {
+					this->throwError(raw_line, "invalid port", key_length + tokens[0].length() + 1);
 				}
 				this->new_server->setAddress(tokens[0]);
 				this->new_server->setPort(std::atoi(tokens[1].c_str()));
 			} else {
-				this->throwError(key, val);
+				this->throwError(raw_line, "invalid port", key_length + line.length());
 			}
 		}
 		return ;
@@ -284,7 +338,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/server_names.html)
 	 */
 	if (key == "server_name" && parent != "server")
-		this->throwError(key, val);
+		this->throwError(raw_line, "server_name directive must be inside server block");
 	else if (key == "server_name") {
 		this->new_server->addNames(valtokens);
 		return ;
@@ -304,7 +358,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		this->tmp_router->setAlias(valtokens[0]);
 		return ;
 	} else if (key == "alias") {
-		this->throwError(key, val);
+		this->throwError(raw_line, "alias directive cannot be used in server block");
 		return ;
 	}
 
@@ -327,7 +381,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		if (valtokens[0] == "on")
 			this->tmp_router->setAutoIndex(true);
 		else if (valtokens[0] != "off")
-			this->throwError(key, val);
+			this->throwError(raw_line, "unknown option", key_length);
 		return ;
 	}
 
@@ -348,12 +402,12 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		else if (valtokens.size() == 2)
 		{
 			if (!isDigit(valtokens[0]))
-				this->throwError(key, val);
+				this->throwError(raw_line, "invalid status code", key_length);
 			status = std::atoi(valtokens[0].c_str());
 			loc = valtokens[1];
 		}
 		else
-			this->throwError(key, val);
+			this->throwError(raw_line, "invalid status code", key_length);
 
 		if (!Response::isValidStatus(status)) {
 			Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
@@ -366,9 +420,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * Directive allow_methods
 	 */
 	if (key == "allow_methods") {
+		size_t l = 0;
 		for (size_t i = 0; i < valtokens.size(); i++) {
 			if (!Server::isValidMethod(valtokens[i]))
-				this->throwError(key, val);
+				this->throwError(raw_line, "unknown method", key_length + l);
+			l += valtokens[i].length() + 1;
 			this->tmp_router->allowMethod(valtokens[i]);
 		}
 		return ;
@@ -381,16 +437,18 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 */
 	if (key == "error_page") {
 		if (valtokens.size() < 2)
-			this->throwError(key, val);
+			this->throwError(raw_line, "too few arguments", key_length + val.length());
 
+		size_t l = 0;
 		for (size_t i = 0; i < valtokens.size() - 1; i++) {
 			if (!isDigit(valtokens[i])) {
-				this->throwError(key, val);
+				this->throwError(raw_line, "invalid status code", key_length + l);
 			}
 			int code = std::atoi(valtokens[i].c_str());
 			if (code < 300 || code > 599) {
-				this->throwError(key, val, raw_line);
+				this->throwError(raw_line, "error_page cannot be used with the status code", key_length + l);
 			}
+			l += valtokens[i].length() + 1;
 			this->tmp_router->setErrorPage(code, valtokens[valtokens.size() - 1]);
 		}
 		return ;
@@ -423,7 +481,9 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 */
 	if (key == "fastcgi_param") {
 		if (valtokens.size() < 2)
-			this->throwError(key, val);
+			this->throwError(raw_line, "too few arguments", key_length + val.length());
+		else if (valtokens.size() > 2)
+			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens[valtokens.size() - 1].length());
 		this->tmp_router->addCGIParam(valtokens[0], valtokens[1]);
 		return ;
 	}
@@ -435,11 +495,13 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 */
 	if (key == "add_header") {
 		bool always = false;
-		if (valtokens.size() < 2 || valtokens.size() > 3)
-			this->throwError(key, val);
+		if (valtokens.size() < 2)
+			this->throwError(raw_line, "too few arguments", key_length + val.length());
+		else if (valtokens.size() > 3)
+			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens[valtokens.size() - 1].length());
 		if (valtokens.size() == 3) {
 			if (valtokens[2] != "always")
-				this->throwError(key, val);
+				this->throwError(raw_line, "unknown option", key_length + val.length() - valtokens[2].length());
 			always = true;
 		}
 		this->tmp_router->addHeader(valtokens[0], valtokens[1], always);
@@ -468,7 +530,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			protocol = "https";
 			url = url.substr(8);
 		} else {
-			this->throwError(key, val, raw_line);
+			this->throwError(raw_line, "unsupported protocol", key_length);
 		}
 
 		if (protocol == "https") {
@@ -493,7 +555,8 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		}
 
 		if (!isNumber(port))
-			this->throwError(key, val, raw_line);
+			// Key + protocol + :// + host + :
+			this->throwError(raw_line, "invalid port", key_length + protocol.length() + 3 + host.length() + 1);
 
 		/**
 		 * INFO:
@@ -503,7 +566,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		// if (!isIPAddress(host))
 		// {
 		// 	Logger::error("parser error: the server won't do the dns resolution, please provide an IP address.");
-		// 	this->throwError(key, val, raw_line);
+		// 	this->throwError(raw_line);
 		// }
 
 		// std::cout << "Protocol: " << protocol << std::endl;
@@ -521,8 +584,10 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header)
 	 */
 	if (key == "proxy_set_header") {
-		if (valtokens.size() < 2 || valtokens.size() > 3)
-			this->throwError(key, val);
+		if (valtokens.size() < 2)
+			this->throwError(raw_line, "too few arguments", key_length + val.length());
+		else if (valtokens.size() > 2)
+			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens[valtokens.size() -1].length());
 		this->tmp_router->addProxyHeader(valtokens[0], valtokens[1]);
 		return ;
 	}
@@ -570,7 +635,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	/**
 	 * Default
 	 */
-	this->throwError(key, val, raw_line);
+	this->throwError(raw_line, "unknown directive");
 }
 
 bool	Parser::isValidModifier(const std::string &modifier) const
