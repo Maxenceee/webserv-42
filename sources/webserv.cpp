@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 16:18:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 12:33:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,8 @@ int	main(int argc, char const **argv)
 		return (EXIT_FAILURE);
 	}
 	std::string fpath;
+	// Not the best way to do options parsing :/
+	// But it works...
 	if (std::string(argv[1]) == "--daemon")
 	{
 		fpath = "/etc/webserv/webserv.conf";

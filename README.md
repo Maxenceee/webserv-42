@@ -103,6 +103,7 @@ listen(socket_fd, 1024);
 #### Accepting Connections
 
 The `accept()` function accepts an incoming connection from a client. It returns a new socket file descriptor for the established connection, allowing the server to communicate with the client.
+The function also fills in the client address information if a sockaddr structure is provided.
 
 ``` c++
 int client_fd = accept(socket_fd, (sockaddr *)&client_addr, &client_addr_len);
@@ -115,17 +116,24 @@ The `poll()` function is crucial for handling multiple connections simultaneousl
 ``` c++
 struct pollfd fds[2];
 fds[0].fd = socket_fd;
+// We want to know when the descriptor is ready for reading
 fds[0].events = POLLIN;
 fds[1].fd = client_fd;
+// We want to know when the descriptor is ready for reading
 fds[1].events = POLLIN;
 
-poll(fds, 2, -1);
+poll(fds, 2, -1); // If the timeout is set to -1, it will block indefinitely until an event occurs
 
+// When poll detects an event, it writes the event in `revents`
+// If the `POLLIN` event occurs on the socket descriptor, it means
+// a new connection is available.
 if (fds[0].revents & POLLIN)
 {
     // Accept new connection
 }
 
+// If the `POLLIN` event occurs on the client descriptor, it means
+// there is data to read from the client.
 if (fds[1].revents & POLLIN)
 {
     // Handle client request
@@ -153,6 +161,11 @@ for (size_t i = 0; i < poll_fds.size(); ++i)
     {
         // Read data from the client
     }
+	// None of the events we are interested in occurred
+	// We can continue to the next iteration
+
+	// Note: More events exist, see https://man7.org/linux/man-pages/man2/poll.2.html
+	// Many events can occur at once
 }
 ```
 
@@ -184,6 +197,7 @@ int main() {
     }
 
     int option = 1;
+	// Make socket reusable after termination
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
     {
         perror("setsockopt");
@@ -193,7 +207,7 @@ int main() {
     // Prepare sockaddr_in structure
     struct sockaddr_in socket_addr;
     socket_addr.sin_family = AF_INET;
-    socket_addr.sin_addr.s_addr = INADDR_ANY;
+    socket_addr.sin_addr.s_addr = INADDR_ANY; // localhost
     socket_addr.sin_port = htons(PORT);
 
     // Bind socket to socket_addr and port
@@ -220,6 +234,7 @@ int main() {
     while (true)
     {
         // We cannot remove elements from poll_fds while iterating over it
+		// We store the indexes of the elements we want to remove and remove them after the loop
         std::vector<int>	to_remove;
 
         if (poll(poll_fds.data(), poll_fds.size(), -1) < 0)
