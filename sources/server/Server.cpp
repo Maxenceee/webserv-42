@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/21 17:32:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 18:25:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,7 +225,7 @@ Router	*Server::eval(Request &request, Response &response) const
 
 	/**
 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
-	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
+	 * Si aucun nom de serveur n'est spécifié ou il n'a pas de configuration definit, on utilise
 	 * la configuration par défaut.
 	 */
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
@@ -235,7 +235,7 @@ Router	*Server::eval(Request &request, Response &response) const
 		}
 	}
 	/**
-	 * On retourne le router qui évalué, c'est à dire celui le plus approprié pour
+	 * On retourne le router l'evaluation du router, c'est à dire le plus approprié pour
 	 * traiter la requête. Cette fonction regarde recursivement les sous-routers
 	 * définis dans le router et retourne celui qui correspond le mieux à la requête.
 	 */

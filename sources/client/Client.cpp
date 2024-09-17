@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 18:10:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 18:22:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ int	Client::process(void)
 
 	if (this->processLines())
 	{
+		// La sauvegarde du temps est necessaire pour le calcul de la durée de la requête
 		this->request_time = getTimestamp();
 		return (WBS_POLL_CLIENT_CLOSED);
 	}
@@ -118,6 +119,7 @@ int	Client::process(void)
 		}
 		else
 		{
+			// La sauvegarde du temps est necessaire pour le calcul de la durée de la requête
 			this->request_time = getTimestamp();
 			/**
 			 * Une fois que la requête est complètement parsée, on peut effectuer le routage.
