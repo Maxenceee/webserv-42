@@ -161,11 +161,11 @@ for (size_t i = 0; i < poll_fds.size(); ++i)
     {
         // Read data from the client
     }
-	// None of the events we are interested in occurred
-	// We can continue to the next iteration
+    // None of the events we are interested in occurred
+    // We can continue to the next iteration
 
-	// Note: More events exist, see https://man7.org/linux/man-pages/man2/poll.2.html
-	// Many events can occur at once
+    // Note: More events exist, see https://man7.org/linux/man-pages/man2/poll.2.html
+    // Many events can occur at once
 }
 ```
 
@@ -197,7 +197,7 @@ int main() {
     }
 
     int option = 1;
-	// Make socket reusable after termination
+    // Make socket reusable after termination
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
     {
         perror("setsockopt");
@@ -234,7 +234,7 @@ int main() {
     while (true)
     {
         // We cannot remove elements from poll_fds while iterating over it
-		// We store the indexes of the elements we want to remove and remove them after the loop
+        // We store the indexes of the elements we want to remove and remove them after the loop
         std::vector<int>	to_remove;
 
         if (poll(poll_fds.data(), poll_fds.size(), -1) < 0)
@@ -377,7 +377,7 @@ Enables or disables the directory listing output.
 ### `client_body_timeout`
 
 ```
-Syntax:	    client_body_timeout time;
+Syntax:		client_body_timeout time;
 Default:	client_body_timeout 60s;
 Context:	server, location
 ```
@@ -387,7 +387,7 @@ Defines a timeout for reading client request body. The timeout is set only for a
 ### `client_header_timeout`
 
 ```
-Syntax:	    client_header_timeout time;
+Syntax:		client_header_timeout time;
 Default:	client_header_timeout 60s;
 Context:	server, location
 ```
@@ -571,9 +571,9 @@ Permits passing [otherwise disabled](#proxy_hide_header) header fields from a pr
 ### `proxy_set_header`
 
 ```
-Syntax:	    proxy_set_header field value;
+Syntax:		proxy_set_header field value;
 Default:	proxy_set_header Host proxy_host;
-            proxy_set_header Connection close;
+			proxy_set_header Connection close;
 Context:	server, location
 ```
 
