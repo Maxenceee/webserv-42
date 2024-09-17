@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/22 15:43:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 16:01:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,30 +50,64 @@ std::vector<std::string>	split(const std::string &str, char c)
 
 std::vector<std::string>	parseQuotedAndSplit(const std::string &input)
 {
-    std::vector<std::string> result;
-    std::string current;
-    bool inQuotes = false;
+	std::vector<std::string> result;
+	std::string current;
+	bool inQuotes = false;
 
-    for (size_t i = 0; i < input.size(); ++i) {
-        char c = input[i];
+	for (size_t i = 0; i < input.size(); ++i) {
+		char c = input[i];
 
-        if (c == '"') {
-            inQuotes = !inQuotes; // Toggle the state
-        } else if (c == ' ' && !inQuotes) {
-            if (!current.empty()) {
-                result.push_back(current);
-                current.clear();
-            }
-        } else {
-            current += c;
-        }
-    }
+		if (c == '"') {
+			inQuotes = !inQuotes; // Toggle the state
+		} else if (c == ' ' && !inQuotes) {
+			if (!current.empty()) {
+				result.push_back(current);
+				current.clear();
+			}
+		} else {
+			current += c;
+		}
+	}
 
-    if (!current.empty()) {
-        result.push_back(current);
-    }
+	if (!current.empty()) {
+		result.push_back(current);
+	}
 
-    return result;
+	return result;
+}
+
+std::vector<std::string> tokenize(const std::string &line) {
+	std::vector<std::string> tokens;
+	std::string token;
+	bool inQuotes = false;
+
+	for (size_t i = 0; i < line.length(); ++i) {
+		char c = line[i];
+
+		if (c == '"') {
+			inQuotes = !inQuotes; // Toggle quote state
+			token += c;
+		} else if ((isspace(c) || c == '\t') && !inQuotes) {
+			if (!token.empty()) {
+				tokens.push_back(token);
+				token.clear();
+			}
+		} else if ((c == '{' || c == '}' || c == ';') && !inQuotes) {
+			if (!token.empty()) {
+				tokens.push_back(token);
+				token.clear();
+			}
+			tokens.push_back(std::string(1, c)); // Add the '{', '}', or ';' as a token
+		} else {
+			token += c;
+		}
+	}
+
+	if (!token.empty()) {
+		tokens.push_back(token);
+	}
+
+	return tokens;
 }
 
 struct StringConcatenator {

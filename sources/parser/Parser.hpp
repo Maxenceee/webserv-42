@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 14:07:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 17:20:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,14 +38,15 @@ private:
 	int		open_and_read_file(const std::string &file_name);
 
 	void	extract(const std::string &conf);
-	void	processInnerLines(std::string &lineRaw, std::string &chunkedLine, std::string &parent);
+	void	processInnerLines(std::vector<std::string> &tokens, std::string &parent);
 
 	void	switchConfigDirectives(std::string key, std::string val, const std::string parent, const std::string raw_line);
 	void	createNewRouter(std::string key, std::string val, const std::string parent, const std::string raw_line);
 	void	addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line);
 	bool	isValidModifier(const std::string &modifier) const;
 
-	void	throwError(const std::string key, const std::string val, const std::string raw_line = "");
+	void	throwError(const std::string &raw_line, const int pos = 0);
+	void	throwError(const std::string &raw_line, const std::string message, const int pos = 0);
 
 public:
 	Parser(Cluster &c);
