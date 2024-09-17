@@ -62,20 +62,20 @@ Binding a socket is a crucial step in setting up a server as it associates the s
 ``` c++
 // IPv4 Address Structure
 struct sockaddr_in {
-    sa_family_t    sin_family   // Address family (AF_INET for IPv4)
-    in_port_t      sin_port;    // Port number (16 bits)
-    struct in_addr sin_addr;    // Internet address (32 bits)
-    char           sin_zero[8]; // Padding to match size of sockaddr
+	sa_family_t		sin_family   // Address family (AF_INET for IPv4)
+	in_port_t		sin_port;	// Port number (16 bits)
+	struct in_addr	sin_addr;	// Internet address (32 bits)
+	char			sin_zero[8]; // Padding to match size of sockaddr
 };
 ```
 ``` c++
 // IPv6 Address Structure
 struct sockaddr_in6 {
-    sa_family_t     sin6_family;   // Address family (AF_INET6 for IPv6)
-    in_port_t       sin6_port;     // Port number (16 bits)
-    uint32_t        sin6_flowinfo; // IPv6 flow information
-    struct in6_addr sin6_addr;     // IPv6 address (128 bits)
-    uint32_t        sin6_scope_id; // IPv6 scope ID (interface index)
+	sa_family_t		sin6_family;	// Address family (AF_INET6 for IPv6)
+	in_port_t		sin6_port;		// Port number (16 bits)
+	uint32_t		sin6_flowinfo;	// IPv6 flow information
+	struct in6_addr sin6_addr;		// IPv6 address (128 bits)
+	uint32_t		sin6_scope_id;	// IPv6 scope ID (interface index)
 };
 ```
 
@@ -85,8 +85,8 @@ The `bind()` function assigns the address specified in the sockaddr_in structure
 struct sockaddr_in socket_addr;
 
 bzero(&socket_addr, sizeof(socket_addr));           // Clear the structure
-socket_addr.sin_family = AF_INET;                   // Set address family to IPv4
-socket_addr.sin_port = htons(80);                   // Convert port number to network byte order
+socket_addr.sin_family = AF_INET;					// Set address family to IPv4
+socket_addr.sin_port = htons(80);					// Convert port number to network byte order
 socket_addr.sin_addr.s_addr = htonl(IN_ANY_LOCAL);  // Convert IP address to network byte order
 
 bind(socket_fd, (sockaddr *)&socket_addr, sizeof(socket_addr));
@@ -188,107 +188,107 @@ for (size_t i = 0; i < poll_fds.size(); ++i)
 #define PORT 3000
 
 int main() {
-    // Create socket
-    int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (socket_fd == 0)
-    {
-        perror("Socket creation failed");
-        exit(EXIT_FAILURE);
-    }
+	// Create socket
+	int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_fd == 0)
+	{
+		perror("Socket creation failed");
+		exit(EXIT_FAILURE);
+	}
 
-    int option = 1;
-    // Make socket reusable after termination
-    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
-    {
-        perror("setsockopt");
-        return (EXIT_FAILURE);
-    }
+	int option = 1;
+	// Make socket reusable after termination
+	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
+	{
+		perror("setsockopt");
+		return (EXIT_FAILURE);
+	}
 
-    // Prepare sockaddr_in structure
-    struct sockaddr_in socket_addr;
-    socket_addr.sin_family = AF_INET;
-    socket_addr.sin_addr.s_addr = INADDR_ANY; // localhost
-    socket_addr.sin_port = htons(PORT);
+	// Prepare sockaddr_in structure
+	struct sockaddr_in socket_addr;
+	socket_addr.sin_family = AF_INET;
+	socket_addr.sin_addr.s_addr = INADDR_ANY; // localhost
+	socket_addr.sin_port = htons(PORT);
 
-    // Bind socket to socket_addr and port
-    if (bind(socket_fd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) < 0)
-    {
-        perror("Bind failed");
-        exit(EXIT_FAILURE);
-    }
+	// Bind socket to socket_addr and port
+	if (bind(socket_fd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) < 0)
+	{
+		perror("Bind failed");
+		exit(EXIT_FAILURE);
+	}
 
-    // Listen for incoming connections
-    if (listen(socket_fd, MAX_EVENTS) < 0)
-    {
-        perror("Listen failed");
-        exit(EXIT_FAILURE);
-    }
+	// Listen for incoming connections
+	if (listen(socket_fd, MAX_EVENTS) < 0)
+	{
+		perror("Listen failed");
+		exit(EXIT_FAILURE);
+	}
 
-    printf("Server listening on port %d...\n", PORT);
+	printf("Server listening on port %d...\n", PORT);
 
-    std::vector<pollfd> poll_fds;
+	std::vector<pollfd> poll_fds;
 
-    // Add server socket to poll set
-    poll_fds.push_back((pollfd){socket_fd, POLLIN, 0});
+	// Add server socket to poll set
+	poll_fds.push_back((pollfd){socket_fd, POLLIN, 0});
 
-    while (true)
-    {
-        // We cannot remove elements from poll_fds while iterating over it
-        // We store the indexes of the elements we want to remove and remove them after the loop
-        std::vector<int>	to_remove;
+	while (true)
+	{
+		// We cannot remove elements from poll_fds while iterating over it
+		// We store the indexes of the elements we want to remove and remove them after the loop
+		std::vector<int>	to_remove;
 
-        if (poll(poll_fds.data(), poll_fds.size(), -1) < 0)
-        {
-            perror("Poll failed");
-            exit(EXIT_FAILURE);
-        }
+		if (poll(poll_fds.data(), poll_fds.size(), -1) < 0)
+		{
+			perror("Poll failed");
+			exit(EXIT_FAILURE);
+		}
 
-        for (size_t i = 0; i < poll_fds.size(); ++i)
-        {
-            if (poll_fds[i].revents & POLLIN)
-            {
-                if (poll_fds[i].fd == socket_fd)
-                {
-                    // Accept new connection
-                    int new_socket_fd = accept(socket_fd, NULL, NULL);
-                    if (new_socket_fd < 0)
-                    {
-                        perror("Accept failed");
-                        exit(EXIT_FAILURE);
-                    }
+		for (size_t i = 0; i < poll_fds.size(); ++i)
+		{
+			if (poll_fds[i].revents & POLLIN)
+			{
+				if (poll_fds[i].fd == socket_fd)
+				{
+					// Accept new connection
+					int new_socket_fd = accept(socket_fd, NULL, NULL);
+					if (new_socket_fd < 0)
+					{
+						perror("Accept failed");
+						exit(EXIT_FAILURE);
+					}
 
-                    printf("New connection accepted\n");
+					printf("New connection accepted\n");
 
-                    // Add new client to poll set
-                    poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
-                }
-                else
-                {
-                    // Read data from client
-                    char buffer[1024] = {0};
-                    int valread = read(poll_fds[i].fd, buffer, sizeof(buffer));
-                    if (valread == 0)
-                    {
-                        // Client disconnected
-                        printf("Client disconnected\n");
-                        close(poll_fds[i].fd);
-                        to_remove.push_back(i);
-                    }
-                    else
-                    {
-                        printf("Received: %s\n", buffer);
-                    }
-                }
-            }
-        }
+					// Add new client to poll set
+					poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
+				}
+				else
+				{
+					// Read data from client
+					char buffer[1024] = {0};
+					int valread = read(poll_fds[i].fd, buffer, sizeof(buffer));
+					if (valread == 0)
+					{
+						// Client disconnected
+						printf("Client disconnected\n");
+						close(poll_fds[i].fd);
+						to_remove.push_back(i);
+					}
+					else
+					{
+						printf("Received: %s\n", buffer);
+					}
+				}
+			}
+		}
 
-        for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
-        {
-            poll_fds.erase(poll_fds.begin() + *it);
-        }
-    }
+		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
+		{
+			poll_fds.erase(poll_fds.begin() + *it);
+		}
+	}
 
-    return 0;
+	return 0;
 }
 ```
 
@@ -347,7 +347,7 @@ Context:	location
 Defines a replacement for the specified location. For example, with the following configuration
 ```
 location /i/ {
-    alias /data/w3/images/;
+	alias /data/w3/images/;
 }
 ```
 on request of **“/i/top.gif”**, the file **/data/w3/images/top.gif** will be sent.
@@ -494,23 +494,23 @@ Let’s illustrate the above by an example:
 
 ```
 location = / {
-    [ configuration A ]
+	[ configuration A ]
 }
 
 location / {
-    [ configuration B ]
+	[ configuration B ]
 }
 
 location /documents/ {
-    [ configuration C ]
+	[ configuration C ]
 }
 
 location ^~ /images/ {
-    [ configuration D ]
+	[ configuration D ]
 }
 
 location ~* \.(gif|jpg|jpeg)$ {
-    [ configuration E ]
+	[ configuration E ]
 }
 ```
 
@@ -519,7 +519,7 @@ The **“/”** request will match configuration A, the **“/index.html”** re
 ### `proxy_hide_header`
 
 ```
-Syntax:     proxy_hide_header field;
+Syntax:		proxy_hide_header field;
 Default:	—
 Context:	server, location
 ```
@@ -546,7 +546,7 @@ If a domain name resolves to several addresses, all of them will be used in orde
 
 ```
 location /name/ {
-    proxy_pass http://127.0.0.1/remote/;
+	proxy_pass http://127.0.0.1/remote/;
 }
 ```
 
@@ -554,7 +554,7 @@ If **proxy_pass** is specified without a URI, the request URI is passed to the s
 
 ```
 location /some/path/ {
-    proxy_pass http://127.0.0.1;
+	proxy_pass http://127.0.0.1;
 }
 ``` -->
 
@@ -601,7 +601,7 @@ Context:	server, location
 Sets the root directory for requests. For example, with the following configuration
 ```
 location /i/ {
-    root /data/w3;
+	root /data/w3;
 }
 ```
 The **/data/w3/i/top.gif** file will be sent in response to the **“/i/top.gif”** request.
@@ -629,7 +629,7 @@ Context:	server
 Sets names of a virtual server, for example:
 ```
 server {
-    server_name example.com;
+	server_name example.com;
 }
 ```
 
