@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 17:56:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 18:26:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -436,6 +436,11 @@ Router	*Router::eval(const std::string &path, const std::string &method, Respons
 {
 	Router	*router = NULL;
 
+	/**
+	 * On vérifie si le chemin de la requête correspond à ce router.
+	 * Si c'est le cas, on vérifie si la méthode HTTP est autorisée.
+	 * Puis on évalue les routes enfants.
+	 */
 	if (this->matchRoute(path, response))
 	{
 		if (this->_allowed_methods.methods.size() && !contains(this->_allowed_methods.methods, method))

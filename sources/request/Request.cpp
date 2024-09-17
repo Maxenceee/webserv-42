@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/26 16:03:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 18:29:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ int	Request::processLine(const std::string &line)
 				this->getRequestCookies();
 
 				/**
-				 * On s'assure que l'en-tête `Host` est présent dans la
+				 * On s'assure que l'en-tête `Host` est présente dans la
 				 * requête. La cas échéant la requête est invalide.
 				 */
 				if (this->_host.empty())
