@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/22 15:42:21 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 18:10:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ Client::~Client(void)
 		 * Dans ce cas on annule la réponse et on supprime le pointeur.
 		 */
 		this->response->cancel();
+		Server::printResponse(this->request, *this->response, 0);
 		delete this->response;
 		Logger::debug("------------------Client upgraded to proxy and closed-------------------", B_YELLOW);
 		return ;
