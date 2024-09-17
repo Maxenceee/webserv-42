@@ -62,20 +62,20 @@ Binding a socket is a crucial step in setting up a server as it associates the s
 ``` c++
 // IPv4 Address Structure
 struct sockaddr_in {
-	sa_family_t		sin_family   // Address family (AF_INET for IPv4)
-	in_port_t		sin_port;	// Port number (16 bits)
-	struct in_addr	sin_addr;	// Internet address (32 bits)
-	char			sin_zero[8]; // Padding to match size of sockaddr
+    sa_family_t      sin_family   // Address family (AF_INET for IPv4)
+    in_port_t        sin_port;    // Port number (16 bits)
+    struct in_addr   sin_addr;    // Internet address (32 bits)
+    char             sin_zero[8]; // Padding to match size of sockaddr
 };
 ```
 ``` c++
 // IPv6 Address Structure
 struct sockaddr_in6 {
-	sa_family_t		sin6_family;	// Address family (AF_INET6 for IPv6)
-	in_port_t		sin6_port;		// Port number (16 bits)
-	uint32_t		sin6_flowinfo;	// IPv6 flow information
-	struct in6_addr sin6_addr;		// IPv6 address (128 bits)
-	uint32_t		sin6_scope_id;	// IPv6 scope ID (interface index)
+    sa_family_t     sin6_family;    // Address family (AF_INET6 for IPv6)
+    in_port_t       sin6_port;        // Port number (16 bits)
+    uint32_t        sin6_flowinfo;    // IPv6 flow information
+    struct in6_addr sin6_addr;        // IPv6 address (128 bits)
+    uint32_t        sin6_scope_id;    // IPv6 scope ID (interface index)
 };
 ```
 
@@ -85,8 +85,8 @@ The `bind()` function assigns the address specified in the sockaddr_in structure
 struct sockaddr_in socket_addr;
 
 bzero(&socket_addr, sizeof(socket_addr));           // Clear the structure
-socket_addr.sin_family = AF_INET;					// Set address family to IPv4
-socket_addr.sin_port = htons(80);					// Convert port number to network byte order
+socket_addr.sin_family = AF_INET;                   // Set address family to IPv4
+socket_addr.sin_port = htons(80);                   // Convert port number to network byte order
 socket_addr.sin_addr.s_addr = htonl(IN_ANY_LOCAL);  // Convert IP address to network byte order
 
 bind(socket_fd, (sockaddr *)&socket_addr, sizeof(socket_addr));
@@ -188,107 +188,107 @@ for (size_t i = 0; i < poll_fds.size(); ++i)
 #define PORT 3000
 
 int main() {
-	// Create socket
-	int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (socket_fd == 0)
-	{
-		perror("Socket creation failed");
-		exit(EXIT_FAILURE);
-	}
+    // Create socket
+    int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_fd == 0)
+    {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
 
-	int option = 1;
-	// Make socket reusable after termination
-	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
-	{
-		perror("setsockopt");
-		return (EXIT_FAILURE);
-	}
+    int option = 1;
+    // Make socket reusable after termination
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
+    {
+        perror("setsockopt");
+        return (EXIT_FAILURE);
+    }
 
-	// Prepare sockaddr_in structure
-	struct sockaddr_in socket_addr;
-	socket_addr.sin_family = AF_INET;
-	socket_addr.sin_addr.s_addr = INADDR_ANY; // localhost
-	socket_addr.sin_port = htons(PORT);
+    // Prepare sockaddr_in structure
+    struct sockaddr_in socket_addr;
+    socket_addr.sin_family = AF_INET;
+    socket_addr.sin_addr.s_addr = INADDR_ANY; // localhost
+    socket_addr.sin_port = htons(PORT);
 
-	// Bind socket to socket_addr and port
-	if (bind(socket_fd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) < 0)
-	{
-		perror("Bind failed");
-		exit(EXIT_FAILURE);
-	}
+    // Bind socket to socket_addr and port
+    if (bind(socket_fd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) < 0)
+    {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
+    }
 
-	// Listen for incoming connections
-	if (listen(socket_fd, MAX_EVENTS) < 0)
-	{
-		perror("Listen failed");
-		exit(EXIT_FAILURE);
-	}
+    // Listen for incoming connections
+    if (listen(socket_fd, MAX_EVENTS) < 0)
+    {
+        perror("Listen failed");
+        exit(EXIT_FAILURE);
+    }
 
-	printf("Server listening on port %d...\n", PORT);
+    printf("Server listening on port %d...\n", PORT);
 
-	std::vector<pollfd> poll_fds;
+    std::vector<pollfd> poll_fds;
 
-	// Add server socket to poll set
-	poll_fds.push_back((pollfd){socket_fd, POLLIN, 0});
+    // Add server socket to poll set
+    poll_fds.push_back((pollfd){socket_fd, POLLIN, 0});
 
-	while (true)
-	{
-		// We cannot remove elements from poll_fds while iterating over it
-		// We store the indexes of the elements we want to remove and remove them after the loop
-		std::vector<int>	to_remove;
+    while (true)
+    {
+        // We cannot remove elements from poll_fds while iterating over it
+        // We store the indexes of the elements we want to remove and remove them after the loop
+        std::vector<int>    to_remove;
 
-		if (poll(poll_fds.data(), poll_fds.size(), -1) < 0)
-		{
-			perror("Poll failed");
-			exit(EXIT_FAILURE);
-		}
+        if (poll(poll_fds.data(), poll_fds.size(), -1) < 0)
+        {
+            perror("Poll failed");
+            exit(EXIT_FAILURE);
+        }
 
-		for (size_t i = 0; i < poll_fds.size(); ++i)
-		{
-			if (poll_fds[i].revents & POLLIN)
-			{
-				if (poll_fds[i].fd == socket_fd)
-				{
-					// Accept new connection
-					int new_socket_fd = accept(socket_fd, NULL, NULL);
-					if (new_socket_fd < 0)
-					{
-						perror("Accept failed");
-						exit(EXIT_FAILURE);
-					}
+        for (size_t i = 0; i < poll_fds.size(); ++i)
+        {
+            if (poll_fds[i].revents & POLLIN)
+            {
+                if (poll_fds[i].fd == socket_fd)
+                {
+                    // Accept new connection
+                    int new_socket_fd = accept(socket_fd, NULL, NULL);
+                    if (new_socket_fd < 0)
+                    {
+                        perror("Accept failed");
+                        exit(EXIT_FAILURE);
+                    }
 
-					printf("New connection accepted\n");
+                    printf("New connection accepted\n");
 
-					// Add new client to poll set
-					poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
-				}
-				else
-				{
-					// Read data from client
-					char buffer[1024] = {0};
-					int valread = read(poll_fds[i].fd, buffer, sizeof(buffer));
-					if (valread == 0)
-					{
-						// Client disconnected
-						printf("Client disconnected\n");
-						close(poll_fds[i].fd);
-						to_remove.push_back(i);
-					}
-					else
-					{
-						printf("Received: %s\n", buffer);
-					}
-				}
-			}
-		}
+                    // Add new client to poll set
+                    poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
+                }
+                else
+                {
+                    // Read data from client
+                    char buffer[1024] = {0};
+                    int valread = read(poll_fds[i].fd, buffer, sizeof(buffer));
+                    if (valread == 0)
+                    {
+                        // Client disconnected
+                        printf("Client disconnected\n");
+                        close(poll_fds[i].fd);
+                        to_remove.push_back(i);
+                    }
+                    else
+                    {
+                        printf("Received: %s\n", buffer);
+                    }
+                }
+            }
+        }
 
-		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
-		{
-			poll_fds.erase(poll_fds.begin() + *it);
-		}
-	}
+        for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
+        {
+            poll_fds.erase(poll_fds.begin() + *it);
+        }
+    }
 
-	return 0;
+    return 0;
 }
 ```
 
@@ -325,9 +325,9 @@ Based on Nginx documentation ;)
 ### `add_header`
 
 ```
-Syntax:		add_header name value [always];
-Default:	—
-Context:	server, location
+Syntax:     add_header name value [always];
+Default:    —
+Context:    server, location
 ```
 
 Adds the specified field to a response header provided that the response code equals 200, 201, 204, 206, 301, 302, 303, 304, 307 or 308. 
@@ -339,15 +339,15 @@ If the **always** parameter is specified, the header field will be added regardl
 ### `alias`
 
 ```
-Syntax:		alias path;
-Default:	—
-Context:	location
+Syntax:     alias path;
+Default:    —
+Context:    location
 ```
 
 Defines a replacement for the specified location. For example, with the following configuration
 ```
 location /i/ {
-	alias /data/w3/images/;
+    alias /data/w3/images/;
 }
 ```
 on request of **“/i/top.gif”**, the file **/data/w3/images/top.gif** will be sent.
@@ -357,9 +357,9 @@ When location matches the last part of the directive’s value, it is better to 
 ### `allow_methods`
 
 ```
-Syntax:		allow_methods method ...;
-Default:	—
-Context:	server, location
+Syntax:     allow_methods method ...;
+Default:    —
+Context:    server, location
 ```
 
 Allows you to specify the list of accepted methods. in the case where the request method is not part of the list, the server responds with a 405 (Method Not Allowed) error.
@@ -367,9 +367,9 @@ Allows you to specify the list of accepted methods. in the case where the reques
 ### `autoindex`
 
 ```
-Syntax:		autoindex on | off;
-Default:	autoindex off;
-Context:	http, server, location
+Syntax:     autoindex on | off;
+Default:    autoindex off;
+Context:    http, server, location
 ```
 
 Enables or disables the directory listing output.
@@ -377,9 +377,9 @@ Enables or disables the directory listing output.
 ### `client_body_timeout`
 
 ```
-Syntax:		client_body_timeout time;
-Default:	client_body_timeout 60s;
-Context:	server, location
+Syntax:     client_body_timeout time;
+Default:    client_body_timeout 60s;
+Context:    server, location
 ```
 
 Defines a timeout for reading client request body. The timeout is set only for a period between two successive read operations, not for the transmission of the whole request body. If a client does not transmit anything within this time, the request is terminated with the 408 (Request Time-out) error.
@@ -387,9 +387,9 @@ Defines a timeout for reading client request body. The timeout is set only for a
 ### `client_header_timeout`
 
 ```
-Syntax:		client_header_timeout time;
-Default:	client_header_timeout 60s;
-Context:	server, location
+Syntax:     client_header_timeout time;
+Default:    client_header_timeout 60s;
+Context:    server, location
 ```
 
 Defines a timeout for reading client request header. If a client does not transmit the entire header within this time, the request is terminated with the 408 (Request Time-out) error.
@@ -397,9 +397,9 @@ Defines a timeout for reading client request header. If a client does not transm
 ### `client_max_body_size`
 
 ```
-Syntax:		client_max_body_size size;
-Default:	client_max_body_size 1m;
-Context:	server, location
+Syntax:     client_max_body_size size;
+Default:    client_max_body_size 1m;
+Context:    server, location
 ```
 
 Sets the maximum allowed size of the client request body. If the size in a request exceeds the configured value, the 413 (Request Entity Too Large) error is returned to the client. Please be aware that browsers cannot correctly display this error. Setting size to 0 disables checking of client request body size.
@@ -407,9 +407,9 @@ Sets the maximum allowed size of the client request body. If the size in a reque
 ### `error_page`
 
 ```
-Syntax:		error_page code ... uri;
-Default:	—
-Context:	server, location
+Syntax:     error_page code ... uri;
+Default:    —
+Context:    server, location
 ```
 
 Defines the URI that will be shown for the specified errors.
@@ -417,20 +417,20 @@ Defines the URI that will be shown for the specified errors.
 ### `fastcgi_param`
 
 ```
-Syntax:		fastcgi_param parameter value [if_not_empty];
-Default:	—
-Context:	server, location
+Syntax:     fastcgi_param parameter value [if_not_empty];
+Default:    —
+Context:    server, location
 ```
 
 Sets a **parameter** that should be passed to the FastCGI server. The **value** can contain text. These directives are inherited from the previous configuration level if and only if there are no **fastcgi_param** directives defined on the current level.
 
 ### `fastcgi_pass`
 
-<!-- Syntax:		fastcgi_pass address; -->
+<!-- Syntax:    fastcgi_pass address; -->
 ```
-Syntax:		fastcgi_pass path;
-Default:	—
-Context:	location
+Syntax:     fastcgi_pass path;
+Default:    —
+Context:    location
 ```
 
 <!-- Sets the address of a FastCGI server. The address can be specified as a domain name or IP address, and a port: -->
@@ -442,9 +442,9 @@ fastcgi_pass /usr/bin/php-cgi;
 ### `index`
 
 ```
-Syntax:		index file ...;
-Default:	index index.html;
-Context:	server, location
+Syntax:     index file ...;
+Default:    index index.html;
+Context:    server, location
 ```
 
 Defines files that will be used as an index. Files are checked in the specified order.
@@ -452,9 +452,9 @@ Defines files that will be used as an index. Files are checked in the specified 
 ### `listen`
 
 ```
-Syntax:		listen address[:port]
-Default:	listen *:80 | *:8000;
-Context:	server
+Syntax:     listen address[:port]
+Default:    listen *:80 | *:8000;
+Context:    server
 ```
 
 Sets the address and port for IP on which the server will accept requests. Both address and port, or only address or only port can be specified. An address may also be a hostname, for example:
@@ -477,9 +477,9 @@ If none of the directives have the server_name set to **_** then the first serve
 ### `location`
 
 ```
-Syntax:		location [ = | ~ | ~* | ^~ ] uri { ... }
-Default:	—
-Context:	server, location
+Syntax:     location [ = | ~ | ~* | ^~ ] uri { ... }
+Default:    —
+Context:    server, location
 ```
 
 Sets configuration depending on a request URI.
@@ -494,23 +494,23 @@ Let’s illustrate the above by an example:
 
 ```
 location = / {
-	[ configuration A ]
+    [ configuration A ]
 }
 
 location / {
-	[ configuration B ]
+    [ configuration B ]
 }
 
 location /documents/ {
-	[ configuration C ]
+    [ configuration C ]
 }
 
 location ^~ /images/ {
-	[ configuration D ]
+    [ configuration D ]
 }
 
 location ~* \.(gif|jpg|jpeg)$ {
-	[ configuration E ]
+    [ configuration E ]
 }
 ```
 
@@ -519,9 +519,9 @@ The **“/”** request will match configuration A, the **“/index.html”** re
 ### `proxy_hide_header`
 
 ```
-Syntax:		proxy_hide_header field;
-Default:	—
-Context:	server, location
+Syntax:     proxy_hide_header field;
+Default:    —
+Context:    server, location
 ```
 
 By default, the server does not pass the header fields “Date”, “Server”, “X-Pad”, and “X-Accel-...” from the response of a proxied server to a client. The **proxy_hide_header** directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the [proxy_pass_header](#proxy_pass_header) directive can be used.
@@ -529,9 +529,9 @@ By default, the server does not pass the header fields “Date”, “Server”,
 ### `proxy_pass`
 
 ```
-Syntax:		proxy_pass URL;
-Default:	—
-Context:	location
+Syntax:     proxy_pass URL;
+Default:    —
+Context:    location
 ```
 
 Sets the protocol and address of a proxied server and an optional URI to which a location should be mapped. Only “http” protocol is supported for now. The address can be specified as a domain name or IP address, and an optional port:
@@ -546,7 +546,7 @@ If a domain name resolves to several addresses, all of them will be used in orde
 
 ```
 location /name/ {
-	proxy_pass http://127.0.0.1/remote/;
+    proxy_pass http://127.0.0.1/remote/;
 }
 ```
 
@@ -554,16 +554,16 @@ If **proxy_pass** is specified without a URI, the request URI is passed to the s
 
 ```
 location /some/path/ {
-	proxy_pass http://127.0.0.1;
+    proxy_pass http://127.0.0.1;
 }
 ``` -->
 
 ### `proxy_pass_header`
 
 ```
-Syntax:		proxy_pass_header field;
-Default:	—
-Context:	server, location
+Syntax:     proxy_pass_header field;
+Default:    —
+Context:    server, location
 ```
 
 Permits passing [otherwise disabled](#proxy_hide_header) header fields from a proxied server to a client.
@@ -571,10 +571,10 @@ Permits passing [otherwise disabled](#proxy_hide_header) header fields from a pr
 ### `proxy_set_header`
 
 ```
-Syntax:		proxy_set_header field value;
-Default:	proxy_set_header Host proxy_host;
-			proxy_set_header Connection close;
-Context:	server, location
+Syntax:     proxy_set_header field value;
+Default:    proxy_set_header Host proxy_host;
+            proxy_set_header Connection close;
+Context:    server, location
 ```
 
 Allows redefining or appending fields to the request header passed to the proxied server. These directives are inherited from the previous configuration level if and only if there are no **proxy_set_header** directives defined on the current level.
@@ -582,9 +582,9 @@ Allows redefining or appending fields to the request header passed to the proxie
 ### `return`
 
 ```
-Syntax:		return code [text];
-Default:	—
-Context:	server, location
+Syntax:     return code [text];
+Default:    —
+Context:    server, location
 ```
 
 Stops processing and returns the specified **code** to a client. 
@@ -593,15 +593,15 @@ It is possible to specify either a redirect URL (for codes 301, 302, 303, 307, a
 ### `root`
 
 ```
-Syntax:		root path;
-Default:	root .;
-Context:	server, location
+Syntax:     root path;
+Default:    root .;
+Context:    server, location
 ```
 
 Sets the root directory for requests. For example, with the following configuration
 ```
 location /i/ {
-	root /data/w3;
+    root /data/w3;
 }
 ```
 The **/data/w3/i/top.gif** file will be sent in response to the **“/i/top.gif”** request.
@@ -611,9 +611,9 @@ A path to the file is constructed by merely adding a URI to the value of the roo
 ### `server`
 
 ```
-Syntax:		server { ... }
-Default:	—
-Context:	-
+Syntax:     server { ... }
+Default:    —
+Context:    -
 ```
 
 Sets configuration for a virtual server. There is no clear separation between IP-based (based on the IP address) and name-based (based on the **“Host”** request header field) virtual servers. Instead, the [listen](#listen) directives describe all addresses and ports that should accept connections for the server, and the [server_name](#server_name) directive lists all server names. 
@@ -621,15 +621,15 @@ Sets configuration for a virtual server. There is no clear separation between IP
 ### `server_name`
 
 ```
-Syntax:		server_name name ...;
-Default:	server_name "";
-Context:	server
+Syntax:     server_name name ...;
+Default:    server_name "";
+Context:    server
 ```
 
 Sets names of a virtual server, for example:
 ```
 server {
-	server_name example.com;
+    server_name example.com;
 }
 ```
 
