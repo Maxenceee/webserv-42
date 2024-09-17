@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 12:33:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 14:28:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int	main(int argc, char const **argv)
 		Logger::error("usage: [configuration file]", RESET);
 		return (EXIT_FAILURE);
 	}
-	std::string fpath;
+	std::string fpath = argv[1];
 	// Not the best way to do options parsing :/
 	// But it works...
 	if (std::string(argv[1]) == "--daemon")
