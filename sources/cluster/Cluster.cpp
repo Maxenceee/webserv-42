@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/22 15:39:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/17 12:33:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,18 +189,23 @@ int		Cluster::start(void)
 			 */
 			else if (poll_fds[i].revents & POLLIN)
 			{
+				/**
+				 * Le fait d'utiliser une structure générique `poll_clients` permet de gérer de manière
+				 * simultanée plusieurs type descripteurs (serveurs, clients, proxy, etc.).
+				 * Le type permet d'identifier le descripteur afin de le caster correctement avant de l'utiliser.
+				 */
 				switch (poll_clients[poll_fds[i].fd].type)
 				{
 				case WBS_POLL_SERVER:
 					/**
 					 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
 					 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
-					 * d'une structure `sockaddr` ou seront écrite les informations sur le client (adresse IP, port, etc.).
+					 * d'une structure `sockaddr` ou seront écrites les informations sur le client (adresse IP, port, etc.).
 					 * 
 					 * La fonction retourne un nouveau descripteur de fichiers vers le client.
 					 */
 					/**
-					 * Etant donné que les serveurs sont ajoutés dans l'ordre dans le tableau des descripteurs
+					 * Etant donné que les serveurs sont ajoutés dans l'ordre au début tableau des descripteurs
 					 * à surveiller, on peut déduire l'indice du serveur à partir de l'indice du descripteur.
 					 * D'où l'utilisation de l'indice `i` pour récupérer le serveur correspondant dans `this->_servers`
 					 * au lieu de devoir faire un reinterpret_cast<Server *>(poll_clients[poll_fds[i].fd].data) comme
