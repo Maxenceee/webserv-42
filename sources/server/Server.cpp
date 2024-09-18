@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 18:25:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 12:45:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,14 +271,25 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 {
 	std::string response = req.getMethod() + " " + req.getRawPath() + " ";
 	int status = res.getStatus();
-	if (status / 100 == 2)
+	switch (status / 100)
+	{
+	case 1:
+		response += GREY;
+		break;
+	case 2:
 		response += GREEN;
-	else if (status / 100 == 3)
-		response += BLUE;
-	else if (status / 100 == 4)
+		break;
+	case 3:
+		response += CYAN;
+		break;
+	case 4:
 		response += YELLOW;
-	else
-		response += RED;
+		break;
+	case 5:
+	default:
+		response += I_RED;
+		break;
+	}
 	response += toString<int>(status);
 	response += RESET;
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:12:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 12:19:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,9 @@ class Router;
 class Parser
 {
 private:
-	Cluster			&cluster;
-	std::fstream	file;
-	std::string		buffer;
+	Cluster						&cluster;
+	std::fstream				file;
+	std::vector<std::string>	buffer;
 
 	ServerConfig	*new_server;
 	Router			*tmp_router;
@@ -37,7 +37,7 @@ private:
 	
 	int		open_and_read_file(const std::string &file_name);
 
-	void	extract(const std::string &conf);
+	void	extract(void);
 	void	processInnerLines(std::vector<std::string> &tokens, std::vector<std::string> &parent);
 
 	void	switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 18:19:44 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:16:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 12:43:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,27 @@ std::ostream	&operator<<(std::ostream &os, const Response &res)
 {
 	wbs_mapss_t::const_iterator	it;
 
-	os << B_GREEN"HTTP" << RESET << "/" << res.getVersion() << " " << res.getStatus() << " " << res.getSatusName() << "\n";
+	os << B_GREEN"HTTP" << RESET << "/" << res.getVersion() << " ";
+	switch (res.getStatus() / 100)
+	{
+	case 1:
+		os << GREY;
+		break;
+	case 2:
+		os << GREEN;
+		break;
+	case 3:
+		os << CYAN;
+		break;
+	case 4:
+		os << YELLOW;
+		break;
+	case 5:
+	default:
+		os << RED;
+		break;
+	}
+	os << res.getStatus() << RESET << " " << res.getSatusName() << "\n";
 
 	os << B_CYAN"Headers: " << RESET << std::endl;
 	const wbs_mapss_t &headers = res.getHeaders();
