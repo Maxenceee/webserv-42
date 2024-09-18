@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:05:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 15:41:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,5 +108,10 @@ std::string	decodeURIComponent(std::string encoded);
 double	getTimestamp();
 
 #include "list.tpp"
+
+/* websocket */
+
+void	decodeWebSocketFrame(const std::string& frame);
+std::string	sendCloseFrame(uint16_t closeCode = 1000, const std::string& reason = "");
 
 #endif /* UTILS_HPP */

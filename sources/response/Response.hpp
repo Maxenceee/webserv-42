@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/16 11:28:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 15:14:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ private:
 	wbs_mapss_t			_headers;
 	wbs_mapss_t			_cookie;
 	std::string			_body;
+	bool				_upgrade_to_socket;
 	
 	static wbs_mapis_t	initCodes();
 	
@@ -63,13 +64,15 @@ public:
 	Response		&sendDefault(const int code = -1);
 	Response		&redirect(const std::string &path, int status = 302);
 	Response		&sendCGI(const std::string data);
-	Response		&end();
+	Response		&end(void);
+	Response		&upgrade(void);
 
 	Response		&setHeader(const std::string header, const std::string value);
 	Response		&setCookie(const std::string name, const std::string value, const wbs_cookie_options &options = wbs_cookie_options());
 
 	Response		&clearBody(void);
 	bool			hasBody(void) const;
+	bool			isUpgraded(void) const;
 
 	bool			canAddHeader(void) const;
 

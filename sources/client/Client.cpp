@@ -6,13 +6,16 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 18:22:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 15:54:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Client.hpp"
 #include "proxy/ProxyWorker.hpp"
+#include "base64.hpp"
+#include <cstdint>
+#include <cstring>
 
 Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_server(server),
@@ -81,6 +84,17 @@ int	Client::process(void)
 		return (WBS_POLL_CLIENT_CLOSED);
 	}
 
+	if (this->response && this->response->isUpgraded())
+	{
+		/**
+		 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on ne ferme pas la connexion et
+		 * on affiche les trames WebSocket du client.
+		 */
+		decodeWebSocketFrame(this->_buffer);
+		this->_buffer.clear();
+		return (WBS_POLL_CLIENT_OK);
+	}
+
 	if (this->request.processFinished())
 	{
 		if (this->_current_router->isProxy())
@@ -139,6 +153,15 @@ int	Client::process(void)
 }
 
 int	Client::processLines(void) {
+	/**
+	 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, evite de traiter la
+	 * donnée.
+	 */
+	if (this->response && this->response->isUpgraded())
+	{
+		return (WBS_NOERR);
+	}
+
 	size_t pos;
 	while (!this->request.headersReceived() && (pos = this->_buffer.find(WBS_CRLF)) != std::string::npos)
 	{
@@ -179,6 +202,10 @@ int	Client::processLines(void) {
 			}
 		}
 
+		/**
+		 * On vérifie si les en-têtes ont été reçus. Au quel cas on peut traiter les cas de requêtes
+		 * ne necessitant pas de corps.
+		 */
 		if (!this->_headers_received && this->request.headersReceived())
 		{
 			this->_headers_received = true;
@@ -191,6 +218,62 @@ int	Client::processLines(void) {
 			{
 				this->_current_router->sendResponse(*this->response);
 				return (WBS_ERR);
+			}
+			
+			if (this->request.hasHeader("Connection"))
+			{
+				// /**
+				//  * INFO:
+				//  * Le serveur ne supporte pas le protocole WebSocket, on envoie donc une réponse d'erreur 501.
+				//  */
+				// this->response->status(501).sendDefault().end();
+				// return (WBS_ERR);
+
+				/**
+				 *
+				 * Experimentation du protocole WebSocket.
+				 * 
+				 */
+				std::cout << this->request << std::endl;
+
+				if (this->request.getHeader("Connection") != "Upgrade")
+				{
+					this->response->status(400).sendDefault().end();
+					return (WBS_ERR);
+				}
+				if (!this->request.hasHeader("Upgrade") || this->request.getHeader("Upgrade") != "websocket")
+				{
+					this->response->status(426).sendDefault().end();
+					return (WBS_ERR);
+				}
+				if (!this->request.hasHeader("Sec-Websocket-Key"))
+				{
+					Logger::error("WebSocket error: missing Sec-Websocket-Key header");
+					this->response->status(400).sendDefault().end();
+					return (WBS_ERR);
+				}
+
+				/**
+				 * Le protolole WebSocket exige qu'une clé soit envoyée par le client.
+				 */
+				std::string key = this->request.getHeader("Sec-Websocket-Key");
+
+				/**
+				 * le client a demandé une mise à niveau, nous devons le gérer et renvoyer la réponse appropriée.
+				 */
+				this->response->setHeader("Upgrade", "websocket");
+				this->response->setHeader("Connection", "upgrade");
+				this->response->setHeader("Sec-WebSocket-Accept", calculateSecWebSocketAccept(key));
+
+				/**
+				 * INFO:
+				 * Pour supporter le protocole WebSocket, il faudrait créer un état supplémentaire, qui empecherait la
+				 * fermeture de la connexion avec le client une fois le requête traitée.
+				 * Dans le cas d'un serveur statique, une telle implementation n'a aucun interet puisque le serveur ne
+				 * peut pas traiter les requêtes websocket.
+				 */
+				this->response->status(101).upgrade().end();
+				return (WBS_NOERR);
 			}
 
 			/**
@@ -272,7 +355,9 @@ bool	Client::timeout(void) {
 		{		
 			Logger::debug("Client timeout");
 			if (this->response)
+			{
 				this->response->status(408).sendDefault().end();
+			}
 			return (true);
 		}
 	}
@@ -284,7 +369,20 @@ bool	Client::timeout(void) {
 		{
 			Logger::debug("Client timeout");
 			if (this->response)
-				this->response->status(408).sendDefault().end();
+			{
+				/**
+				 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on envoie une trame
+				 * de fermeture à la place d'une réponse HTTP.
+				 */
+				if (this->response->isUpgraded())
+				{
+					this->response->send(sendCloseFrame(1000, "timeout")).end();
+				}
+				else
+				{
+					this->response->status(408).sendDefault().end();
+				}
+			}
 			return (true);
 		}
 	}
