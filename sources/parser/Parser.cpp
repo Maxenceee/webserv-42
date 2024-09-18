@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:14:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 12:29:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,7 @@ Parser::~Parser(void)
 
 int		Parser::open_and_read_file(const std::string &file_name)
 {
-	std::string		line;
-	std::vector<std::string>	tmp;
+	std::string	line;
 	
 	this->file.open(file_name.c_str(), std::ios::in);
 	if (!this->file) {
@@ -42,9 +41,8 @@ int		Parser::open_and_read_file(const std::string &file_name)
 
 	while (getline(this->file, line))
 	{
-		tmp.push_back(line);
+		this->buffer.push_back(line);
 	}
-	this->buffer = join(tmp, "\n");
 	this->file.close();
 	return (EXIT_SUCCESS);
 }
@@ -59,24 +57,23 @@ void	Parser::parse(const std::string &configPath)
 	Logger::debug("Parsing: start reading from " + configPath, B_GREEN);
 	this->open_and_read_file(configPath);
 	Logger::debug("Parsing: extracting data", B_GREEN);
-	this->extract(this->buffer);
-	this->cluster.initConfigs(this->configs);
+	this->extract();
 	if (!this->new_server)
 	{
 		throw std::invalid_argument("No server found in the configuration file");
 	}
+	this->cluster.initConfigs(this->configs);
 	Logger::debug("Parsing: done", B_GREEN);
 }
 
-void	Parser::extract(const std::string &conf)
+void	Parser::extract(void)
 {
-	std::vector<std::string> lines = split(conf, '\n');
 	std::vector<std::string> context;
 	std::string chunkedLine = "";
 	int braceCount = 0;
 	std::string lastProcessedLine;
 
-	for (std::vector<std::string>::iterator lineIt = lines.begin(); lineIt != lines.end(); ++lineIt) {
+	for (std::vector<std::string>::iterator lineIt = this->buffer.begin(); lineIt != this->buffer.end(); ++lineIt) {
 		std::string lineRaw = *lineIt;
 		trim(lineRaw);
 
@@ -138,7 +135,6 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 				std::string val = join(keyTokens, " ");
 				this->switchConfigDirectives(key, val, last(context), chunkedLine);
 				context.push_back(key);
-				std::cout << "context: " << toStringl(context) << std::endl;
 			}
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
@@ -400,8 +396,10 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 			status = std::atoi(valtokens[0].c_str());
 			loc = valtokens[1];
 		}
+		else if (valtokens.size() > 2)
+			this->throwError(raw_line, "too many entries", key_length + val.length() - valtokens.back().length());
 		else
-			this->throwError(raw_line, "too many entries", key_length);
+			this->throwError(raw_line, "invalid status code", key_length);
 
 		if (!Response::isValidStatus(status)) {
 			// Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
