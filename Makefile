@@ -29,7 +29,7 @@ $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp $(HEADERS) Makefile
 	@printf ${UP}${CUT}
 
 $(NAME): $(OBJS)
-	@$(CC) $(OBJS) -o $(NAME)
+	@$(CC) $(OBJS) -o $(NAME) -lcrypto
 	@echo "$(GREEN)$(NAME) compiled!$(DEFAULT)"
 
 clean:

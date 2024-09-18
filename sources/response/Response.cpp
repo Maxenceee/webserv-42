@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 11:36:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 15:50:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 wbs_mapis_t	Response::http_codes = Response::initCodes();
 
-Response::Response(int socket, const Request &req): _sent(false)
+Response::Response(int socket, const Request &req): _sent(false), _upgrade_to_socket(false)
 {
 	this->_socket = socket;
 	this->_version = req.getVersion();
@@ -149,6 +149,17 @@ Response	&Response::status(const int status)
 
 Response	&Response::send(const std::string data)
 {
+	/**
+	 *
+	 * Experimentation du protocole WebSocket.
+	 * 
+	 */
+	if (this->_upgrade_to_socket)
+	{
+		(void)::send(this->_socket, data.c_str(), data.size(), 0);
+		return (*this);
+	}
+	
 	this->_body = data;
 	/**
 	 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille de
@@ -226,6 +237,12 @@ Response		&Response::redirect(const std::string &path, int status)
 	return (*this);
 }
 
+Response		&Response::upgrade(void)
+{
+	this->_upgrade_to_socket = true;
+	return (*this);
+}
+
 std::string		Response::getTime(void)
 {
 	// static const char	*wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -295,7 +312,7 @@ Response	&Response::sendCGI(const std::string data)
 	return (*this);
 }
 
-Response	&Response::end()
+Response	&Response::end(void)
 {
 	if (!this->_sent)
 	{
@@ -314,7 +331,7 @@ Response	&Response::end()
 		 * On envoie donc une réponse avec l'en-tête Connection: close pour fermer la connexion
 		 * après chaque requête.
 		 */
-		this->setHeader("Connection", "close");
+		// this->setHeader("Connection", "close");
 
 		/**
 		 * La norme HTTP impose que certaines réponses ne doivent pas contenir de corps.
@@ -484,6 +501,11 @@ Response		&Response::clearBody(void)
 bool		Response::hasBody(void) const
 {
 	return (this->_body.size() > 0);
+}
+
+bool	Response::isUpgraded(void) const
+{
+	return (this->_upgrade_to_socket);
 }
 
 void	Response::cancel(void)
