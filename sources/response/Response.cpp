@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 15:50:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 16:12:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,18 +148,7 @@ Response	&Response::status(const int status)
 }
 
 Response	&Response::send(const std::string data)
-{
-	/**
-	 *
-	 * Experimentation du protocole WebSocket.
-	 * 
-	 */
-	if (this->_upgrade_to_socket)
-	{
-		(void)::send(this->_socket, data.c_str(), data.size(), 0);
-		return (*this);
-	}
-	
+{	
 	this->_body = data;
 	/**
 	 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille de
@@ -227,6 +216,31 @@ Response	&Response::sendDefault(const int code)
 	this->setHeader("Content-Type", "text/html; charset=utf-8");
 	std::string st(toString<int>(this->_status)+" "+this->getSatusName());
 	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>"+st+"</title></head><body><center><h1>"+st+"</h1></center><hr><center>"+WBS_SERVER_NAME+"</center></body></html>");
+	return (*this);
+}
+
+// Send WebSocket frame
+// If the closeCode is greater than 0, send a close frame with the message as reason
+// Else send a normal frame with the message as payload
+Response	&Response::sendFrame(const std::string& message, uint16_t closeCode)
+{
+	/**
+	 *
+	 * Experimentation du protocole WebSocket.
+	 * 
+	 */
+	if (!this->_upgrade_to_socket)
+	{
+		Logger::error("WebSocket error: not upgraded");
+		return (*this);
+	}
+	std::string data;
+	if (closeCode == 0)
+		data = ::sendFrame(message);
+	else
+		data = ::sendCloseFrame(closeCode, message);
+
+	(void)::send(this->_socket, data.c_str(), data.size(), 0);
 	return (*this);
 }
 

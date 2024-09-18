@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 15:14:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 16:10:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ public:
 	Response		&sendFile(const std::string filepath);
 	Response		&sendNotFound(const int code = 404);
 	Response		&sendDefault(const int code = -1);
+	Response		&sendFrame(const std::string& message, uint16_t closeCode = 0);
 	Response		&redirect(const std::string &path, int status = 302);
 	Response		&sendCGI(const std::string data);
 	Response		&end(void);
