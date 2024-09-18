@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 15:54:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 16:15:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,13 @@ int	Client::process(void)
 		 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on ne ferme pas la connexion et
 		 * on affiche les trames WebSocket du client.
 		 */
-		decodeWebSocketFrame(this->_buffer);
+		std::string payload = decodeWebSocketFrame(this->_buffer);
+
+		if (payload == "ping")
+			this->response->sendFrame("pong");
+		if (payload == "oui")
+			this->response->sendFrame("non");
+
 		this->_buffer.clear();
 		return (WBS_POLL_CLIENT_OK);
 	}
@@ -231,7 +237,10 @@ int	Client::processLines(void) {
 
 				/**
 				 *
+				 * INFO:
 				 * Experimentation du protocole WebSocket.
+				 * 
+				 * @see https://www.rfc-editor.org/rfc/rfc7118.html
 				 * 
 				 */
 				std::cout << this->request << std::endl;
@@ -373,10 +382,13 @@ bool	Client::timeout(void) {
 				/**
 				 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on envoie une trame
 				 * de fermeture à la place d'une réponse HTTP.
+				 * 
+				 * Normalement le protocol WebSocket n'a pas de timeout, mais comme l'implementation est une experimention
+				 * on laisse le timeout pour eviter de bloquer le serveur pour rien.
 				 */
 				if (this->response->isUpgraded())
 				{
-					this->response->send(sendCloseFrame(1000, "timeout")).end();
+					this->response->sendFrame("timeout", 1000).end();
 				}
 				else
 				{
