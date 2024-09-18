@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:45:55 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 14:11:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,7 +287,7 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 		break;
 	case 5:
 	default:
-		response += I_RED;
+		response += RED;
 		break;
 	}
 	response += toString<int>(status);
