@@ -369,7 +369,7 @@ Allows you to specify the list of accepted methods. in the case where the reques
 ```
 Syntax:     autoindex on | off;
 Default:    autoindex off;
-Context:    http, server, location
+Context:    server, location
 ```
 
 Enables or disables the directory listing output.
