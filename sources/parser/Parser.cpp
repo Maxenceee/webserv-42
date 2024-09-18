@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 18:04:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 12:14:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,72 +68,10 @@ void	Parser::parse(const std::string &configPath)
 	Logger::debug("Parsing: done", B_GREEN);
 }
 
-void	Parser::processInnerLines(std::vector<std::string> &tokens, std::string &parent)
-{
-	std::string chunkedLine;
-
-    for (size_t i = 0; i < tokens.size(); ++i) {
-        std::string token = tokens[i];
-
-        // Ouverture de bloc
-        if (token == "{") {
-            std::string key = chunkedLine;
-            trim(key);
-
-            if (!key.empty()) {
-                std::vector<std::string> keyTokens = split(key, ' ');
-                std::string key = keyTokens[0];
-                shift(keyTokens);
-                std::string val = join(keyTokens, " ");
-                if (!parent.empty()) {
-                    parent += '.' + key;
-                } else {
-                    parent = key;
-                }
-                this->switchConfigDirectives(key, val, parent, chunkedLine);
-            }
-            chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
-        }
-        // Fermeture de bloc
-        else if (token == "}") {
-            std::vector<std::string> parentTokens = split(parent, '.');
-            if (!parentTokens.empty()) {
-                parentTokens.pop_back();
-            }
-            parent = join(parentTokens, ".");
-            this->tmp_router = this->tmp_router->getParent();
-			if (!chunkedLine.empty()) {
-				this->throwError(chunkedLine, chunkedLine.length());
-			}
-            chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
-        }
-        // Fin de ligne
-        else if (token == ";") {
-            std::vector<std::string> keyValTokens = split(chunkedLine, ' ');
-            if (!keyValTokens.empty()) {
-                std::string key = keyValTokens[0];
-                shift(keyValTokens);
-                std::string val = join(keyValTokens, " ");
-                trim(key);
-                trim(val);
-                this->switchConfigDirectives(key, val, parent, chunkedLine);
-            }
-            chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
-        }
-        // On accumule si la ligne ne contient pas de token de fin
-        else {
-            if (!chunkedLine.empty()) {
-                chunkedLine += " ";
-            }
-            chunkedLine += token;
-        }
-    }
-}
-
 void	Parser::extract(const std::string &conf)
 {
 	std::vector<std::string> lines = split(conf, '\n');
-	std::string parent = "";
+	std::vector<std::string> context;
 	std::string chunkedLine = "";
 	int braceCount = 0;
 	std::string lastProcessedLine;
@@ -153,31 +91,86 @@ void	Parser::extract(const std::string &conf)
 		chunkedLine += (chunkedLine.empty() ? "" : " ") + lineRaw;
 
 		// Vérification et mise à jour du compteur d'accolades
-        for (size_t i = 0; i < lineRaw.length(); ++i) {
-            if (lineRaw[i] == '{') {
-                braceCount++;  // Incrémenter lors d'une accolade ouvrante
-            } else if (lineRaw[i] == '}') {
-                braceCount--;  // Décrémenter lors d'une accolade fermante
-            }
-        }
+		for (size_t i = 0; i < lineRaw.length(); ++i) {
+			if (lineRaw[i] == '{') {
+				braceCount++;  // Incrémenter lors d'une accolade ouvrante
+			} else if (lineRaw[i] == '}') {
+				braceCount--;  // Décrémenter lors d'une accolade fermante
+			}
+		}
 
 		// Si la ligne contient une accolade ouvrante, fermante ou un point-virgule
-        if (lineRaw.find('{') != std::string::npos || lineRaw.find('}') != std::string::npos || lineRaw.find(';') != std::string::npos) {
-            std::vector<std::string> tokens = tokenize(chunkedLine);
+		if (lineRaw.find('{') != std::string::npos || lineRaw.find('}') != std::string::npos || lineRaw.find(';') != std::string::npos) {
+			std::vector<std::string> tokens = tokenize(chunkedLine);
 			if (!tokens.empty()) {
-				lastProcessedLine = lineRaw; // Stock la dernière ligne traitée pour les erreurs
+				lastProcessedLine = chunkedLine; // Stock la dernière ligne traitée pour les erreurs
 				// Pass the tokens to be processed by processInnerLines
-				this->processInnerLines(tokens, parent);
+				this->processInnerLines(tokens, context);
 			}
 
-            // Réinitialiser la ligne accumulée une fois traitée
-            chunkedLine.clear();
-        }
+			// Réinitialiser la ligne accumulée une fois traitée
+			chunkedLine.clear();
+		}
 	}
 
 	if (braceCount != 0) {
 		replaceAll(lastProcessedLine, '\t', ' ');
 		this->throwError(lastProcessedLine, "expected '}'", lastProcessedLine.length());
+	}
+}
+
+void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std::string> &context)
+{
+	std::string chunkedLine;
+
+	for (size_t i = 0; i < tokens.size(); ++i) {
+		std::string token = tokens[i];
+
+		// Ouverture de bloc
+		if (token == "{") {
+			std::string key = chunkedLine;
+			trim(key);
+
+			if (!key.empty()) {
+				std::vector<std::string> keyTokens = split(key, ' ');
+				std::string key = keyTokens[0];
+				shift(keyTokens);
+				std::string val = join(keyTokens, " ");
+				this->switchConfigDirectives(key, val, last(context), chunkedLine);
+				context.push_back(key);
+				std::cout << "context: " << toStringl(context) << std::endl;
+			}
+			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
+		}
+		// Fermeture de bloc
+		else if (token == "}") {
+			pop(context);
+			this->tmp_router = this->tmp_router->getParent();
+			if (!chunkedLine.empty()) {
+				this->throwError(chunkedLine, chunkedLine.length());
+			}
+			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
+		}
+		// Fin de ligne
+		else if (token == ";") {
+			std::vector<std::string> keyValTokens = split(chunkedLine, ' ');
+			if (!keyValTokens.empty()) {
+				std::string key = keyValTokens[0];
+				shift(keyValTokens);
+				std::string val = join(keyValTokens, " ");
+				trim(key);
+				trim(val);
+				this->switchConfigDirectives(key, val, last(context), chunkedLine);
+			}
+			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
+		}
+		// On accumule si la ligne ne contient pas de token de fin
+		else {
+			if (!chunkedLine.empty()) {
+				chunkedLine += " ";
+			}
+			chunkedLine += token;
+		}
 	}
 }
 
@@ -201,9 +194,9 @@ void	Parser::throwError(const std::string &raw_line, const std::string message, 
 	throw std::invalid_argument(tmp.c_str());
 }
 
-void	Parser::switchConfigDirectives(std::string key, std::string val, const std::string parent, const std::string raw_line)
+void	Parser::switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
 {
-	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + RESET);
+	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
 	/**
 	 * Directive server
 	 * 
@@ -213,10 +206,11 @@ void	Parser::switchConfigDirectives(std::string key, std::string val, const std:
 		this->throwError(raw_line, "directive out of server block");
 	else if (key == "server") {
 		// On empeche l'imbrication de blocs server
-		if (parent != "server")
+		// S'il le context est vide c'est qu'on est dans le bloc principal
+		if (!context.empty())
 			this->throwError(raw_line, "server block cannot be nested");
 		if (!val.empty())
-			this->throwError(raw_line);
+			this->throwError(raw_line, key.length() + 1);
 		this->new_server = new ServerConfig();
 		this->configs.push_back(this->new_server);
 		this->tmp_router = this->new_server->getDefaultHandler();
@@ -227,30 +221,30 @@ void	Parser::switchConfigDirectives(std::string key, std::string val, const std:
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
 	 */
 	else if (key == "location") {
-		this->createNewRouter(key, val, parent, raw_line);
+		this->createNewRouter(key, val, context, raw_line);
 	}
 	else
 	{
-		if (parent == "server")
+		if (context == "server")
 			this->tmp_router = this->new_server->getDefaultHandler();
 		if (val.empty())
 			this->throwError(raw_line, "missing directive value", raw_line.length());
-		this->addRule(key, val, parent, raw_line);
+		this->addRule(key, val, context, raw_line);
 	}
 }
 
-void	Parser::createNewRouter(std::string key, std::string val, const std::string parent, const std::string raw_line)
+void	Parser::createNewRouter(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
 {
 	struct wbs_router_location	location;
 
-	if (parent == "location")
-		this->throwError(raw_line);
+	if (context != "server" && context != "location")
+		this->throwError(raw_line, "location directive must be inside server or location block");
 
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() < 1)
 		this->throwError(raw_line, "missing location path", key.length() + 1);
 	else if (tokens.size() > 2)
-		this->throwError(raw_line, "too many entries", key.length() + 1 + val.length() - tokens[tokens.size() - 1].length());
+		this->throwError(raw_line, "too many entries", key.length() + 1 + val.length() - tokens.back().length());
 
 	trim(tokens[0]);
 	if (tokens.size() == 2 && this->isValidModifier(tokens[0])) {
@@ -261,12 +255,12 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 	else if (tokens.size() == 2) {
 		this->throwError(raw_line, "invalid modifier", key.length() + 1);
 	}
-	location.path = trim(tokens[tokens.size() - 1]);
+	location.path = trim(tokens.back());
 
 	Router *tmp = this->tmp_router;
 	this->tmp_router = new Router(tmp, location, tmp->level + 1);
 
-	if (parent == "server.location")
+	if (context == "server")
 		this->new_server->use(this->tmp_router);
 	else
 		tmp->use(this->tmp_router);
@@ -286,13 +280,13 @@ void	Parser::createNewRouter(std::string key, std::string val, const std::string
 	}
 }
 
-void	Parser::addRule(const std::string key, const std::string val, const std::string parent, const std::string raw_line)
+void	Parser::addRule(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
 {
 	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
 	const size_t key_length = key.length() + 1; // +1 pour l'espace après la clé
 
 	// On vérifie que la directive est bien dans un contexte
-	if (parent.empty())
+	if (context.empty())
 		this->throwError(raw_line, "directive outside of context");
 
 	/**
@@ -300,7 +294,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
 	 */
-	if (key == "listen" && parent != "server")
+	if (key == "listen" && context != "server")
 		this->throwError(raw_line, "listen directive must be inside server block");
 	else if (key == "listen") {
 		// Si la directive listen contient `:` on s'assure que le port est correct
@@ -337,7 +331,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 	 * 
 	 * (https://nginx.org/en/docs/http/server_names.html)
 	 */
-	if (key == "server_name" && parent != "server")
+	if (key == "server_name" && context != "server")
 		this->throwError(raw_line, "server_name directive must be inside server block");
 	else if (key == "server_name") {
 		this->new_server->addNames(valtokens);
@@ -354,7 +348,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		this->tmp_router->setRoot(valtokens[0]);
 		return ;
 	}
-	else if (key == "alias" && parent != "server") {
+	else if (key == "alias" && context != "server") {
 		this->tmp_router->setAlias(valtokens[0]);
 		return ;
 	} else if (key == "alias") {
@@ -407,10 +401,11 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 			loc = valtokens[1];
 		}
 		else
-			this->throwError(raw_line, "invalid status code", key_length);
+			this->throwError(raw_line, "too many entries", key_length);
 
 		if (!Response::isValidStatus(status)) {
-			Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
+			// Logger::warning("parser warning: invalid status code, this may cause unexpected behavior.");
+			this->throwError(raw_line, "invalid status code", key_length);
 		}
 		this->tmp_router->setRedirection(loc, status);
 		return ;
@@ -449,7 +444,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 				this->throwError(raw_line, "error_page cannot be used with the status code", key_length + l);
 			}
 			l += valtokens[i].length() + 1;
-			this->tmp_router->setErrorPage(code, valtokens[valtokens.size() - 1]);
+			this->tmp_router->setErrorPage(code, valtokens.back());
 		}
 		return ;
 	}
@@ -483,7 +478,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		if (valtokens.size() < 2)
 			this->throwError(raw_line, "too few arguments", key_length + val.length());
 		else if (valtokens.size() > 2)
-			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens[valtokens.size() - 1].length());
+			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens.back().length());
 		this->tmp_router->addCGIParam(valtokens[0], valtokens[1]);
 		return ;
 	}
@@ -498,7 +493,7 @@ void	Parser::addRule(const std::string key, const std::string val, const std::st
 		if (valtokens.size() < 2)
 			this->throwError(raw_line, "too few arguments", key_length + val.length());
 		else if (valtokens.size() > 3)
-			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens[valtokens.size() - 1].length());
+			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens.back().length());
 		if (valtokens.size() == 3) {
 			if (valtokens[2] != "always")
 				this->throwError(raw_line, "unknown option", key_length + val.length() - valtokens[2].length());
