@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:06:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/02/28 11:00:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 12:04:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,16 @@ T	&shift(T &container)
 		container.erase(it);
 	}
 	return (container);
+}
+
+template <typename T>
+std::string	last(T &container)
+{
+	if (!container.empty())
+	{
+		return container.back();
+	}
+	return ("");
 }
 
 template <typename T>

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:54:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/18 11:36:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ wbs_mapis_t	Response::initCodes()
 	codes[100] = "Continue";
 	codes[101] = "Switching Protocols";
 	codes[102] = "Processing";
+	codes[103] = "Early Hints";
 	/**
 	 * Succès
 	 */
@@ -53,6 +54,10 @@ wbs_mapis_t	Response::initCodes()
 	codes[204] = "No Content";
 	codes[205] = "Reset Content";
 	codes[206] = "Partial Content";
+	codes[207] = "Multi-Status";
+	codes[208] = "Already Reported";
+	codes[210] = "Content Different";
+	codes[226] = "IM Used";
 	/**
 	 * Redirection
 	 */
@@ -86,6 +91,22 @@ wbs_mapis_t	Response::initCodes()
 	codes[416] = "Requested range unsatisfiable";
 	codes[417] = "Expectation failed";
 	codes[418] = "I'm a teapot"; // (https://www.rfc-editor.org/rfc/rfc2324#section-2.3.2) HTCPCP/1.0
+	codes[419] = "Page expired";
+	codes[421] = "Bad mapping";
+	codes[422] = "Unprocessable entity";
+	codes[423] = "Locked";
+	codes[424] = "Method failure";
+	codes[425] = "Too Early";
+	codes[426] = "Upgrade Required";
+	codes[427] = "Invalid digital signature";
+	codes[428] = "Precondition Required";
+	codes[429] = "Too Many Requests";
+	codes[431] = "Too Many Requests";
+	codes[431] = "Request Header Fields Too Large";
+	codes[449] = "Retry With";
+	codes[451] = "Unavailable For Legal Reasons";
+	codes[456] = "Unrecoverable Error";
+	// Les codes 4xx étendus par Nginx ne sont pas supportés (444, 495, 496, 497, 498, 499)
 	/**
 	 * Erreur du serveur
 	 */
@@ -101,6 +122,7 @@ wbs_mapis_t	Response::initCodes()
 	codes[509] = "Bandwidth Limit Exceeded";
 	codes[510] = "Not extended";
 	codes[511] = "Network authentication required";
+	// Les codes 4xx étendus par Cloudflare ne sont pas supportés (520, 521, 522, 523, 524, 525, 526, 527)
 	return (codes);
 }
 
