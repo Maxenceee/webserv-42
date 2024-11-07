@@ -72,7 +72,7 @@ std::string base64_encode(const std::vector<uint8_t>& input)
 	std::string encoded;
 	encoded.reserve(((input.size() / 3) + (input.size() % 3 > 0)) * 4);
 
-	std::uint32_t temp = {0};
+	uint32_t temp = {0};
 	std::vector<uint8_t>::const_iterator it = input.begin();
 
 	for(std::size_t i = 0; i < input.size() / 3; ++i)
