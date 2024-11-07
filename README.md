@@ -2,7 +2,7 @@
 
 My Webserv project for the 42 School cursus, a [`Nginx`](https://nginx.org) like web server made in c++98. This project is much more complete and complex than what is required by the subject to be validated at 125. It includes many Nginx directives and advanced features such as proxies. See the [Features](#features) section below.
 
-Final grade : `125/100` & Outstanding Project
+Final grade : `125/100` & `Outstanding Project`
 
 ## Getting started
 
