@@ -34,18 +34,23 @@ ThreadPool::~ThreadPool()
 
 void    ThreadPool::kill()
 {
-	{
-		pthread_mutex_lock(&queueMutex);
-		stop = true;
-		pthread_cond_broadcast(&condition);
-		pthread_mutex_unlock(&queueMutex);
+	std::cout << "request kill on poll" << std::endl;
+	std::cout << "trying to lock" << std::endl;
+	pthread_mutex_lock(&queueMutex);
+	stop = true;
+	std::cout << "stop changed to: " << stop << std::endl;
+	pthread_cond_broadcast(&condition);
+	std::cout << "broadcast sent" << std::endl;
+	pthread_mutex_unlock(&queueMutex);
+
+	for (size_t i = 0; i < workers.size(); ++i) {
+		std::cout << "canceling thread " << i << std::endl;
+		pthread_cancel(workers[i]);
+		pthread_kill(workers[i], SIGKILL);
 	}
 
 	for (size_t i = 0; i < workers.size(); ++i) {
-        pthread_cancel(workers[i]);
-    }
-
-	for (size_t i = 0; i < workers.size(); ++i) {
+		std::cout << "joining thread" << std::endl;
 		pthread_join(workers[i], NULL);
 	}
 
@@ -65,11 +70,6 @@ void    ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int b
 
 void    *ThreadPool::workerThread(void* arg)
 {
-	sigset_t mask;
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
-	pthread_sigmask(SIG_BLOCK, &mask, NULL);
-
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
@@ -81,15 +81,20 @@ void    *ThreadPool::workerThread(void* arg)
 void    ThreadPool::run()
 {
 	while (true) {
+		std::cout << "thread lock" << std::endl;
 		pthread_mutex_lock(&queueMutex);
+		std::cout << "thread aquired" << std::endl;
 
 		std::cout << "thread stop: " << stop << " " << Cluster::exit << std::endl;
 		while (!stop && tasks.empty()) {
+			std::cout << "thread wait" << std::endl;
 			pthread_cond_wait(&condition, &queueMutex);
+			std::cout << "thread woke up" << std::endl;
 		}
 
-		std::cout << "thread stop: " << stop << " " << Cluster::exit << std::endl;
-		if (stop || Cluster::exit) {
+		std::cout << "after wait thread stop: " << stop << " " << Cluster::exit << std::endl;
+		if (stop) {
+			std::cout << "stop thread" << std::endl;
 			pthread_mutex_unlock(&queueMutex);
 			return;
 		}
@@ -99,12 +104,16 @@ void    ThreadPool::run()
 		tasks.pop();
 		taskArgs.pop();
 
+		std::cout << "thread unlock" << std::endl;
 		pthread_mutex_unlock(&queueMutex);
-
+		
+		std::cout << "test cancel before task" << std::endl;
 		pthread_testcancel();
 
+		std::cout << "thread task" << std::endl;
 		task(args.first, args.second);
 
+		std::cout << "thread cancel after task" << std::endl;
 		pthread_testcancel();
 	}
 }
