@@ -293,7 +293,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "listen" && context != "server")
 		this->throwError(raw_line, "listen directive must be inside server block");
 	else if (key == "listen") {
-		if (valtokens.length() > 1) {
+		if (valtokens.size() > 1) {
 			this->throwError(raw_line, "Unsupported: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length);
 		}
 		// Si la directive listen contient `:` on s'assure que le port est correct
