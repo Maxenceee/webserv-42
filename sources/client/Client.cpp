@@ -341,6 +341,13 @@ int	Client::processLines(void) {
 
 bool	Client::timeout(void) {
 	/**
+	 * TODO:
+	 * Conformément à la documentation de Nginx, le *timeout* doit s'appliquer entre chaque opération de lecture
+	 * plutôt que sur l'ensemble de la requête. Actuellement, le calcul du *timeout* se base sur `this->request.getRequestTime()`,
+	 * qui correspond à l'heure à laquelle la requête a été acceptée. Il serait préférable de recalculer le *timeout*
+	 * en utilisant le temps de la dernière lecture pour s'assurer que la durée est remise à zéro après chaque lecture.
+	 */
+	/**
 	 * Si le client n'a pas envoyé les en-têtes de la requête dans le délai imparti,
 	 * on envoie une réponse d'erreur 408 (Request Timeout) et on ferme la connexion.
 	 */
