@@ -20,6 +20,7 @@ static void interruptHandler(int sig_int) {
 	(void)sig_int;
 	std::cout << "\b\b \b\b";
 	Cluster::exit = false;
+	Cluster::pool.kill();
 }
 
 Cluster::Cluster(void)
