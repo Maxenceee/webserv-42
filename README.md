@@ -6,7 +6,7 @@ Final grade : `125/100` & `Outstanding Project`
 
 ## Getting started
 
-The server can be used in the classic way, or can be daemonized via [launchd](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html) (OS X) or [systemd](https://man7.org/linux/man-pages/man1/systemd.1.html) (Linux).
+The server can be used in the classic way, or can be daemonized via [launchd](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html) (MacOS) or [systemd](https://man7.org/linux/man-pages/man1/systemd.1.html) (Linux).
 
 You need to compile the project with `make`.
 
