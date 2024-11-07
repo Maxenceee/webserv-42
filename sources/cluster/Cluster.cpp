@@ -91,6 +91,9 @@ int		Cluster::start(void)
 
 	/**
 	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
+  	 * TODO:
+    	 * Il faudrait verifier si un proxy_pass est configuré dans un server, si non
+	 * la pool ne devrait pas être instancié due au fait qu'elle ne servira pas.
 	 */
 	Cluster::initializePool(8);
 
