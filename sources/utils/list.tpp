@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 12:06:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:04:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:07:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,9 +62,9 @@ std::string	toStringl(T &container, std::string separator)
 template <class InputIterator, class UnaryPredicate>
 bool all_of(InputIterator first, InputIterator last, UnaryPredicate pred)
 {
-    while (first != last) {
-        if (!pred(*first)) return false;
-        ++first;
-    }
-    return true;
+	while (first != last) {
+		if (!pred(*first)) return false;
+		++first;
+	}
+	return true;
 }

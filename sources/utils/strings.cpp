@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 16:01:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:07:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,18 +283,18 @@ std::string		&replace(std::string &buffer, std::string searchValue, std::string 
 
 std::string &replaceAll(std::string &buffer, char searchValue, char replaceValue)
 {
-    size_t pos = 0;
-    while ((pos = buffer.find(searchValue, pos)) != std::string::npos) {
-        size_t end_pos = pos;
-        // Find the end of the successive occurrences
-        while (end_pos < buffer.size() && buffer[end_pos] == searchValue) {
-            ++end_pos;
-        }
-        // Replace all occurrences with a single one
-        buffer.replace(pos, end_pos - pos, 1, replaceValue);
-        pos += 1; // Move past the replaced character
-    }
-    return buffer;
+	size_t pos = 0;
+	while ((pos = buffer.find(searchValue, pos)) != std::string::npos) {
+		size_t end_pos = pos;
+		// Find the end of the successive occurrences
+		while (end_pos < buffer.size() && buffer[end_pos] == searchValue) {
+			++end_pos;
+		}
+		// Replace all occurrences with a single one
+		buffer.replace(pos, end_pos - pos, 1, replaceValue);
+		pos += 1; // Move past the replaced character
+	}
+	return buffer;
 }
 
 size_t	parseSize(const std::string &size)

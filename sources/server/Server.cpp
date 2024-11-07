@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 14:11:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:04:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,11 +293,11 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 	response += toString<int>(status);
 	response += RESET;
 
-    // double response_duration = getTimestamp() - req.getRequestTime();
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(3) << response_duration;
-    std::string duration_str = ss.str();
-    response += " " + duration_str + " ms - ";
+	// double response_duration = getTimestamp() - req.getRequestTime();
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(3) << response_duration;
+	std::string duration_str = ss.str();
+	response += " " + duration_str + " ms - ";
 
 	if (res.hasBody())
 		response += toString<int>(res.getBody().size());

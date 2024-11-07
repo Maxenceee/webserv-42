@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/26 16:04:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:07:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,14 +152,14 @@ int	deleteFile(const std::string &path)
 
 std::string resolve(std::string root, std::string path)
 {
-    if (!root.empty() && root[root.size() - 1] == '/' && !path.empty() && path[0] == '/') {
-        root.erase(root.size() - 1); // Supprimer le dernier '/' de root
-    }
+	if (!root.empty() && root[root.size() - 1] == '/' && !path.empty() && path[0] == '/') {
+		root.erase(root.size() - 1); // Supprimer le dernier '/' de root
+	}
 
-    // Vérifier si path est déjà présent à la fin de root
-    if (!path.empty() && root.size() >= path.size() && root.compare(root.size() - path.size(), path.size(), path) == 0) {
-        return root; // path est déjà présent à la fin de root, donc retourner root sans modification
-    }
+	// Vérifier si path est déjà présent à la fin de root
+	if (!path.empty() && root.size() >= path.size() && root.compare(root.size() - path.size(), path.size(), path) == 0) {
+		return root; // path est déjà présent à la fin de root, donc retourner root sans modification
+	}
 
-    return (root += path); // Ajouter path à la fin de root
+	return (root += path); // Ajouter path à la fin de root
 }

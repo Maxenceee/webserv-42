@@ -6,14 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 00:01:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 19:49:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ThreadPool.hpp"
 #include "cluster/Cluster.hpp"
 
-ThreadPool::ThreadPool(size_t numThreads) : stop(false)
+ThreadPool::ThreadPool(size_t numThreads): stop(false)
 {
 	pthread_mutex_init(&queueMutex, NULL);
 	pthread_cond_init(&condition, NULL);
@@ -32,7 +32,7 @@ ThreadPool::~ThreadPool()
 	}	
 }
 
-void    ThreadPool::kill()
+void	ThreadPool::kill()
 {
 	std::cout << "request kill on poll" << std::endl;
 	std::cout << "trying to lock" << std::endl;
@@ -46,7 +46,6 @@ void    ThreadPool::kill()
 	for (size_t i = 0; i < workers.size(); ++i) {
 		std::cout << "canceling thread " << i << std::endl;
 		pthread_cancel(workers[i]);
-		pthread_kill(workers[i], SIGKILL);
 	}
 
 	for (size_t i = 0; i < workers.size(); ++i) {
@@ -59,7 +58,7 @@ void    ThreadPool::kill()
 	Logger::debug("ThreadPool stopped");
 }
 
-void    ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int backend_fd)
+void	ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int backend_fd)
 {
 	pthread_mutex_lock(&queueMutex);
 	tasks.push(function);
@@ -68,7 +67,7 @@ void    ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int b
 	pthread_mutex_unlock(&queueMutex);
 }
 
-void    *ThreadPool::workerThread(void* arg)
+void	*ThreadPool::workerThread(void* arg)
 {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
@@ -78,7 +77,7 @@ void    *ThreadPool::workerThread(void* arg)
 	return NULL;
 }
 
-void    ThreadPool::run()
+void	ThreadPool::run()
 {
 	while (true) {
 		std::cout << "thread lock" << std::endl;
