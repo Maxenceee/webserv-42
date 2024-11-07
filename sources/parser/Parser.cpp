@@ -294,7 +294,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		this->throwError(raw_line, "listen directive must be inside server block");
 	else if (key == "listen") {
 		if (valtokens.size() > 1) {
-			this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length());
+			this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
 		}
 		// Si la directive listen contient `:` on s'assure que le port est correct
 		std::string line = valtokens[0];
