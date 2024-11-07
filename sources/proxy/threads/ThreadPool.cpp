@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "ThreadPool.hpp"
+#include "cluster/Cluster.hpp"
 
 ThreadPool::ThreadPool(size_t numThreads) : stop(false)
 {
@@ -64,8 +65,13 @@ void    ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int b
 
 void    *ThreadPool::workerThread(void* arg)
 {
+	sigset_t mask;
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGINT);
+	pthread_sigmask(SIG_BLOCK, &mask, NULL);
+
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
 	ThreadPool* pool = (ThreadPool*)arg;
 	pool->run();
@@ -77,11 +83,13 @@ void    ThreadPool::run()
 	while (true) {
 		pthread_mutex_lock(&queueMutex);
 
+		std::cout << "thread stop: " << stop << " " << Cluster::exit << std::endl;
 		while (!stop && tasks.empty()) {
 			pthread_cond_wait(&condition, &queueMutex);
 		}
 
-		if (stop && tasks.empty()) {
+		std::cout << "thread stop: " << stop << " " << Cluster::exit << std::endl;
+		if (stop || Cluster::exit) {
 			pthread_mutex_unlock(&queueMutex);
 			return;
 		}

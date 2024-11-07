@@ -8,8 +8,8 @@ HEADERS_DIR		=	includes
 HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.hpp") $(shell find $(SOURCES_DIR) -name "*.hpp")
 
 RM				=	rm -f
-CC				=	clang++
-CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR) -Wall -Wextra -Werror
+CC				=	g++
+CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR) #-Wall -Wextra -Werror
 NAME			=	webserv
 
 GREEN			=	\033[1;32m
