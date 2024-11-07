@@ -547,7 +547,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 			port = "80"; // Par défaut
 		}
 
-		if (host.length < 2) {
+		if (host.length() < 2) {
 			this->throwError(raw_line, "invalid host", key_length + protocol.length() + 3);
 		}
 
