@@ -14,7 +14,6 @@
 #include "Client.hpp"
 #include "proxy/ProxyWorker.hpp"
 #include "base64.hpp"
-#include <cstdint>
 #include <cstring>
 
 Client::Client(Server *server, const int client, sockaddr_in clientAddr):
