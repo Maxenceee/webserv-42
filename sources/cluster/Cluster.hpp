@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 12:32:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:03:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,8 @@ struct wbs_pollclient {
 class Cluster
 {
 private:
-	Parser					*parser;
-	std::vector<Server*>	_servers;
-	// std::vector<pollfd>		poll_fds;
+	Parser				*parser;
+	wsb_v_servers_t		_servers;
 
 public:
 	Cluster(void);
@@ -56,12 +55,11 @@ public:
 
 	static ThreadPool	pool;
 
-	static void initializePool(size_t numThreads) {
-        // Initialize the pool with the specified number of threads
-		new(&pool) ThreadPool(numThreads);
-    }
-
 	int		start(void);
+
+	static void initializePool(size_t numThreads) {
+		new(&pool) ThreadPool(numThreads);
+	}
 
 	void	parse(const std::string &configPath);
 	void	initConfigs(std::vector<ServerConfig *> &configs);

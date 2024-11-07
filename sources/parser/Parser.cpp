@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:29:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:05:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -512,7 +512,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 */
 	if (key == "proxy_pass") {
 		std::string url = valtokens[0];
-    
+
 		std::string protocol;
 		std::string host;
 		std::string port;
