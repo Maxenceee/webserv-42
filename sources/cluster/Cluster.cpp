@@ -109,9 +109,9 @@ int		Cluster::start(void)
 	{
 		int serverSocket = (*it)->getSocketFD();
 		// if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) == -1) {
-        //     perror("fcntl");
-        //     return (WBS_SOCKET_ERR);
-        // }
+		//     perror("fcntl");
+		//     return (WBS_SOCKET_ERR);
+		// }
 		// poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
 		poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
 		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
