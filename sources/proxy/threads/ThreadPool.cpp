@@ -15,8 +15,15 @@
 
 ThreadPool::ThreadPool(size_t numThreads): stop(false)
 {
-	pthread_mutex_init(&queueMutex, NULL);
-	pthread_cond_init(&condition, NULL);
+	std::cout << "\n\n" << "New thread pool" << std::endl;
+	if (pthread_mutex_init(&queueMutex, NULL)) {
+		perror("mutex init");
+		throw "could not init mutex";
+	}
+	if (pthread_cond_init(&condition, NULL)) {
+		perror("cond init");
+                throw "could not init cond";
+	}
 
 	for (size_t i = 0; i < numThreads; ++i) {
 		pthread_t worker;
@@ -27,6 +34,7 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false)
 
 ThreadPool::~ThreadPool()
 {
+	std::cout << "thread pool desctructor" << std::endl; 
 	if (!stop) {
 		this->kill();
 	}	
