@@ -58,6 +58,7 @@ public:
 	int		start(void);
 
 	static void initializePool(size_t numThreads) {
+		pool.~ThreadPool();
 		new(&pool) ThreadPool(numThreads);
 	}
 

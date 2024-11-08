@@ -91,7 +91,7 @@ int		Cluster::start(void)
 	/**
 	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
 	 */
-	Cluster::initializePool(8);
+	Cluster::initializePool(2);
 
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
