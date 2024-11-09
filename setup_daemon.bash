@@ -41,6 +41,10 @@ setup_systemd() {
 
 sudo mkdir -p /etc/webserv
 
+if [ ! -f "$PROG_FILE" ]; then
+    echo "Compiling $PROG_FILE..."
+    make all
+fi
 sudo cp $PROG_FILE /usr/local/bin
 
 # Détection du système d'exploitation et appel des fonctions appropriées
