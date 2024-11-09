@@ -99,7 +99,11 @@ void	*ThreadPool::workerThread(void* arg)
 
 void	ThreadPool::run()
 {
+#ifdef __linux__
 	pid_t tid = gettid() % 10;
+#else
+	pid_t tid = 0;
+#endif
 
 	while (true) {
 		std::cout << tid << ": " << "thread lock" << std::endl;
@@ -147,25 +151,27 @@ void task(int a, int b)
 	for (; i < 1000000; i++)
 		r = a + i;
 	sleep(1);
+	std::cout << "task done: " << a << " + " << b << " = " << r << std::endl;
+}
+
+bool stop = false;
+
+static void interruptHandler(int sig_int) {
+	(void)sig_int;
+	stop = true;
 }
 
 int main(void)
 {
 	ThreadPool *pool = new ThreadPool(4);
 
-	sleep(1);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
-	pool->enqueueTask(task, 0, 0);
+	signal(SIGINT, interruptHandler);
+
+	while (stop == false)
+	{
+		sleep(1);
+		pool->enqueueTask(task, 0, 0);
+	}
 
 	pool->kill();
 }
