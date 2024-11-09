@@ -35,7 +35,7 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false)
 	}
 	if (pthread_cond_init(&condition, NULL)) {
 		perror("cond init");
-                throw "could not init cond";
+		throw "could not init cond";
 	}
 
 	for (size_t i = 0; i < numThreads; ++i) {
@@ -144,6 +144,13 @@ void	ThreadPool::run()
 	}
 }
 
+bool running = true;
+
+static void interruptHandler(int sig_int) {
+	(void)sig_int;
+	running = false;
+}
+
 void task(int a, int b)
 {
 	size_t i = a + b;
@@ -152,14 +159,7 @@ void task(int a, int b)
 	for (; i < 1000000; i++)
 		r = a + i;
 	sleep(1);
-	std::cout << "task done: " << a << " + " << b << " = " << r << std::endl;
-}
-
-bool stop = false;
-
-static void interruptHandler(int sig_int) {
-	(void)sig_int;
-	stop = true;
+	std::cout << "task done: " << r << std::endl;
 }
 
 int main(void)
@@ -168,9 +168,9 @@ int main(void)
 
 	signal(SIGINT, interruptHandler);
 
-	while (stop == false)
+	while (running)
 	{
-		sleep(1);
+		usleep(50000);
 		pool->enqueueTask(task, 0, 0);
 	}
 
