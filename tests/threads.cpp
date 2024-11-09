@@ -2,6 +2,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <unistd.h>
+#include <signal.h>
 
 class ThreadPool {
 public:
