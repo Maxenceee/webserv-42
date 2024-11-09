@@ -171,7 +171,7 @@ int main(void)
 	while (running)
 	{
 		usleep(50000);
-		pool->enqueueTask(task, 0, 0);
+		// pool->enqueueTask(task, 0, 0);
 	}
 
 	pool->kill();
