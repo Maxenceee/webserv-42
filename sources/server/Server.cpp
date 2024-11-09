@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:04:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/09 12:48:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,26 +64,26 @@ std::vector<std::string>	Server::initMethods()
 
 	methods.push_back("GET");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/GET)
 	methods.push_back("HEAD");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/HEAD)
-	methods.push_back("POST");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/POST)
 	/** POST
 	 * Codes de réponse:
 	 * - 200 si le fichier a été modifié
 	 * - 201 si le fichier a été créé
 	 */
-	methods.push_back("PUT");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PUT)
+	methods.push_back("POST");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/POST)
 	/** PUT
 	 * Codes de réponse:
 	 * - 201 si le fichier a été créé
 	 * - 204 si le fichier a été modifié
 	 */
+	methods.push_back("PUT");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PUT)
 	// methods.push_back("PATCH");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PATCH)
-	methods.push_back("DELETE");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/DELETE)
 	/** DELETE
 	 * Codes de réponse:
 	 * - 200 si le fichier a été supprimé et que le serveur a renvoyé un message de confirmation
 	 * - 202 si le fichier peut être supprimé
 	 * - 204 si le fichier a été supprimé
 	 */
+	methods.push_back("DELETE");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/DELETE)
 	methods.push_back("TRACE");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/TRACE)
 	// methods.push_back("OPTIONS");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/OPTIONS)
 	// methods.push_back("CONNECT");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/CONNECT)

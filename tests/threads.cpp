@@ -169,10 +169,7 @@ int main(void)
 	signal(SIGINT, interruptHandler);
 
 	while (running)
-	{
-		usleep(50000);
-		// pool->enqueueTask(task, 0, 0);
-	}
+		;
 
 	pool->kill();
 }

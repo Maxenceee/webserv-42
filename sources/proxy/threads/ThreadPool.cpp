@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 19:49:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/09 12:37:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false)
 	}
 	if (pthread_cond_init(&condition, NULL)) {
 		perror("cond init");
-                throw "could not init cond";
+		throw "could not init cond";
 	}
 
 	for (size_t i = 0; i < numThreads; ++i) {
@@ -37,7 +37,7 @@ ThreadPool::~ThreadPool()
 	std::cout << "thread pool desctructor" << std::endl; 
 	if (!stop) {
 		this->kill();
-	}	
+	}
 }
 
 void	ThreadPool::kill()
