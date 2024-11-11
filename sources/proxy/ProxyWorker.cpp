@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 14:03:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:05:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ int	ProxyWorker::operator()()
 		std::cout << data << std::endl;
 	if (::send(this->socket_fd, data.c_str(), data.size(), 0) < 0)
 	{
-		perror("send");
+		Logger::error("send: " + std::string(strerror(errno)));
 		return (WBS_PROXY_ERROR);
 	}
 	if (Logger::_debug)
