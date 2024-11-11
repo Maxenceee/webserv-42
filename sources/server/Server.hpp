@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:03:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:08:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,22 +71,6 @@ public:
 	void			print(std::ostream &os) const;
 
 	static bool	isValidMethod(const std::string method);
-
-	class ServerPortInUse : public std::exception
-	{
-	public:
-		virtual const char* what() const throw();
-	};
-	class ServerInvalidPort : public std::exception
-	{
-	public:
-		virtual const char* what() const throw();
-	};
-	class ServerNotInit : public std::exception
-	{
-	public:
-		virtual const char* what() const throw();
-	};
 };
 
 std::ostream	&operator<<(std::ostream &os, const Server &server);

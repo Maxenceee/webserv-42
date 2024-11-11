@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:06:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:09:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -540,7 +540,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 
 void	Router::handleGETMethod(Request &request, Response &response)
 {
-	Logger::debug("<------------ "B_BLUE"GET"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("<------------ " B_BLUE "GET" B_GREEN " handler" RESET " ------------>");
 	Logger::debug("requestPath: " + request.getPath());
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
@@ -582,14 +582,14 @@ void	Router::handleGETMethod(Request &request, Response &response)
 
 void	Router::handleHEADMethod(Request &request, Response &response)
 {
-	Logger::debug("<------------ "B_BLUE"HEAD"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("<------------ " B_BLUE "HEAD" B_GREEN " handler" RESET " ------------>");
 	this->handleGETMethod(request, response);
 	response.clearBody();
 }
 
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
-	Logger::debug("<------------ "B_BLUE"POST"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("<------------ " B_BLUE "POST" B_GREEN " handler" RESET " ------------>");
 	Logger::debug("post request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
@@ -620,7 +620,7 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 
 void	Router::handlePUTMethod(Request &request, Response &response)
 {
-	Logger::debug("<------------ "B_BLUE"PUT"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("<------------ " B_BLUE "PUT" B_GREEN " handler" RESET " ------------>");
 	Logger::debug("put request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
@@ -655,7 +655,7 @@ void	Router::handlePUTMethod(Request &request, Response &response)
 
 void	Router::handleDELETEMethod(Request &request, Response &response)
 {
-	Logger::debug("<------------ "B_BLUE"DELETE"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("<------------ " B_BLUE "DELETE" B_GREEN " handler" RESET " ------------>");
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
@@ -681,7 +681,7 @@ void	Router::handleDELETEMethod(Request &request, Response &response)
 
 void	Router::handleTRACEMethod(Request &request, Response &response)
 {
-	Logger::debug("<------------ "B_BLUE"TRACE"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("<------------ " B_BLUE "TRACE" B_GREEN " handler" RESET " ------------>");
 	
 	std::string res = request.getMethod() + " " + request.getPath() + " " + request.getVersion() + WBS_CRLF;
 	wbs_mapss_t headers = request.getHeaders();
@@ -693,7 +693,7 @@ void	Router::handleTRACEMethod(Request &request, Response &response)
 
 void	Router::handleCGI(Request &request, Response &response)
 {
-	Logger::debug("<------------ "B_BLUE"CGI"B_GREEN" handler"RESET" ------------>");
+	Logger::debug("<------------ " B_BLUE "CGI" B_GREEN " handler" RESET " ------------>");
 
 	std::string	body = request.getBody();
 	std::string fullpath;

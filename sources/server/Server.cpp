@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:38:18 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:08:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ int	Server::init(void)
 
 	// on verifie si le port du serveur a été configuré
 	if (this->port == 0)
-		throw Server::ServerInvalidPort();
+		throw B_RED "server error: could not start server: port not set" RESET;
 
 	Logger::print("Initiating server " + toString<int>(this->_id), B_GREEN);
 	/**
@@ -118,8 +118,7 @@ int	Server::init(void)
 	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->socket_fd == -1)
 	{
-		Logger::error("server error: Could not create socket");
-		perror("socket");
+		Logger::error("server error: Could not create socket: " + std::string(strerror(errno)));
 		return (WBS_SOCKET_ERR);
 	}
 	/**
@@ -134,8 +133,7 @@ int	Server::init(void)
 	 * pendant un certain temps.
 	 */
 	if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
-		Logger::error("server error: Could not set socket options");
-		perror("setsockopt");
+		Logger::error("server error: Could not set socket options: " + std::string(strerror(errno)));
 		return (WBS_SOCKET_ERR);
 	}
 
@@ -169,7 +167,7 @@ int	Server::init(void)
 	if (ret_conn == -1)
 	{
 		// perror("bind");
-		throw Server::ServerPortInUse();
+		throw B_RED"server error: bind error: " + std::string(strerror(errno)) + RESET;
 	}
 	this->_init = true;
 	return (WBS_NOERR);
@@ -284,24 +282,6 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 bool	Server::isValidMethod(const std::string method)
 {
 	return (contains(Server::methods, method));
-}
-
-const char	*Server::ServerInvalidPort::what() const throw()
-{
-	return (B_RED"server error: could not start server: port not set"RESET);
-}
-
-const char	*Server::ServerPortInUse::what() const throw()
-{
-	std::string *base = new std::string(B_RED"server error: bind error: ");
-	std::string err(strerror(errno));
-	*base += err + RESET;
-	return ((*base).c_str());
-}
-
-const char	*Server::ServerNotInit::what() const throw()
-{
-	return (B_RED"server error: could not start server: the server has not been properly initialized"RESET);
 }
 
 void	Server::print(std::ostream &os) const

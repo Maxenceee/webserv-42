@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:48:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:10:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ int		Cluster::start(void)
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		if (!(*it)->isInit())
-			throw Server::ServerNotInit();
+			throw B_RED "server error: could not start server: the server has not been properly initialized" RESET;
 	}
 
 	// Initialise le tableau des descripteurs à surveiller
@@ -123,8 +123,7 @@ int		Cluster::start(void)
 		int error = listen(server->getSocketFD(), WBS_DEFAULT_MAX_WORKERS);
 		if (error == -1)
 		{
-			Logger::error("server error: an error occurred while listening");
-			perror("listen");
+			Logger::error("server error: an error occurred while listening: " + std::string(strerror(errno)));
 			return (WBS_SOCKET_ERR);
 		}
 	}
@@ -163,8 +162,7 @@ int		Cluster::start(void)
 			if (errno == EINTR) {
 				break;
 			}
-			Logger::error("server error: an error occurred while poll'ing", RESET);
-			perror("poll");
+			Logger::error("server error: an error occurred while poll'ing: " + std::string(strerror(errno)), RESET);
 			return (WBS_SOCKET_ERR);
 		}
 
@@ -208,8 +206,7 @@ int		Cluster::start(void)
 					newClient = accept(this->_servers[i]->getSocketFD(), (sockaddr *)&client_addr, &len);
 					if (newClient == -1)
 					{
-						Logger::error("server error: an error occurred while accept'ing the client", RESET);
-						perror("accept");
+						Logger::error("server error: an error occurred while accept'ing the client: " + std::string(strerror(errno)), RESET);
 						continue;
 					}
 					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)
