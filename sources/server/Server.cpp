@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 14:08:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:13:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,8 +95,10 @@ int	Server::init(void)
 	int	option = 1;
 
 	// on verifie si le port du serveur a été configuré
-	if (this->port == 0)
-		throw B_RED "server error: could not start server: port not set" RESET;
+	if (this->port == 0) {
+		Logger::error("server error: could not start server: port not set");
+		return (WBS_ERR);
+	}
 
 	Logger::print("Initiating server " + toString<int>(this->_id), B_GREEN);
 	/**
@@ -166,8 +168,16 @@ int	Server::init(void)
 	int ret_conn = bind(this->socket_fd, (sockaddr *)&this->socket_addr, sizeof(this->socket_addr));
 	if (ret_conn == -1)
 	{
-		// perror("bind");
-		throw B_RED"server error: bind error: " + std::string(strerror(errno)) + RESET;
+		if (errno == EADDRINUSE)
+		{
+			Logger::error("server error: bind error: Address already in use");
+		}
+		else
+		{
+			Logger::error("server error: bind error: " + std::string(strerror(errno)));
+		}
+		close(this->socket_fd);
+		return (WBS_ERR);
 	}
 	this->_init = true;
 	return (WBS_NOERR);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 14:10:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:12:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,8 +96,10 @@ int		Cluster::start(void)
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
-		if (!(*it)->isInit())
-			throw B_RED "server error: could not start server: the server has not been properly initialized" RESET;
+		if (!(*it)->isInit()) {
+			Logger::error("server error: could not start server: the server has not been properly initialized");
+			return (WBS_SOCKET_ERR);
+		}
 	}
 
 	// Initialise le tableau des descripteurs à surveiller
