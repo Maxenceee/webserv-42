@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:37:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:46:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,8 @@
 
 ThreadPool::ThreadPool(size_t numThreads): stop(false)
 {
-	if (pthread_mutex_init(&queueMutex, NULL)) {
-		perror("mutex init");
-		throw "could not init mutex";
-	}
-	if (pthread_cond_init(&condition, NULL)) {
-		perror("cond init");
-		throw "could not init cond";
-	}
+	pthread_mutex_init(&queueMutex, NULL);
+	pthread_cond_init(&condition, NULL);
 
 	for (size_t i = 0; i < numThreads; ++i) {
 		pthread_t worker;
