@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 16:44:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:41:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,42 +43,6 @@ void	ServerConfig::setServer(Server *server)
 {
 	this->_server = server;
 }
-
-// void	ServerConfig::handleRoutes(Request &req, Response &res)
-// {
-// 	std::vector<Router *>	&routes = this->_default->getRoutes();
-// 	for (std::vector<Router *>::iterator it = routes.begin(); it != routes.end(); it++) {
-// 		(*it)->route(req, res);
-// 		if (!res.canSend())
-// 			break;
-// 	}
-// 	/**
-// 	 * Dans le cas où la route demandée n'a pu être géré par aucun des routers du serveur,
-// 	 * on renvoie la réponse par defaut. (Error 404, Not Found)
-// 	 */
-// 	if (res.canSend())
-// 	{
-// 		/**
-// 		 * Dans le cas ou le chemin de la requête ne correspond à aucune route, on vérifie si
-// 		 * une redirection est définie par defaut pour le serveur. Si c'est le cas, on redirige
-// 		 * la requête vers le chemin spécifié.
-// 		 */
-// 		if (this->_default->getRedirection().enabled) {
-// 			if (this->_default->getRedirection().path.empty() && this->_default->getRedirection().data.empty()) {
-// 				res.status(this->_default->getRedirection().status);
-// 				res.sendDefault().end();
-// 				return ;
-// 			}
-// 			if (this->_default->getRedirection().status % 300 < 100) {
-// 				res.redirect(this->_default->getRedirection().path, this->_default->getRedirection().status).end();
-// 			} else {
-// 				res.status(this->_default->getRedirection().status).send(this->_default->getRedirection().data).end();
-// 			}
-// 			return ;
-// 		}
-// 		res.sendNotFound().end();
-// 	}
-// }
 
 Router	*ServerConfig::getDefaultHandler(void)
 {
@@ -161,8 +125,8 @@ bool	ServerConfig::evalName(const std::string name, const uint16_t port) const
 	 * Si le port n'est pas spécifié dans le nom du serveur, ceci sous-entend que le serveur
 	 * accepte les requêtes sur tous les ports.
 	 */
-	for (size_t i = 0; i < _server_name.size(); ++i) {
-		if (_server_name[i].name == name && (_server_name[i].port == port || _server_name[i].port == -1)) {
+	for (size_t i = 0; i < this->_server_name.size(); ++i) {
+		if (this->_server_name[i].name == name && (this->_server_name[i].port == port || this->_server_name[i].port == -1)) {
 			return (true);
 		}
 	}

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 16:10:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 19:52:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,13 @@ class Server;
 class Request;
 
 struct wbs_cookie_options {
-    std::string		path;
-    std::string		domain;
-    int				maxAge;
-    bool			secure;
-    bool			httpOnly;
+	std::string		path;
+	std::string		domain;
+	int				maxAge;
+	bool			secure;
+	bool			httpOnly;
 
-    wbs_cookie_options() : path("/"), domain(""), maxAge(-1), secure(false), httpOnly(false) {}
+	wbs_cookie_options() : path("/"), domain(""), maxAge(-1), secure(false), httpOnly(false) {}
 };
 
 class Response

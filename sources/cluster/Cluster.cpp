@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 12:33:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:10:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ Cluster::~Cluster()
 		delete this->parser;
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		delete *it;
-	Cluster::pool.kill();
 	Logger::debug("Cluster destroyed");
 }
 
@@ -91,11 +90,8 @@ int		Cluster::start(void)
 
 	/**
 	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
-  	 * TODO:
-    	 * Il faudrait verifier si un proxy_pass est configuré dans un server, si non
-	 * la pool ne devrait pas être instancié due au fait qu'elle ne servira pas.
 	 */
-	Cluster::initializePool(8);
+	Cluster::initializePool(2);
 
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -108,11 +104,6 @@ int		Cluster::start(void)
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		int serverSocket = (*it)->getSocketFD();
-		// if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) == -1) {
-        //     perror("fcntl");
-        //     return (WBS_SOCKET_ERR);
-        // }
-		// poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
 		poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
 		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
 	}
@@ -278,6 +269,9 @@ int		Cluster::start(void)
 	// On eteint les serveurs et libère la mémoire
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->kill();
+
+	// On ferme la pool de threads
+	Cluster::pool.kill();
 
 	return (WBS_NOERR);
 }
