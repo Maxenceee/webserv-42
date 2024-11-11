@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:26:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:06:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -785,9 +785,9 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 std::string	cutLastSlash(const std::string &path)
 {
 	std::size_t lastSlashPos = path.find_last_of("/");
-    std::string fileName = path.substr(lastSlashPos);
-    std::size_t dotPos = fileName.find_last_of(".");
-    
+	std::string fileName = path.substr(lastSlashPos);
+	std::size_t dotPos = fileName.find_last_of(".");
+
 	if (dotPos == std::string::npos) {
 		return ("");
 	}

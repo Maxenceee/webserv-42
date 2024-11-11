@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 16:12:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/07 20:05:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,13 +264,13 @@ std::string		Response::getTime(void)
 
 	// date += wdays[gmtm->tm_wday];
 	// date += ", ";
-    // date += (gmtm->tm_mday < 10 ? "0" : "") + toString(gmtm->tm_mday);
+	// date += (gmtm->tm_mday < 10 ? "0" : "") + toString(gmtm->tm_mday);
 	// date += " ";
-    // date += months[gmtm->tm_mon];
+	// date += months[gmtm->tm_mon];
 	// date += " ";
 	// date += toString(1900 + gmtm->tm_year);
 	// date += " ";
-    // date += toString(gmtm->tm_hour) + ":" + toString(gmtm->tm_min) + ":" + toString(gmtm->tm_sec);
+	// date += toString(gmtm->tm_hour) + ":" + toString(gmtm->tm_min) + ":" + toString(gmtm->tm_sec);
 	// date += " GMT";
 	/**
 	 * Création de l'en-tête `Date` selon la norme. Une valeur de date HTTP

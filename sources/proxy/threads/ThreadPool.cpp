@@ -6,13 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/18 00:01:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:46:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ThreadPool.hpp"
+#include "cluster/Cluster.hpp"
 
-ThreadPool::ThreadPool(size_t numThreads) : stop(false)
+ThreadPool::ThreadPool(size_t numThreads): stop(false)
 {
 	pthread_mutex_init(&queueMutex, NULL);
 	pthread_cond_init(&condition, NULL);
@@ -28,21 +29,15 @@ ThreadPool::~ThreadPool()
 {
 	if (!stop) {
 		this->kill();
-	}	
+	}
 }
 
-void    ThreadPool::kill()
+void	ThreadPool::kill()
 {
-	{
-		pthread_mutex_lock(&queueMutex);
-		stop = true;
-		pthread_cond_broadcast(&condition);
-		pthread_mutex_unlock(&queueMutex);
-	}
-
-	for (size_t i = 0; i < workers.size(); ++i) {
-        pthread_cancel(workers[i]);
-    }
+	pthread_mutex_lock(&queueMutex);
+	stop = true;
+	pthread_cond_broadcast(&condition);
+	pthread_mutex_unlock(&queueMutex);
 
 	for (size_t i = 0; i < workers.size(); ++i) {
 		pthread_join(workers[i], NULL);
@@ -53,7 +48,7 @@ void    ThreadPool::kill()
 	Logger::debug("ThreadPool stopped");
 }
 
-void    ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int backend_fd)
+void	ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int backend_fd)
 {
 	pthread_mutex_lock(&queueMutex);
 	tasks.push(function);
@@ -62,17 +57,17 @@ void    ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int b
 	pthread_mutex_unlock(&queueMutex);
 }
 
-void    *ThreadPool::workerThread(void* arg)
+void	*ThreadPool::workerThread(void* arg)
 {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
 	ThreadPool* pool = (ThreadPool*)arg;
 	pool->run();
 	return NULL;
 }
 
-void    ThreadPool::run()
+void	ThreadPool::run()
 {
 	while (true) {
 		pthread_mutex_lock(&queueMutex);
@@ -81,7 +76,7 @@ void    ThreadPool::run()
 			pthread_cond_wait(&condition, &queueMutex);
 		}
 
-		if (stop && tasks.empty()) {
+		if (stop) {
 			pthread_mutex_unlock(&queueMutex);
 			return;
 		}
@@ -93,10 +88,6 @@ void    ThreadPool::run()
 
 		pthread_mutex_unlock(&queueMutex);
 
-		pthread_testcancel();
-
 		task(args.first, args.second);
-
-		pthread_testcancel();
 	}
 }
