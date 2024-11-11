@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 17:00:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 17:24:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,13 @@ void	Parser::extract(void)
 		if (lineRaw.find('{') != std::string::npos || lineRaw.find('}') != std::string::npos || lineRaw.find(';') != std::string::npos) {
 			std::vector<std::string> tokens = tokenize(chunkedLine);
 			if (!tokens.empty()) {
-				lastProcessedLine = chunkedLine; // Stock la dernière ligne traitée pour les erreurs
+				lastProcessedLine = lineRaw; // Stock la dernière ligne traitée pour les erreurs
+
+				// Vérifier si le compteur d'accolades est cohérent
+				if (braceCount < 0 && context.size() == 0) {
+					this->throwError(lastProcessedLine, "unexpected '}'", lastProcessedLine.length() - 1);
+				}
+
 				// Pass the tokens to be processed by processInnerLines
 				this->processInnerLines(tokens, context);
 			}
@@ -110,7 +116,7 @@ void	Parser::extract(void)
 
 	if (braceCount != 0) {
 		replaceAll(lastProcessedLine, '\t', ' ');
-		this->throwError(lastProcessedLine, "expected '}'", lastProcessedLine.length());
+		this->throwError(lastProcessedLine, "expected '}'", lastProcessedLine.length() - 1);
 	}
 }
 
