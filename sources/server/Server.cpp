@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/09 12:48:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:38:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ std::vector<std::string>	Server::initMethods()
 	 * - 204 si le fichier a été modifié
 	 */
 	methods.push_back("PUT");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PUT)
-	// methods.push_back("PATCH");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PATCH)
+	// methods.push_back("PATCH");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/PATCH) (non implémenté)
 	/** DELETE
 	 * Codes de réponse:
 	 * - 200 si le fichier a été supprimé et que le serveur a renvoyé un message de confirmation
@@ -85,8 +85,8 @@ std::vector<std::string>	Server::initMethods()
 	 */
 	methods.push_back("DELETE");		// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/DELETE)
 	methods.push_back("TRACE");			// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/TRACE)
-	// methods.push_back("OPTIONS");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/OPTIONS)
-	// methods.push_back("CONNECT");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/CONNECT)
+	// methods.push_back("OPTIONS");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/OPTIONS) (non implémenté)
+	// methods.push_back("CONNECT");	// (https://developer.mozilla.org/fr/docs/Web/HTTP/Methods/CONNECT) (non implémenté)
 	return methods;
 }
 
@@ -241,31 +241,6 @@ Router	*Server::eval(Request &request, Response &response) const
 	 */
 	return (router->eval(request.getPath(), request.getMethod(), response));
 }
-
-// void	Server::handleRouting(Request *request, Response *response)
-// {
-// 	if (Logger::_debug)
-// 		std::cout << *request << std::endl;
-
-// 	/**
-// 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
-// 	 * Si aucun nom de domaine n'est spécifié ou il n'a pas de configuration definit, on utilise
-// 	 * la configuration par défaut.
-// 	 */
-// 	ServerConfig *clientConfig = this->_default;
-// 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-// 		if ((*it)->evalName(request->getHost(), request->getPort())) {
-// 			clientConfig = *it;
-// 			break;
-// 		}
-// 	}
-// 	clientConfig->handleRoutes(*request, *response);
-
-// 	if (Logger::_debug)
-// 		std::cout << *response << std::endl;
-
-// 	this->printResponse(*request, *response);
-// }
 
 void	Server::printResponse(const Request &req, const Response &res, const double response_duration)
 {

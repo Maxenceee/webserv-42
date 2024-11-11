@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:05:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:39:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -557,22 +557,6 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		if (!isNumber(port))
 			// Key + protocol + :// + host + :
 			this->throwError(raw_line, "invalid port", key_length + protocol.length() + 3 + host.length() + 1);
-
-		/**
-		 * INFO:
-		 * Grace au fonctions standards de la librairie C, on peut facilement faire des resolution DNS.
-		 * Plus besoin de restreiendre l'utilisateur à fournir une adresse IP.
-		 */
-		// if (!isIPAddress(host))
-		// {
-		// 	Logger::error("parser error: the server won't do the dns resolution, please provide an IP address.");
-		// 	this->throwError(raw_line);
-		// }
-
-		// std::cout << "Protocol: " << protocol << std::endl;
-		// std::cout << "Host: " << host << std::endl;
-		// std::cout << "Port: " << port << std::endl;
-		// std::cout << "Path: " << path << std::endl;
 
 		this->tmp_router->setProxy(host, std::atoi(port.c_str()), path);
 		return ;
