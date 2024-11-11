@@ -6,14 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 16:57:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 17:00:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
-
-#define PARSER_ERR		"parser error: invalid file path"
 
 Parser::Parser(Cluster &c): cluster(c)
 {
@@ -52,7 +50,7 @@ void	Parser::parse(const std::string &configPath)
 	if (!isFile(configPath))
 	{
 		Logger::error("parser error: could not open file " + configPath);
-		throw std::invalid_argument(PARSER_ERR);
+		throw std::invalid_argument("parser error: invalid file path");
 	}
 	Logger::debug("Parsing: start reading from " + configPath, B_GREEN);
 	this->open_and_read_file(configPath);
