@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:03:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 16:53:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,7 +187,6 @@ public:
 	const std::string	&getErrorPage(const int status) const;
 	bool				hasErrorPage(const int code) const;
 
-	void 		setClientMaxBodySize(const std::string &size);
 	void 		setClientMaxBodySize(const size_t size);
 	size_t 		getClientMaxBodySize(void) const;
 	bool		hasClientMaxBodySize(void) const;
@@ -206,7 +205,7 @@ public:
 	bool							isProxy(void) const;
 	const struct wbs_router_proxy	&getProxyConfig(void) const;
 
-	void							setTimeout(const std::string &time, const std::string &type);
+	void							setTimeout(const size_t time, const std::string &type);
 	const struct wbs_router_timeout	&getTimeout() const;
 
 	void	print(std::ostream &os) const;

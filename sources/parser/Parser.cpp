@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:39:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 16:57:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -344,10 +344,16 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#alias)
 	 */
 	if (key == "root") {
+		if (!isDirectory(valtokens[0])) {
+			this->throwError(raw_line, "not a directory", key_length);
+		}
 		this->tmp_router->setRoot(valtokens[0]);
 		return ;
 	}
 	else if (key == "alias" && context != "server") {
+		if (!isDirectory(valtokens[0])) {
+			this->throwError(raw_line, "not a directory", key_length);
+		}
 		this->tmp_router->setAlias(valtokens[0]);
 		return ;
 	} else if (key == "alias") {
@@ -456,7 +462,11 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
 	 */
 	if (key == "client_max_body_size") {
-		this->tmp_router->setClientMaxBodySize(valtokens[0]);
+		size_t ts = parseSize(valtokens[0]);
+		if (ts == -1) {
+			this->throwError(raw_line, "invalid size", key_length);
+		}
+		this->tmp_router->setClientMaxBodySize(ts);
 		return ;
 	}
 
@@ -466,6 +476,9 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass)
 	 */
 	if (key == "fastcgi_pass") {
+		if (!isDirectory(valtokens[0])) {
+			this->throwError(raw_line, "not a directory", key_length);
+		}
 		this->tmp_router->setCGI(valtokens[0]);
 		return ;
 	}
@@ -602,7 +615,11 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_header_timeout)
 	 */
 	if (key == "client_header_timeout") {
-		this->tmp_router->setTimeout(valtokens[0], "header");
+		time_t	t = parseTime(valtokens[0]);
+		if (t < 0) {
+			this->throwError(raw_line, "invalid time", key_length);
+		}
+		this->tmp_router->setTimeout(t, "header");
 		return ;
 	}
 
@@ -612,7 +629,11 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_body_timeout)
 	 */
 	if (key == "client_body_timeout") {
-		this->tmp_router->setTimeout(valtokens[0], "body");
+		time_t	t = parseTime(valtokens[0]);
+		if (t < 0) {
+			this->throwError(raw_line, "invalid time", key_length);
+		}
+		this->tmp_router->setTimeout(t, "body");
 		return ;
 	}
 
