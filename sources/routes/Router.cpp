@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 14:09:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 16:53:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,8 +161,6 @@ void	Router::setRoot(const std::string path)
 		Logger::info("router info: Aliasing is already enbaled for this router.");
 	} else if (this->_root.set) {
 		Logger::info("router info: Root is already set, abording.");
-	} else if (!isDirectory(path)) {
-		throw std::invalid_argument("router error: Not a directory: "+path);
 	} else {
 		this->_root.set = true;
 		this->_root.path = path;
@@ -185,8 +183,6 @@ void	Router::setAlias(const std::string path)
 	 */
 	if (!this->_root.isAlias && this->_root.set) {
 		Logger::info("router info: Root is already set, abording.");
-	} else if (!isDirectory(path)) {
-		throw std::invalid_argument("router error: Not a directory: "+path);
 	} else {
 		if (this->_root.set)
 			Logger::info("router info: Overriding `root` directive.");
@@ -293,26 +289,8 @@ bool	Router::hasErrorPage(const int code) const
 	return (this->_error_page.count(code) > 0);
 }
 
-void	Router::setClientMaxBodySize(const std::string &size)
-{
-	size_t ts = parseSize(size);
-	if (ts < 0) {
-		throw std::invalid_argument("router error: Invalid size: "+size);
-	}
-	if (this->_parent && this->_parent->hasClientMaxBodySize() && ts >= this->_parent->getClientMaxBodySize()) {
-		Logger::warning("router warning: Client max body size cannot be greater than parent's");
-		return;
-	}
-	this->_client_body.size = ts;
-	this->_client_body.set = true;
-	this->reloadChildren();
-}
-
 void	Router::setClientMaxBodySize(const size_t size)
 {
-	if (size < 0) {
-		throw std::invalid_argument("router error: Invalid size: "+toString<int>(size));
-	}
 	if (this->_parent && this->_parent->hasClientMaxBodySize() && size >= this->_parent->getClientMaxBodySize()) {
 		Logger::warning("router warning: Client max body size cannot be greater than parent's");
 		return;
@@ -334,8 +312,6 @@ bool	Router::hasClientMaxBodySize(void) const
 
 void	Router::setCGI(const std::string path)
 {
-	if (!isFile(path))
-		throw std::invalid_argument("router error: Not a directory: "+path);
 	this->_cgi.path = path;
 	this->_cgi.enabled = true;
 }
@@ -394,18 +370,14 @@ const struct wbs_router_proxy	&Router::getProxyConfig(void) const
 	return (this->_proxy);
 }
 
-void	Router::setTimeout(const std::string &time, const std::string &type)
+void	Router::setTimeout(const size_t time, const std::string &type)
 {
-	time_t	t = parseTime(time);
-	if (t < 0) {
-		throw std::invalid_argument("router error: Invalid time: "+time);
-	}
 	if (type == "header") {
-		this->_timeout.header_timeout = t;
+		this->_timeout.header_timeout = time;
 		this->_timeout.header_set = true;
 	}
 	else if (type == "body") {
-		this->_timeout.body_timeout = t;
+		this->_timeout.body_timeout = time;
 		this->_timeout.body_set = true;
 	}
 	else
