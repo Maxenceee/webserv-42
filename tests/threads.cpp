@@ -64,10 +64,10 @@ void	ThreadPool::kill()
 	std::cout << "broadcast sent" << std::endl;
 	pthread_mutex_unlock(&queueMutex);
 
-	for (size_t i = 0; i < workers.size(); ++i) {
-		std::cout << "canceling thread " << i << std::endl;
-		pthread_cancel(workers[i]);
-	}
+	// for (size_t i = 0; i < workers.size(); ++i) {
+	// 	std::cout << "canceling thread " << i << std::endl;
+	// 	pthread_cancel(workers[i]);
+	// }
 
 	for (size_t i = 0; i < workers.size(); ++i) {
 		std::cout << "joining thread" << std::endl;
@@ -133,14 +133,14 @@ void	ThreadPool::run()
 		std::cout << tid << ": " << "thread unlock" << std::endl;
 		pthread_mutex_unlock(&queueMutex);
 		
-		std::cout << tid << ": " << "test cancel before task" << std::endl;
-		pthread_testcancel();
+		// std::cout << tid << ": " << "test cancel before task" << std::endl;
+		// pthread_testcancel();
 
 		std::cout << tid << ": " << "thread task" << std::endl;
 		task(args.first, args.second);
 
-		std::cout << tid << ": " << "thread cancel after task" << std::endl;
-		pthread_testcancel();
+		// std::cout << tid << ": " << "thread cancel after task" << std::endl;
+		// pthread_testcancel();
 	}
 }
 
@@ -169,7 +169,10 @@ int main(void)
 	signal(SIGINT, interruptHandler);
 
 	while (running)
-		;
+	{
+		usleep(50000);
+		pool->enqueueTask(task, 0, 0);
+	}
 
 	pool->kill();
 }
