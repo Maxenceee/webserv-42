@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:39:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 14:03:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,12 +78,12 @@ int	ProxyWorker::connect()
 	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->socket_fd < 0)
 	{
-		perror("socket");
+		Logger::error("socket: " + std::string(strerror(errno)));
 		return (WBS_PROXY_ERROR);
 	}
 
 	if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
-		perror("setsockopt");
+		Logger::error("setsockopt: " + std::string(strerror(errno)));
 		return (WBS_SOCKET_ERR);
 	}
 
@@ -92,7 +92,7 @@ int	ProxyWorker::connect()
 		if (h_errno == HOST_NOT_FOUND)
 			Logger::error("proxy error: host not found");
 		else
-			perror("gethostbyname");
+			Logger::error("gethostbyname: " + std::string(strerror(errno)));
 		return (WBS_SOCKET_ERR);
 	}
 
@@ -126,7 +126,7 @@ int	ProxyWorker::connect()
 			this->_req.updateHost(this->_config.host);
 			break;
 		} else {
-			perror("connect");
+			Logger::error("connect: " + std::string(strerror(errno)));
 		}
 	}
 
@@ -151,7 +151,7 @@ void relay_data(int client_fd, int backend_fd)
 
 		int activity = select(max_fd, &read_fds, NULL, NULL, NULL);
 		if (activity < 0) {
-			perror("select");
+			Logger::error("select: " + std::string(strerror(errno)));
 			break;
 		}
 
@@ -162,14 +162,14 @@ void relay_data(int client_fd, int backend_fd)
 				if (bytes_read == 0) {
 					// printf("client closed connection\n");
 				} else {
-					perror("recv from client");
+					Logger::error("recv from client: " + std::string(strerror(errno)));
 				}
 				break;
 			}
 
 			bytes_sent = send(backend_fd, buffer, bytes_read, 0);
 			if (bytes_sent == -1) {
-				perror("send to backend");
+				Logger::error("send to backend: " + std::string(strerror(errno)));
 				break;
 			}
 		}
@@ -181,14 +181,14 @@ void relay_data(int client_fd, int backend_fd)
 				if (bytes_read == 0) {
 					// printf("backend closed connection\n");
 				} else {
-					perror("recv from backend");
+					Logger::error("recv from backend: " + std::string(strerror(errno)));
 				}
 				break;
 			}
 
 			bytes_sent = send(client_fd, buffer, bytes_read, 0);
 			if (bytes_sent == -1) {
-				perror("send to client");
+				Logger::error("send to client: " + std::string(strerror(errno)));
 				break;
 			}
 		}
