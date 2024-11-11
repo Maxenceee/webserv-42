@@ -9,7 +9,7 @@ HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.hpp") $(shell find $(SOURCES_DI
 
 RM				=	rm -f
 CC				=	g++
-CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR) #-Wall -Wextra -Werror
+CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR) -Wall -Wextra -Werror
 NAME			=	webserv
 
 GREEN			=	\033[1;32m
@@ -29,7 +29,7 @@ $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp $(HEADERS) Makefile
 	@printf ${UP}${CUT}
 
 $(NAME): $(OBJS)
-	@$(CC) $(OBJS) -o $(NAME) -lcrypto
+	@$(CC) $(OBJS) -o $(NAME) -lcrypto -lpthread
 	@echo "$(GREEN)$(NAME) compiled!$(DEFAULT)"
 
 clean:
