@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:46:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:49:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false)
 		pthread_create(&worker, NULL, workerThread, this);
 		workers.push_back(worker);
 	}
+	Logger::debug("ThreadPool started");
 }
 
 ThreadPool::~ThreadPool()

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:10:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:48:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ int		Cluster::start(void)
 	/**
 	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
 	 */
-	Cluster::initializePool(2);
+	Cluster::initializePool(8);
 
 	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
