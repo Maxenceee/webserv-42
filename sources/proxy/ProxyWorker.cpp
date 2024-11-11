@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:05:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:39:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,23 +25,13 @@ ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Requ
 	socket_fd(-1),
 	_buffer(buffer),
 	_req(req)
-	// _tid(0)
 {
-	// std::cout << "ProxyWorker: " << buffer << std::endl;
 }
 
 ProxyWorker::~ProxyWorker()
 {
-	// if (this->_pid > -1)
-	// {
-	// 	kill(this->_pid, SIGKILL);
-	// }
-	// if (this->socket_fd > -1)
-	// {
-	// 	close(this->socket_fd);
-	// 	close(this->_client);
-	// 	Logger::debug("proxy closed", RESET);
-	// }
+	if (this->socket_fd != -1)
+		close(this->socket_fd);
 }
 
 int	ProxyWorker::operator()()
