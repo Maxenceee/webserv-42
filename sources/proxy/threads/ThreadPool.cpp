@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:33:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:37:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 
 ThreadPool::ThreadPool(size_t numThreads): stop(false)
 {
-	std::cout << "\n\n" << "New thread pool" << std::endl;
 	if (pthread_mutex_init(&queueMutex, NULL)) {
 		perror("mutex init");
 		throw "could not init mutex";
@@ -34,7 +33,6 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false)
 
 ThreadPool::~ThreadPool()
 {
-	std::cout << "thread pool desctructor" << std::endl; 
 	if (!stop) {
 		this->kill();
 	}
@@ -42,22 +40,12 @@ ThreadPool::~ThreadPool()
 
 void	ThreadPool::kill()
 {
-	std::cout << "request kill on poll" << std::endl;
-	std::cout << "trying to lock" << std::endl;
 	pthread_mutex_lock(&queueMutex);
 	stop = true;
-	std::cout << "stop changed to: " << stop << std::endl;
 	pthread_cond_broadcast(&condition);
-	std::cout << "broadcast sent" << std::endl;
 	pthread_mutex_unlock(&queueMutex);
 
-	// for (size_t i = 0; i < workers.size(); ++i) {
-	// 	std::cout << "canceling thread " << i << std::endl;
-	// 	pthread_cancel(workers[i]);
-	// }
-
 	for (size_t i = 0; i < workers.size(); ++i) {
-		std::cout << "joining thread" << std::endl;
 		pthread_join(workers[i], NULL);
 	}
 
@@ -88,20 +76,13 @@ void	*ThreadPool::workerThread(void* arg)
 void	ThreadPool::run()
 {
 	while (true) {
-		std::cout << "thread lock" << std::endl;
 		pthread_mutex_lock(&queueMutex);
-		std::cout << "thread aquired" << std::endl;
 
-		std::cout << "thread stop: " << stop << " " << Cluster::exit << std::endl;
 		while (!stop && tasks.empty()) {
-			std::cout << "thread wait" << std::endl;
 			pthread_cond_wait(&condition, &queueMutex);
-			std::cout << "thread woke up" << std::endl;
 		}
 
-		std::cout << "after wait thread stop: " << stop << " " << Cluster::exit << std::endl;
 		if (stop) {
-			std::cout << "stop thread" << std::endl;
 			pthread_mutex_unlock(&queueMutex);
 			return;
 		}
@@ -111,16 +92,8 @@ void	ThreadPool::run()
 		tasks.pop();
 		taskArgs.pop();
 
-		std::cout << "thread unlock" << std::endl;
 		pthread_mutex_unlock(&queueMutex);
-		
-		// std::cout << "test cancel before task" << std::endl;
-		// pthread_testcancel();
 
-		std::cout << "thread task" << std::endl;
 		task(args.first, args.second);
-
-		// std::cout << "thread cancel after task" << std::endl;
-		// pthread_testcancel();
 	}
 }
