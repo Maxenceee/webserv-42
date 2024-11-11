@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/09 12:37:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/11 13:33:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,10 +51,10 @@ void	ThreadPool::kill()
 	std::cout << "broadcast sent" << std::endl;
 	pthread_mutex_unlock(&queueMutex);
 
-	for (size_t i = 0; i < workers.size(); ++i) {
-		std::cout << "canceling thread " << i << std::endl;
-		pthread_cancel(workers[i]);
-	}
+	// for (size_t i = 0; i < workers.size(); ++i) {
+	// 	std::cout << "canceling thread " << i << std::endl;
+	// 	pthread_cancel(workers[i]);
+	// }
 
 	for (size_t i = 0; i < workers.size(); ++i) {
 		std::cout << "joining thread" << std::endl;
@@ -114,13 +114,13 @@ void	ThreadPool::run()
 		std::cout << "thread unlock" << std::endl;
 		pthread_mutex_unlock(&queueMutex);
 		
-		std::cout << "test cancel before task" << std::endl;
-		pthread_testcancel();
+		// std::cout << "test cancel before task" << std::endl;
+		// pthread_testcancel();
 
 		std::cout << "thread task" << std::endl;
 		task(args.first, args.second);
 
-		std::cout << "thread cancel after task" << std::endl;
-		pthread_testcancel();
+		// std::cout << "thread cancel after task" << std::endl;
+		// pthread_testcancel();
 	}
 }
