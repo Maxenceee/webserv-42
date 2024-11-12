@@ -225,7 +225,7 @@ int	Client::processLines(void) {
 				return (WBS_ERR);
 			}
 			
-			if (this->request.hasHeader("Connection"))
+			if (this->request.hasHeader("Connection") && this->request.getHeader("Connection") == "Upgrade")
 			{
 				// /**
 				//  * INFO:
@@ -244,11 +244,6 @@ int	Client::processLines(void) {
 				 */
 				std::cout << this->request << std::endl;
 
-				if (this->request.getHeader("Connection") != "Upgrade")
-				{
-					this->response->status(400).sendDefault().end();
-					return (WBS_ERR);
-				}
 				if (!this->request.hasHeader("Upgrade") || this->request.getHeader("Upgrade") != "websocket")
 				{
 					this->response->status(426).sendDefault().end();
@@ -298,17 +293,27 @@ int	Client::processLines(void) {
 				 * Si le router est un proxy, on crée un ProxyWorker qui va se charger de la communication
 				 * avec le serveur distant.
 				 */
-				if (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
+				switch (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
 				{
-					/**
-					 * S une erreur s'est produite lors de la création du ProxyWorker,
-					 * on envoie une réponse d'erreur 502 (Bad Gateway) informant le client que la connection
-					 * avec le serveur distant n'a pas pu être établie.
-					 */
+				/**
+				 * Si une erreur s'est produite lors de la création du ProxyWorker,
+				 * on envoie une réponse d'erreur 503 (Service Unavailable) informant le client que la connection
+				 * avec le serveur distant n'a pas pu être établie.
+				 */
+				case WBS_PROXY_UNAVAILABLE:
+					this->response->status(503).sendDefault().end();
+					return (WBS_ERR);
+				/**
+				 * Ou le code 502 (Bad Gateway) informant qu'il y a eu une erreur lors de la communication
+				 * avec le serveur distant.
+				 */
+				case WBS_PROXY_ERROR:
 					this->response->status(502).sendDefault().end();
 					return (WBS_ERR);
+				case WBS_PROXY_OK:
+					this->upgraded_to_proxy = true;
+					break;
 				}
-				this->upgraded_to_proxy = true;
 				return (WBS_POLL_CLIENT_CLOSED);
 			}
 		}

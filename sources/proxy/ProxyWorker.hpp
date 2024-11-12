@@ -24,9 +24,10 @@ void	relay_data(int client_fd, int backend_fd);
 
 enum wbs_proxy_code
 {
-	WBS_PROXY_OK		= 0,
-	WBS_PROXY_ERROR		= 1,
-	WBS_PROXY_TIMEOUT	= 2
+	WBS_PROXY_OK			= 0,
+	WBS_PROXY_UNAVAILABLE	= 1,
+	WBS_PROXY_ERROR			= 2,
+	WBS_PROXY_TIMEOUT		= 3
 };
 
 class ProxyWorker

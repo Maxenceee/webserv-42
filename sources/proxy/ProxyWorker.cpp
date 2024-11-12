@@ -30,8 +30,6 @@ ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Requ
 
 ProxyWorker::~ProxyWorker()
 {
-	if (this->socket_fd != -1)
-		close(this->socket_fd);
 }
 
 int	ProxyWorker::operator()()
@@ -40,7 +38,7 @@ int	ProxyWorker::operator()()
 	{
 		Logger::error("proxy error: could not connect to backend server", RESET);
 		close(this->socket_fd);
-		return (WBS_PROXY_ERROR);
+		return (WBS_PROXY_UNAVAILABLE);
 	}
 	for (size_t i = 0; i < this->_config.hidden.size(); i++)
 	{
