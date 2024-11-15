@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
@@ -6,12 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:05:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/15 15:38:53 by mgama            ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "Response.hpp"
 #include "MIMEType.hpp"
+#include "websocket/websocket.hpp"
 
 wbs_mapis_t	Response::http_codes = Response::initCodes();
 
@@ -369,7 +370,10 @@ Response	&Response::end(void)
 		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
 		(void)ret;
 		this->_sent = true;
-		Logger::debug(B_YELLOW"------------------Response sent-------------------");
+		if (this->_upgrade_to_socket)
+			Logger::debug(B_YELLOW"------------------WebSocket handshake response sent-------------------");
+		else
+			Logger::debug(B_YELLOW"------------------Response sent-------------------");
 	}
 	return (*this);
 }

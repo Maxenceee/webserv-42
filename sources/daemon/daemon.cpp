@@ -65,22 +65,22 @@ become_daemon(int flags)
 	}
 
 	if(!(flags & WBS_NO_UMASK0))
-	    umask(0);                       // effacer le masque de création de fichiers
+		umask(0);                       // effacer le masque de création de fichiers
 
 	if(!(flags & WBS_NO_CHDIR))
-	    chdir("/");                     // changer vers le répertoire racine
+		chdir("/");                     // changer vers le répertoire racine
 
 	if(!(flags & WBS_NO_CLOSE_FILES))   // fermer tous les fichiers ouverts
 	{
-	    maxfd = sysconf(_SC_OPEN_MAX);  // permet de déterminer le nombre maximal de descripteurs disponibles
-    if (maxfd == -1)
-        maxfd = WBS_MAX_CLOSE;         // en cas d'erreur on utilise la valeur par défaut
-    for (fd = 0; fd < maxfd; fd++) {
-        if (fd != STDIN_FILENO && fd != STDOUT_FILENO && fd != STDERR_FILENO) { 
-            // Ne pas fermer stdin, stdout et stderr
-            close(fd);
-        }
-    }
+		maxfd = sysconf(_SC_OPEN_MAX);  // permet de déterminer le nombre maximal de descripteurs disponibles
+		if (maxfd == -1)
+			maxfd = WBS_MAX_CLOSE;         // en cas d'erreur on utilise la valeur par défaut
+		for (fd = 0; fd < maxfd; fd++) {
+			if (fd != STDIN_FILENO && fd != STDOUT_FILENO && fd != STDERR_FILENO) { 
+				// Ne pas fermer stdin, stdout et stderr
+				close(fd);
+			}
+		}
 	}
 
 	if(!(flags & WBS_NO_REOPEN_STD_FDS))
@@ -93,7 +93,7 @@ become_daemon(int flags)
 
 		fd = open("/dev/null", O_RDWR);
 		if(fd != STDIN_FILENO) {
-			 perror("open /dev/null");
+			perror("open /dev/null");
 			return -1;
 		}
 		if(dup2(STDIN_FILENO, STDOUT_FILENO) != STDOUT_FILENO) {

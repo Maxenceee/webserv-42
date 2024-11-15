@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
@@ -6,15 +6,15 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 16:15:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/15 15:47:38 by mgama            ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "webserv.hpp"
 #include "Client.hpp"
 #include "proxy/ProxyWorker.hpp"
 #include "base64.hpp"
-#include <cstring>
+#include "websocket/websocket.hpp"
 
 Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_server(server),
@@ -31,7 +31,7 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 
 Client::~Client(void)
 {
-	if (this->upgraded_to_proxy)
+	if (this->response && this->upgraded_to_proxy)
 	{
 		/**
 		 * Lorsque le Client est passé en mode proxy, ce dernier passe le relais au ProxyWorker,
@@ -39,9 +39,24 @@ Client::~Client(void)
 		 * Dans ce cas on annule la réponse et on supprime le pointeur.
 		 */
 		this->response->cancel();
-		Server::printResponse(this->request, *this->response, 0);
+		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
+		/**
+		 * On ferme la connexion avec le client car désormais c'est le ProxyWorker qui s'occupe de la communication.
+		 */
 		Logger::debug("------------------Client upgraded to proxy and closed-------------------", B_YELLOW);
+		return ;
+	}
+	if (this->response && this->response->isUpgraded())
+	{
+		/**
+		 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on ne ferme pas la connexion et
+		 * on affiche les trames WebSocket du client.
+		 */
+		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
+		delete this->response;
+		close(this->_client);
+		Logger::debug("------------------Client WebSocket closed-------------------", B_YELLOW);
 		return ;
 	}
 	if (this->response)
@@ -145,7 +160,6 @@ int	Client::process(void)
 			 */
 			if (Logger::_debug)
 				std::cout << this->request << std::endl;
-			// std::cout << "Router::route()" << *this->_current_router << std::endl;
 			this->_current_router->route(this->request, *this->response);
 			/**
 			 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).

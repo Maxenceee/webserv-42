@@ -1,0 +1,11 @@
+FROM ubuntu
+
+WORKDIR /app
+
+COPY ./webserv .
+
+COPY ./confs/proxy.conf .
+
+RUN ls -la
+
+CMD ["/app/webserv", "/app/proxy.conf", "-d"]

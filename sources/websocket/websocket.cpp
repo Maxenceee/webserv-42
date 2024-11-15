@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   websocket.cpp                                      :+:      :+:    :+:   */
@@ -6,12 +6,11 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 15:36:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:08:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/15 15:34:08 by mgama            ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
-#include "webserv.hpp"
-#include "utils.hpp"
+#include "websocket.hpp"
 
 std::string	decodeWebSocketFrame(const std::string& frame)
 {
@@ -62,16 +61,11 @@ std::string	decodeWebSocketFrame(const std::string& frame)
 		}
 	}
 
-	std::cout << "===============" << std::endl;
-	std::cout << "socket frame: ";
-	std::cout << "FIN: " << fin << ", ";
-	std::cout << "Opcode: " << static_cast<int>(opcode) << ", ";
-	std::cout << "Payload Length: " << static_cast<int>(payloadLen) << std::endl;
-	std::cout << "Payload Data: ";
-	for (size_t i = 0; i < payload.size(); ++i) {
-		std::cout << static_cast<char>(payload[i]);
-	}
-	std::cout << std::endl;
+	Logger::debug("Decoded WebSocket frame:");
+	Logger::debug("FIN:            " + toString(fin));
+	Logger::debug("Opcode:         " + toString(static_cast<int>(opcode)));
+	Logger::debug("Payload Length: " + toString(static_cast<int>(payloadLen)));
+	Logger::debug("Payload Data:   " + payload);
 	return payload;
 }
 
