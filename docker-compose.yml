@@ -1,0 +1,9 @@
+services:
+  webserv:
+    build: ./
+    container_name: webserv
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx:/etc/nginx
+    network_mode: "host"

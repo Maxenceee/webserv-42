@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 16:13:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/15 15:34:19 by mgama            ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef UTILS_HPP
 #define UTILS_HPP
@@ -28,6 +28,7 @@
 
 template <typename T>
 std::string					toString(T val);
+std::string					toString(bool val);
 
 std::vector<std::string>	split(const std::string &str, char c);
 std::vector<std::string>	parseQuotedAndSplit(const std::string &input);
@@ -108,11 +109,5 @@ std::string	decodeURIComponent(std::string encoded);
 double	getTimestamp();
 
 #include "list.tpp"
-
-/* websocket */
-
-std::string	decodeWebSocketFrame(const std::string& frame);
-std::string	sendCloseFrame(uint16_t closeCode = 1000, const std::string& reason = "");
-std::string	sendFrame(const std::string& message);
 
 #endif /* UTILS_HPP */
