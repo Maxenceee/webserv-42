@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 16:53:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/16 19:54:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -442,10 +442,10 @@ void	Router::sendResponse(Response &response)
 	{
 		if (this->_error_page.count(response.getStatus())) {
 			std::string fullpath = resolve(this->_root.nearest_root, this->_error_page[response.getStatus()]);
-			Logger::debug("router full path: " + fullpath);
+			Logger::debug("No response body sending error page at " + fullpath);
 			response.sendFile(fullpath);
 		} else {
-			Logger::debug("router default response");
+			Logger::debug("No response body sending default response");
 			response.sendDefault();
 		}
 	}
@@ -490,7 +490,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 			return (true);
 		}
 		if (this->_redirection.status % 300 < 100) {
-			Logger::debug("redirect to: " + this->_redirection.path);
+			Logger::debug("Redirect to: " + this->_redirection.path);
 			response.redirect(this->_redirection.path, this->_redirection.status);
 		} else {
 			response.status(this->_redirection.status).send(this->_redirection.data);
@@ -513,14 +513,13 @@ bool	Router::handleRoutes(Request &request, Response &response)
 void	Router::handleGETMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ " B_BLUE "GET" B_GREEN " handler" RESET " ------------>");
-	Logger::debug("requestPath: " + request.getPath());
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isDirectory(fullpath)) {
 		std::string file_p = fullpath + "/"; 
@@ -562,14 +561,13 @@ void	Router::handleHEADMethod(Request &request, Response &response)
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ " B_BLUE "POST" B_GREEN " handler" RESET " ------------>");
-	Logger::debug("post request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (appendFile(fullpath, request.getBody())) {
@@ -593,14 +591,13 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 void	Router::handlePUTMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ " B_BLUE "PUT" B_GREEN " handler" RESET " ------------>");
-	Logger::debug("put request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
@@ -634,7 +631,7 @@ void	Router::handleDELETEMethod(Request &request, Response &response)
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
@@ -687,7 +684,7 @@ void	Router::handleCGI(Request &request, Response &response)
 			response.status(500).end();
 			return ;
 		}
-		Logger::debug("full path: " + fullpath);
+		Logger::debug("Full local path: " + fullpath);
 		
 		if (!isFile(fullpath)) {
 			response.status(404).end();
@@ -733,7 +730,7 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 		regexPattern = "^" + this->_location.path; // Prefix Match
 	}
 
-	Logger::debug("location pattern: " + regexPattern);
+	Logger::debug("Trying location pattern: " + regexPattern);
 
 	// Compiler l'expression régulière
 	result = regcomp(&regex, regexPattern.c_str(), flags);

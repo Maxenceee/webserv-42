@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ProxyWorker.cpp                                    :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/15 15:54:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/16 20:00:45 by mgama            ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
 
@@ -26,10 +26,12 @@ ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Requ
 	_buffer(buffer),
 	_req(req)
 {
+	Logger::debug("New ProxyWorker handling task");
 }
 
 ProxyWorker::~ProxyWorker()
 {
+	Logger::debug("ProxyWorker task completed");
 }
 
 int	ProxyWorker::operator()()
@@ -60,10 +62,10 @@ int	ProxyWorker::operator()()
 		Logger::error("send: " + std::string(strerror(errno)));
 		return (WBS_PROXY_ERROR);
 	}
+	Cluster::pool.enqueueTask(relay_data, this->_client, this->socket_fd);
+	Logger::debug("Worker task pushed to pool", RESET);
 	if (Logger::_debug)
 		std::cout << this->_req << std::endl;
-	Cluster::pool.enqueueTask(relay_data, this->_client, this->socket_fd);
-	Logger::debug("new proxy task pushed to pool", RESET);
 	return (WBS_PROXY_OK);
 }
 
@@ -129,6 +131,8 @@ int	ProxyWorker::connect()
 	if (!connected) {
 		return (WBS_PROXY_ERROR);
 	}
+
+	Logger::debug("Proxy tunnel established");
 
 	return (WBS_PROXY_OK);
 }

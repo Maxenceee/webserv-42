@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/15 15:47:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/16 19:51:30 by mgama            ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Client.hpp"
@@ -26,7 +26,7 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	request(client, clientAddr),
 	response(NULL)
 {
-	Logger::debug("new client on fd: "+toString(client));
+	Logger::debug("New client on fd: "+toString(client));
 }
 
 Client::~Client(void)
@@ -219,6 +219,7 @@ int	Client::processLines(void) {
 				this->response->status(404).sendDefault().end();
 				return (WBS_ERR);
 			}
+			Logger::debug("Router matched: " + this->_current_router->getLocation().path);
 		}
 
 		/**
