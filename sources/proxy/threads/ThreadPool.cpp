@@ -6,15 +6,19 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:49:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/16 19:49:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ThreadPool.hpp"
 #include "cluster/Cluster.hpp"
 
-ThreadPool::ThreadPool(size_t numThreads): stop(false)
+ThreadPool::ThreadPool(size_t numThreads): stop(false), available(true)
 {
+	if (numThreads == 0) {
+		available = false;
+		return;
+	}
 	pthread_mutex_init(&queueMutex, NULL);
 	pthread_cond_init(&condition, NULL);
 
@@ -23,12 +27,12 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false)
 		pthread_create(&worker, NULL, workerThread, this);
 		workers.push_back(worker);
 	}
-	Logger::debug("ThreadPool started");
+	Logger::debug("ThreadPool started with " + toString<int>(numThreads) + " threads");
 }
 
 ThreadPool::~ThreadPool()
 {
-	if (!stop) {
+	if (available && !stop) {
 		this->kill();
 	}
 }
@@ -46,6 +50,7 @@ void	ThreadPool::kill()
 
 	pthread_mutex_destroy(&queueMutex);
 	pthread_cond_destroy(&condition);
+	std::cout << stop << std::endl;
 	Logger::debug("ThreadPool stopped");
 }
 
