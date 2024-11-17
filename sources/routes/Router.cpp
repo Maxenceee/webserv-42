@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 19:54:13 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 15:19:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -736,7 +736,7 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 	result = regcomp(&regex, regexPattern.c_str(), flags);
 
 	if (result != 0) {
-		Logger::error("Regex compilation failed");
+		Logger::error("router error: Regex compilation failed");
 		response.status(500).end();
 		return (false);
 	}
@@ -794,7 +794,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		// Compiler l'expression régulière du modificateur
 		result = regcomp(&regex, this->_location.path.c_str(), flags);
 		if (result != 0) {
-			Logger::error("Regex compilation failed");
+			Logger::error("router error: Regex compilation failed");
 			return ("");
 		}
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 19:49:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 15:09:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ int		Cluster::start(void)
 		int error = listen(server->getSocketFD(), WBS_DEFAULT_MAX_WORKERS);
 		if (error == -1)
 		{
-			Logger::error("server error: an error occurred while listening: " + std::string(strerror(errno)));
+			Logger::perror("server error: an error occurred while listening");
 			return (WBS_SOCKET_ERR);
 		}
 	}
@@ -166,7 +166,7 @@ int		Cluster::start(void)
 			if (errno == EINTR) {
 				break;
 			}
-			Logger::error("server error: an error occurred while poll'ing: " + std::string(strerror(errno)), RESET);
+			Logger::perror("server error: an error occurred while poll'ing");
 			return (WBS_SOCKET_ERR);
 		}
 
@@ -210,7 +210,7 @@ int		Cluster::start(void)
 					newClient = accept(this->_servers[i]->getSocketFD(), (sockaddr *)&client_addr, &len);
 					if (newClient == -1)
 					{
-						Logger::error("server error: an error occurred while accept'ing the client: " + std::string(strerror(errno)), RESET);
+						Logger::perror("server error: an error occurred while accept'ing the client");
 						continue;
 					}
 					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)

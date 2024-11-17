@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:53 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 19:18:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 15:00:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ public:
 	static void	info(const std::string &msg);
 	static void	warning(const std::string &msg, const std::string &color = B_ORANGE);
 	static void	error(const std::string &msg, const std::string &color = B_RED);
+	static void	perror(const std::string &msg, const std::string &color = B_RED);
 	static void	debug(const std::string &msg, const std::string &color = RESET);
 };
 

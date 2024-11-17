@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 20:00:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 15:14:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ int	ProxyWorker::operator()()
 {
 	if (this->connect() != WBS_PROXY_OK)
 	{
-		Logger::error("proxy error: could not connect to backend server", RESET);
+		Logger::error("proxy worker error: could not connect to backend server", RESET);
 		close(this->socket_fd);
 		return (WBS_PROXY_UNAVAILABLE);
 	}
@@ -59,7 +59,7 @@ int	ProxyWorker::operator()()
 
 	if (::send(this->socket_fd, data.c_str(), data.size(), 0) < 0)
 	{
-		Logger::error("send: " + std::string(strerror(errno)));
+		Logger::perror("proxy worker error: send");
 		return (WBS_PROXY_ERROR);
 	}
 	Cluster::pool.enqueueTask(relay_data, this->_client, this->socket_fd);
@@ -76,21 +76,21 @@ int	ProxyWorker::connect()
 	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->socket_fd < 0)
 	{
-		Logger::error("socket: " + std::string(strerror(errno)));
+		Logger::perror("proxy worker error: socket");
 		return (WBS_PROXY_ERROR);
 	}
 
 	if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
-		Logger::error("setsockopt: " + std::string(strerror(errno)));
+		Logger::perror("proxy worker error: setsockopt");
 		return (WBS_SOCKET_ERR);
 	}
 
 	struct hostent *hostent = gethostbyname(this->_config.host.c_str());
 	if (hostent == NULL) {
 		if (h_errno == HOST_NOT_FOUND)
-			Logger::error("proxy error: host not found");
+			Logger::perror("proxy worker error: host not found");
 		else
-			Logger::error("gethostbyname: " + std::string(strerror(errno)));
+			Logger::perror("proxy worker error: gethostbyname");
 		return (WBS_SOCKET_ERR);
 	}
 
@@ -124,7 +124,7 @@ int	ProxyWorker::connect()
 			this->_req.updateHost(this->_config.host);
 			break;
 		} else {
-			Logger::error("connect: " + std::string(strerror(errno)));
+			Logger::perror("proxy worker error: connect");
 		}
 	}
 
@@ -151,7 +151,7 @@ void relay_data(int client_fd, int backend_fd)
 
 		int activity = select(max_fd, &read_fds, NULL, NULL, NULL);
 		if (activity < 0) {
-			Logger::error("select: " + std::string(strerror(errno)));
+			Logger::perror("proxy worker error: select");
 			break;
 		}
 
@@ -162,14 +162,14 @@ void relay_data(int client_fd, int backend_fd)
 				if (bytes_read == 0) {
 					// printf("client closed connection\n");
 				} else {
-					Logger::error("recv from client: " + std::string(strerror(errno)));
+					Logger::perror("proxy worker error: recv from client");
 				}
 				break;
 			}
 
 			bytes_sent = send(backend_fd, buffer, bytes_read, 0);
 			if (bytes_sent == -1) {
-				Logger::error("send to backend: " + std::string(strerror(errno)));
+				Logger::perror("proxy worker error: send to backend");
 				break;
 			}
 		}
@@ -181,14 +181,14 @@ void relay_data(int client_fd, int backend_fd)
 				if (bytes_read == 0) {
 					// printf("backend closed connection\n");
 				} else {
-					Logger::error("recv from backend: " + std::string(strerror(errno)));
+					Logger::perror("proxy worker error: recv from backend");
 				}
 				break;
 			}
 
 			bytes_sent = send(client_fd, buffer, bytes_read, 0);
 			if (bytes_sent == -1) {
-				Logger::error("send to client: " + std::string(strerror(errno)));
+				Logger::perror("proxy worker error: send to client");
 				break;
 			}
 		}
