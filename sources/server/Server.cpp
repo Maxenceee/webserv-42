@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 14:13:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 15:02:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ int	Server::init(void)
 	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->socket_fd == -1)
 	{
-		Logger::error("server error: Could not create socket: " + std::string(strerror(errno)));
+		Logger::perror("server error: Could not create socket");
 		return (WBS_SOCKET_ERR);
 	}
 	/**
@@ -135,7 +135,7 @@ int	Server::init(void)
 	 * pendant un certain temps.
 	 */
 	if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
-		Logger::error("server error: Could not set socket options: " + std::string(strerror(errno)));
+		Logger::perror("server error: Could not set socket options");
 		return (WBS_SOCKET_ERR);
 	}
 
@@ -174,7 +174,7 @@ int	Server::init(void)
 		}
 		else
 		{
-			Logger::error("server error: bind error: " + std::string(strerror(errno)));
+			Logger::error("server error: bind error");
 		}
 		close(this->socket_fd);
 		return (WBS_ERR);

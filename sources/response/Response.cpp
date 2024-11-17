@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/15 15:38:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 15:16:32 by mgama            ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "Response.hpp"
 #include "MIMEType.hpp"
@@ -390,7 +390,7 @@ const std::string	Response::prepareResponse(void)
 	 */
 	if (!this->http_codes.count(this->_status))
 	{
-		Logger::error("Response error: invalid status code");
+		Logger::error("response error: invalid status code");
 		this->_status = 500;
 	}
 
@@ -401,7 +401,7 @@ const std::string	Response::prepareResponse(void)
 	 */
 	if (this->_version.empty())
 	{
-		Logger::error("Response error: invalid HTTP version");
+		Logger::error("response error: invalid HTTP version");
 		this->_version = "1.1";
 	}
 
@@ -432,7 +432,7 @@ Response	&Response::setHeader(const std::string header, const std::string value)
 	if (!this->_sent)
 		this->_headers[header] = value;
 	else
-		Logger::error("Response error: cannot set header after it was sent");
+		Logger::error("response error: cannot set header after it was sent");
 	return (*this);
 }
 
@@ -483,7 +483,7 @@ Response	&Response::setCookie(const std::string name, const std::string value, c
 
 	if (this->_sent)
 	{
-		Logger::error("Response error: cannot set header after it was sent");
+		Logger::error("response error: cannot set header after it was sent");
 		return (*this);
 	}
 

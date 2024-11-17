@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 18:29:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 15:18:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ int	Request::processLine(const std::string &line)
 			std::string	key = readKey(line);
 			if (key.empty())
 			{
-				Logger::error("error parsing header line");
+				Logger::error("request error: cannot parse header line");
 				return (WBS_REQ_ERROR);
 			}
 			std::string	value = readValue(line);

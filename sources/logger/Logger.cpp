@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 19:26:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/17 14:59:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,6 +128,23 @@ void	Logger::error(const std::string &msg, const std::string &color)
 	buf[ret] = '\0';
 	std::cerr << CYAN << "[" << buf << "] " << RESET;
 	std::cerr << color << WBS_PREFIX << msg << RESET;
+	std::cerr << std::endl;
+	Logger::releaseMutex();
+}
+
+void	Logger::perror(const std::string &msg, const std::string &color)
+{
+	struct tm	*tm;
+	time_t rawtime;
+	char buf[32];
+
+	Logger::aquireMutex();
+	time(&rawtime);
+	tm = localtime (&rawtime);
+	int ret = strftime(buf, 32, "%T", tm);
+	buf[ret] = '\0';
+	std::cerr << CYAN << "[" << buf << "] " << RESET;
+	std::cerr << color << WBS_PREFIX << msg << ": " << strerror(errno) << RESET;
 	std::cerr << std::endl;
 	Logger::releaseMutex();
 }
