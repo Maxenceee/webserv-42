@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:41:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 18:06:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ void	ServerConfig::use(Router *router)
 	this->_default->use(router);
 }
 
-void	ServerConfig::setAddress(const std::string address)
+void	ServerConfig::setAddress(const std::string &address)
 {
 	if (!this->_server || !this->_server->isInit())
 	{
@@ -93,7 +93,7 @@ uint16_t	ServerConfig::getPort(void) const
 	return (this->port);
 }
 
-void	ServerConfig::addNames(const std::vector<std::string> name)
+void	ServerConfig::addNames(const std::vector<std::string> &name)
 {
 	for (std::vector<std::string>::const_iterator it = name.begin(); it != name.end(); it++)
 	{
@@ -101,7 +101,7 @@ void	ServerConfig::addNames(const std::vector<std::string> name)
 	}
 }
 
-void	ServerConfig::addName(const std::string name)
+void	ServerConfig::addName(const std::string &name)
 {
 	size_t pos = name.find(':');
 	if (pos != std::string::npos && pos != name.rfind(':'))
@@ -119,7 +119,7 @@ const wbs_server_names	&ServerConfig::getNames(void) const
 	return (this->_server_name);
 }
 
-bool	ServerConfig::evalName(const std::string name, const uint16_t port) const
+bool	ServerConfig::evalName(const std::string &name, const uint16_t port) const
 {
 	/**
 	 * Si le port n'est pas spécifié dans le nom du serveur, ceci sous-entend que le serveur

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 16:48:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 18:04:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,11 +157,11 @@ public:
 	void					use(Router *router);
 	std::vector<Router *>	&getRoutes(void);
 
-	void	allowMethod(const std::string method);
-	void	allowMethod(const std::vector<std::string> method);
+	void	allowMethod(const std::string &method);
+	void	allowMethod(const std::vector<std::string> &method);
 
-	void	setRoot(const std::string path);
-	void	setAlias(const std::string path);
+	void	setRoot(const std::string &path);
+	void	setAlias(const std::string &path);
 
 	bool 	isDefault(void) const;
 	Router 	*getParent(void) const;
@@ -173,18 +173,18 @@ public:
 
 	std::string			getLocalFilePath(const std::string &requestPath);
 
-	void	setRedirection(const std::string to, int status = 302);
+	void	setRedirection(const std::string &to, int status = 302);
 	void	setAutoIndex(const bool autoindex);
 	
 	const struct wbs_router_redirection	&getRedirection(void) const;
 
-	void	setIndex(const std::vector<std::string> index);
-	void	addIndex(const std::string index);
+	void	setIndex(const std::vector<std::string> &index);
+	void	addIndex(const std::string &index);
 
-	void	addHeader(const std::string key, const std::string value, const bool always = false);
+	void	addHeader(const std::string &key, const std::string &value, const bool always = false);
 	const std::vector<wbs_router_header_t>	&getHeaders(void) const;
 
-	void				setErrorPage(const int code, const std::string path);
+	void				setErrorPage(const int code, const std::string &path);
 	const std::string	&getErrorPage(const int status) const;
 	bool				hasErrorPage(const int code) const;
 
@@ -192,9 +192,9 @@ public:
 	size_t 		getClientMaxBodySize(void) const;
 	bool		hasClientMaxBodySize(void) const;
 
-	void				setCGI(const std::string path);
+	void				setCGI(const std::string &path);
 	void				enableCGI(void);
-	void				addCGIParam(const std::string key, const std::string value);
+	void				addCGIParam(const std::string &key, const std::string &value);
 	const std::string	&getCGIPath() const;
 
 	void				sendResponse(Response &response);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/17 15:16:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 17:55:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ Response	&Response::status(const int status)
 	return (*this);
 }
 
-Response	&Response::send(const std::string data)
+Response	&Response::send(const std::string &data)
 {	
 	this->_body = data;
 	/**
@@ -161,7 +161,7 @@ Response	&Response::send(const std::string data)
 	return (*this);
 }
 
-Response	&Response::sendFile(const std::string filepath)
+Response	&Response::sendFile(const std::string &filepath)
 {
 	std::ofstream		file;
 	std::stringstream	buffer;
@@ -171,6 +171,7 @@ Response	&Response::sendFile(const std::string filepath)
 		file.open(filepath.c_str(), std::ifstream::in);
 		if (file.is_open() == false)
 		{
+			Logger::perror("response error: open");
 			this->sendNotFound();
 			return (*this);
 		}
@@ -293,7 +294,7 @@ std::string		Response::getTime(void)
 	return (date);
 }
 
-Response	&Response::sendCGI(const std::string data)
+Response	&Response::sendCGI(const std::string &data)
 {
 	size_t	i = 0;
 	size_t	j = data.size();
@@ -427,7 +428,7 @@ const std::string	Response::prepareResponse(void)
 	return (res);
 }
 
-Response	&Response::setHeader(const std::string header, const std::string value)
+Response	&Response::setHeader(const std::string &header, const std::string &value)
 {
 	if (!this->_sent)
 		this->_headers[header] = value;
@@ -459,7 +460,7 @@ bool	Response::canAddHeader(void) const
 	);
 }
 
-Response	&Response::setCookie(const std::string name, const std::string value, const wbs_cookie_options &options)
+Response	&Response::setCookie(const std::string &name, const std::string &value, const wbs_cookie_options &options)
 {
 	/**
 	 * L'en-tête `Set-Cookie` est envoyé par le serveur dans les réponses HTTP pour définir des cookies sur le client. Une
