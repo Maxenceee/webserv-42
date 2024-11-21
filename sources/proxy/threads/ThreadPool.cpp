@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 19:49:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 15:27:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ void	ThreadPool::kill()
 
 	pthread_mutex_destroy(&queueMutex);
 	pthread_cond_destroy(&condition);
-	std::cout << stop << std::endl;
 	Logger::debug("ThreadPool stopped");
 }
 

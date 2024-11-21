@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/17 15:09:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 15:32:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,15 @@ int		Cluster::start(void)
 	const int						timeout = WBS_POLL_TIMEOUT;
 	wsb_v_servers_t::iterator		it;
 
+	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
+	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
+	{
+		if (!(*it)->isInit()) {
+			Logger::error("could not start server: the server has not been properly initialized");
+			return (WBS_SOCKET_ERR);
+		}
+	}
+
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
@@ -94,15 +103,6 @@ int		Cluster::start(void)
 	const int availableThreads = sysconf(_SC_NPROCESSORS_ONLN);
 	Logger::debug("Available threads on device: " + toString<int>(availableThreads));
 	Cluster::initializePool(availableThreads);
-
-	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
-	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
-	{
-		if (!(*it)->isInit()) {
-			Logger::error("server error: could not start server: the server has not been properly initialized");
-			return (WBS_SOCKET_ERR);
-		}
-	}
 
 	// Initialise le tableau des descripteurs à surveiller
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
