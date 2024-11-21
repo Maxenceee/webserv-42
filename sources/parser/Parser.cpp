@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 17:24:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 17:16:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,10 +78,6 @@ void	Parser::extract(void)
 		// Si le ligne est vide ou si elle commence par un commentaire, on l'ignore
 		if (lineRaw.empty() || lineRaw[0] == '#') continue;
 
-		// Les lignes peuvent contenir des commentaires, donc on les ignore
-		lineRaw = split(lineRaw, '#')[0];
-		trim(lineRaw);
-
 		// Accumuler les lignes tant qu'on ne rencontre pas un '{', '}' ou ';'
 		chunkedLine += (chunkedLine.empty() ? "" : " ") + lineRaw;
 
@@ -96,7 +92,18 @@ void	Parser::extract(void)
 
 		// Si la ligne contient une accolade ouvrante, fermante ou un point-virgule
 		if (lineRaw.find('{') != std::string::npos || lineRaw.find('}') != std::string::npos || lineRaw.find(';') != std::string::npos) {
-			std::vector<std::string> tokens = tokenize(chunkedLine);
+			std::vector<std::string> tokens;
+
+			try
+			{
+				tokens = tokenize(chunkedLine);
+			}
+			catch(const std::exception& e)
+			{
+				trim(chunkedLine, '\t');
+				this->throwError(chunkedLine, "expected '\"'", chunkedLine.length() - 1);
+			}
+
 			if (!tokens.empty()) {
 				lastProcessedLine = lineRaw; // Stock la dernière ligne traitée pour les erreurs
 
@@ -530,52 +537,73 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "proxy_pass") {
 		std::string url = valtokens[0];
 
-		std::string protocol;
-		std::string host;
-		std::string port;
-		std::string path;
-		
-		// Vérifie si la chaîne commence par "http://" ou "https://"
-		if (url.substr(0, 7) == "http://") {
-			protocol = "http";
-			url = url.substr(7);
-		} else if (url.substr(0, 8) == "https://") {
-			protocol = "https";
-			url = url.substr(8);
-		} else {
-			this->throwError(raw_line, "unsupported protocol", key_length);
+		wbs_url tu;
+		try
+		{
+			tu = newURL(url);
+		}
+		catch(const std::exception& e)
+		{
+			this->throwError(raw_line, "invalid url", key_length);
 		}
 
-		if (protocol == "https") {
+		if (tu.protocol != "http" && tu.protocol != "https")
+			this->throwError(raw_line, "unsupported protocol (only http: is supported)", key_length);
+
+		if (tu.protocol == "https") {
 			Logger::warning("parser info: unsupported protocol (https:), using http instead.");
+			tu.protocol = "http";
 		}
+
+		this->tmp_router->setProxy(tu);
 		
-		size_t pos = url.find('/');
-		if (pos == std::string::npos) {
-			host = url;
-			path = "/";
-		} else {
-			host = url.substr(0, pos);
-			path = url.substr(pos);
-		}
 
-		if (host.find(':') != std::string::npos) {
-			std::vector<std::string> hostTokens = split(host, ':');
-			host = hostTokens[0];
-			port = hostTokens[1];
-		} else {
-			port = "80"; // Par défaut
-		}
+		// std::string protocol;
+		// std::string host;
+		// std::string port;
+		// std::string path;
+		
+		// // Vérifie si la chaîne commence par "http://" ou "https://"
+		// if (url.substr(0, 7) == "http://") {
+		// 	protocol = "http";
+		// 	url = url.substr(7);
+		// } else if (url.substr(0, 8) == "https://") {
+		// 	protocol = "https";
+		// 	url = url.substr(8);
+		// } else {
+		// 	this->throwError(raw_line, "unsupported protocol", key_length);
+		// }
 
-		if (host.length() < 2) {
-			this->throwError(raw_line, "invalid host", key_length + protocol.length() + 3);
-		}
+		// if (protocol == "https") {
+		// 	Logger::warning("parser info: unsupported protocol (https:), using http instead.");
+		// }
+		
+		// size_t pos = url.find('/');
+		// if (pos == std::string::npos) {
+		// 	host = url;
+		// 	path = "/";
+		// } else {
+		// 	host = url.substr(0, pos);
+		// 	path = url.substr(pos);
+		// }
 
-		if (!isNumber(port))
-			// Key + protocol + :// + host + :
-			this->throwError(raw_line, "invalid port", key_length + protocol.length() + 3 + host.length() + 1);
+		// if (host.find(':') != std::string::npos) {
+		// 	std::vector<std::string> hostTokens = split(host, ':');
+		// 	host = hostTokens[0];
+		// 	port = hostTokens[1];
+		// } else {
+		// 	port = "80"; // Par défaut
+		// }
 
-		this->tmp_router->setProxy(host, std::atoi(port.c_str()), path);
+		// if (host.length() < 2) {
+		// 	this->throwError(raw_line, "invalid host", key_length + protocol.length() + 3);
+		// }
+
+		// if (!isNumber(port))
+		// 	// Key + protocol + :// + host + :
+		// 	this->throwError(raw_line, "invalid port", key_length + protocol.length() + 3 + host.length() + 1);
+
+		// this->tmp_router->setProxy(host, std::atoi(port.c_str()), path);
 		return ;
 	}
 

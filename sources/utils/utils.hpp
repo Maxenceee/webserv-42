@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/15 15:34:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 16:13:01 by mgama            ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef UTILS_HPP
 #define UTILS_HPP
@@ -103,6 +103,17 @@ std::string		resolve(std::string root, std::string path);
 /* URIs */
 
 std::string	decodeURIComponent(std::string encoded);
+
+struct wbs_url {
+	std::string	protocol;
+	std::string	host;
+	uint16_t	port;
+	std::string	path;
+	std::string	query;
+	std::string	fragment;
+};
+
+wbs_url newURL(const std::string &url);
 
 /* time */
 

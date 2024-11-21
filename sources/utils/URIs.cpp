@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 19:11:27 by mgama             #+#    #+#             */
-/*   Updated: 2024/03/21 17:41:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 17:18:39 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,4 +49,64 @@ std::string	decodeURIComponent(std::string encoded)
 	}
 
 	return (decoded);
+}
+
+std::string extract_match(const std::string &url, const regmatch_t &match) {
+	if (match.rm_so == -1) return "";
+	return url.substr(match.rm_so, match.rm_eo - match.rm_so);
+}
+
+wbs_url newURL(const std::string &url) {
+	const char *url_regex = 
+		"^(([^:/?#]+):)?(//([^/?#]*))?"
+		"([^?#]*)"
+		"(\\?([^#]*))?"
+		"(#(.*))?$";
+
+	regex_t regex;
+	if (regcomp(&regex, url_regex, REG_EXTENDED) != 0) {
+		throw std::runtime_error("Failed to compile regex.");
+	}
+
+	regmatch_t matches[10];
+
+	if (regexec(&regex, url.c_str(), 10, matches, 0) != 0) {
+		regfree(&regex);
+		throw std::invalid_argument("Invalid URL format: " + url);
+	}
+
+	wbs_url result;
+
+	result.protocol = extract_match(url, matches[2]);
+	result.host = extract_match(url, matches[4]);
+
+	// Gestion de l'hôte (host:port)
+	std::string authority = extract_match(url, matches[4]);
+	std::string::size_type colon_pos = authority.find(':');
+	if (colon_pos != std::string::npos) {
+		result.host = authority.substr(0, colon_pos);
+		std::string port_str = authority.substr(colon_pos + 1);
+		if (port_str.length() > 0 && isNumber(port_str)) {
+			result.port = static_cast<uint16_t>(std::atoi(port_str.c_str()));
+		} else {
+			throw std::invalid_argument("Invalid port in URL: " + port_str);
+		}
+	} else {
+		if (result.protocol == "http") {
+			result.port = 80;
+		} else if (result.protocol == "https") {
+			result.port = 443;
+		}
+	}
+
+	result.path = extract_match(url, matches[5]);
+	result.query = extract_match(url, matches[7]);
+	result.fragment = extract_match(url, matches[9]);
+
+	if (result.path.empty()) {
+		result.path = "/";
+	}
+
+	regfree(&regex);
+	return result;
 }
