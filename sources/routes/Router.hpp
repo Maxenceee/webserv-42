@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 16:53:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 16:48:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,7 @@ struct wbs_router_method {
 
 struct wbs_router_proxy {
 	bool			enabled;
+	std::string		protocol;
 	std::string		host;
 	int				port;
 	std::string		path;
@@ -198,7 +199,7 @@ public:
 
 	void				sendResponse(Response &response);
 
-	void							setProxy(const std::string &host, const int port, const std::string &path);
+	void							setProxy(wbs_url &proxy_url);
 	void							addProxyHeader(const std::string &key, const std::string &value);
 	void							enableProxyHeader(const std::string &key);
 	void							hideProxyHeader(const std::string &key);

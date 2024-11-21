@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/17 15:19:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 16:48:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -331,7 +331,7 @@ const std::string	&Router::getCGIPath(void) const
 	return (this->_cgi.path);
 }
 
-void	Router::setProxy(const std::string &host, const int port, const std::string &path)
+void	Router::setProxy(wbs_url &proxy_url)
 {
 	if (this->_proxy.enabled)
 	{
@@ -340,9 +340,10 @@ void	Router::setProxy(const std::string &host, const int port, const std::string
 	}
 
 	this->_proxy.enabled = true;
-	this->_proxy.host = host;
-	this->_proxy.port = port;
-	this->_proxy.path = path;
+	this->_proxy.protocol = proxy_url.protocol;
+	this->_proxy.host = proxy_url.host;
+	this->_proxy.port = proxy_url.port;
+	this->_proxy.path = proxy_url.path;
 }
 
 void	Router::addProxyHeader(const std::string &key, const std::string &value)
