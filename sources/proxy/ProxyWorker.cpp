@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/17 15:14:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 17:24:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ int	ProxyWorker::operator()()
 {
 	if (this->connect() != WBS_PROXY_OK)
 	{
-		Logger::error("proxy worker error: could not connect to backend server", RESET);
 		close(this->socket_fd);
 		return (WBS_PROXY_UNAVAILABLE);
 	}

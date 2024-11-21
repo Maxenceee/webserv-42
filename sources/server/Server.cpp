@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/17 15:02:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 18:05:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -289,7 +289,7 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 	Logger::print(response);
 }
 
-bool	Server::isValidMethod(const std::string method)
+bool	Server::isValidMethod(const std::string &method)
 {
 	return (contains(Server::methods, method));
 }

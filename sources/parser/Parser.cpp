@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 17:16:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 18:01:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,7 @@ void	Parser::throwError(const std::string &raw_line, const int pos)
 	this->throwError(raw_line, "invalid directive found", pos);
 }
 
-void	Parser::throwError(const std::string &raw_line, const std::string message, const int pos)
+void	Parser::throwError(const std::string &raw_line, const std::string &message, const int pos)
 {
 	std::string	tmp("parser error: ");
 	tmp += message;
