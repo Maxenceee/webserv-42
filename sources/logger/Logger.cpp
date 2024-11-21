@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/17 14:59:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 15:25:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,21 +16,25 @@ bool Logger::_debug = false;
 bool Logger::_initiated = false;
 pthread_mutex_t Logger::_loggerMutex;
 
+static void	displayDate(std::ostream& os)
+{
+    struct tm *tm;
+    time_t rawtime;
+    char buf[32];
+
+    time(&rawtime);
+    tm = localtime(&rawtime);
+    int ret = strftime(buf, 32, "%T", tm);
+    buf[ret] = '\0';
+    os << CYAN << "[" << buf << "] " << RESET;
+}
+
 void	Logger::init(void)
 {
-	struct tm	*tm;
-	time_t rawtime;
-	char buf[32];
-
-	time(&rawtime);
-	tm = localtime (&rawtime);
-	int ret = strftime(buf, 32, "%T", tm);
-	buf[ret] = '\0';
-	std::stringstream ss;
-	ss << CYAN << "[" << buf << "] " << RESET;
-	ss  << WBS_PREFIX << "Starting server: New logger session" << RESET;
-	std::cerr << ss.str() << std::endl;
-	std::cout << ss.str() << std::endl;
+	displayDate(std::cout);
+	std::cout << WBS_PREFIX << "Starting server: New logger session" << RESET << std::endl;
+	displayDate(std::cerr);
+	std::cerr << WBS_PREFIX << "Starting server: New logger session" << RESET << std::endl;
 	/**
 	 * Initialisation du mutex pour eviter les conflits d'affichage
 	 */
@@ -66,16 +70,8 @@ void	Logger::releaseMutex(void)
 
 void	Logger::print(const std::string &msg, const std::string &color)
 {
-	struct tm	*tm;
-	time_t rawtime;
-	char buf[32];
-
 	Logger::aquireMutex();
-	time(&rawtime);
-	tm = localtime (&rawtime);
-	int ret = strftime(buf, 32, "%T", tm);
-	buf[ret] = '\0';
-	std::cout << CYAN << "[" << buf << "] " << RESET;
+	displayDate(std::cout);
 	std::cout << color << msg << RESET;
 	std::cout << std::endl;
 	Logger::releaseMutex();
@@ -83,16 +79,8 @@ void	Logger::print(const std::string &msg, const std::string &color)
 
 void	Logger::info(const std::string &msg)
 {
-	struct tm	*tm;
-	time_t rawtime;
-	char buf[32];
-
 	Logger::aquireMutex();
-	time(&rawtime);
-	tm = localtime (&rawtime);
-	int ret = strftime(buf, 32, "%T", tm);
-	buf[ret] = '\0';
-	std::cout << CYAN << "[" << buf << "] " << RESET;
+	displayDate(std::cout);
 	std::cout << YELLOW << msg << RESET;
 	std::cout << std::endl;
 	Logger::releaseMutex();
@@ -100,16 +88,8 @@ void	Logger::info(const std::string &msg)
 
 void	Logger::warning(const std::string &msg, const std::string &color)
 {
-	struct tm	*tm;
-	time_t rawtime;
-	char buf[32];
-
 	Logger::aquireMutex();
-	time(&rawtime);
-	tm = localtime (&rawtime);
-	int ret = strftime(buf, 32, "%T", tm);
-	buf[ret] = '\0';
-	std::cerr << CYAN << "[" << buf << "] " << RESET;
+	displayDate(std::cerr);
 	std::cerr << color << WBS_PREFIX << msg << RESET;
 	std::cerr << std::endl;
 	Logger::releaseMutex();
@@ -117,16 +97,8 @@ void	Logger::warning(const std::string &msg, const std::string &color)
 
 void	Logger::error(const std::string &msg, const std::string &color)
 {
-	struct tm	*tm;
-	time_t rawtime;
-	char buf[32];
-
 	Logger::aquireMutex();
-	time(&rawtime);
-	tm = localtime (&rawtime);
-	int ret = strftime(buf, 32, "%T", tm);
-	buf[ret] = '\0';
-	std::cerr << CYAN << "[" << buf << "] " << RESET;
+	displayDate(std::cerr);
 	std::cerr << color << WBS_PREFIX << msg << RESET;
 	std::cerr << std::endl;
 	Logger::releaseMutex();
@@ -134,16 +106,8 @@ void	Logger::error(const std::string &msg, const std::string &color)
 
 void	Logger::perror(const std::string &msg, const std::string &color)
 {
-	struct tm	*tm;
-	time_t rawtime;
-	char buf[32];
-
 	Logger::aquireMutex();
-	time(&rawtime);
-	tm = localtime (&rawtime);
-	int ret = strftime(buf, 32, "%T", tm);
-	buf[ret] = '\0';
-	std::cerr << CYAN << "[" << buf << "] " << RESET;
+	displayDate(std::cerr);
 	std::cerr << color << WBS_PREFIX << msg << ": " << strerror(errno) << RESET;
 	std::cerr << std::endl;
 	Logger::releaseMutex();
@@ -154,16 +118,8 @@ void	Logger::debug(const std::string &msg, const std::string &color)
 	if (!Logger::_debug)
 		return ;
 
-	struct tm	*tm;
-	time_t rawtime;
-	char buf[32];
-
 	Logger::aquireMutex();
-	time(&rawtime);
-	tm = localtime (&rawtime);
-	int ret = strftime(buf, 32, "%T", tm);
-	buf[ret] = '\0';
-	std::cout << CYAN << "[" << buf << "] " << RESET;
+	displayDate(std::cout);
 	std::cout << color << msg << RESET;
 	std::cout << std::endl;
 	Logger::releaseMutex();
