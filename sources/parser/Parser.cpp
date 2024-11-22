@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/22 10:51:21 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/22 20:28:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -473,7 +473,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 */
 	if (key == "client_max_body_size") {
 		size_t ts = parseSize(valtokens[0]);
-		if (ts == -1) {
+		if (ts == (size_t)-1) {
 			this->throwError(raw_line, "invalid size", key_length);
 		}
 		this->tmp_router->setClientMaxBodySize(ts);

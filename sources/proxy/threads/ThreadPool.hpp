@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 19:43:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/22 20:27:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,6 @@ public:
 	void	kill();
 
 private:
-	bool 			available;
-
 	std::vector<pthread_t> workers;
 	std::queue<void (*)(int, int)> tasks;
 	std::queue<std::pair<int, int> > taskArgs;
@@ -35,6 +33,7 @@ private:
 	pthread_mutex_t	queueMutex;
 	pthread_cond_t	condition;
 	bool			stop;
+	bool 			available;
 
 	static void* workerThread(void* arg);
 	void run();
