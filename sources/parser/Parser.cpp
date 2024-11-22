@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 18:01:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/22 10:51:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ int		Parser::open_and_read_file(const std::string &file_name)
 
 	while (getline(this->file, line))
 	{
-		this->buffer.push_back(line);
+		// Toutes les tabulations sont remplacées par des espaces pour éviter les erreurs d'espacement
+		this->buffer.push_back(replaceAll(line, '\t', ' '));
 	}
 	this->file.close();
 	return (EXIT_SUCCESS);
@@ -81,15 +82,6 @@ void	Parser::extract(void)
 		// Accumuler les lignes tant qu'on ne rencontre pas un '{', '}' ou ';'
 		chunkedLine += (chunkedLine.empty() ? "" : " ") + lineRaw;
 
-		// Vérification et mise à jour du compteur d'accolades
-		for (size_t i = 0; i < lineRaw.length(); ++i) {
-			if (lineRaw[i] == '{') {
-				braceCount++;  // Incrémenter lors d'une accolade ouvrante
-			} else if (lineRaw[i] == '}') {
-				braceCount--;  // Décrémenter lors d'une accolade fermante
-			}
-		}
-
 		// Si la ligne contient une accolade ouvrante, fermante ou un point-virgule
 		if (lineRaw.find('{') != std::string::npos || lineRaw.find('}') != std::string::npos || lineRaw.find(';') != std::string::npos) {
 			std::vector<std::string> tokens;
@@ -100,8 +92,16 @@ void	Parser::extract(void)
 			}
 			catch(const std::exception& e)
 			{
-				trim(chunkedLine, '\t');
 				this->throwError(chunkedLine, "expected '\"'", chunkedLine.length() - 1);
+			}
+
+			// Vérification et mise à jour du compteur d'accolades
+			for (std::vector<std::string>::const_iterator it = tokens.begin(); it != tokens.end(); ++it) {
+				if (*it == "{") {
+					braceCount++;  // Incrémenter lors d'une accolade ouvrante
+				} else if (*it == "}") {
+					braceCount--;  // Décrémenter lors d'une accolade fermante
+				}
 			}
 
 			if (!tokens.empty()) {
@@ -122,7 +122,6 @@ void	Parser::extract(void)
 	}
 
 	if (braceCount != 0) {
-		replaceAll(lastProcessedLine, '\t', ' ');
 		this->throwError(lastProcessedLine, "expected '}'", lastProcessedLine.length() - 1);
 	}
 }

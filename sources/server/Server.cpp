@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 18:05:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/22 11:00:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,6 +230,8 @@ uint16_t	Server::getPort(void) const
 Router	*Server::eval(Request &request, Response &response) const
 {
 	Router	*router = this->_default->getDefaultHandler();
+	
+	Logger::debug("Evaluating server config for name " + request.getHost() + ":" + toString<int>(request.getPort()));
 
 	/**
 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
