@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/16 19:51:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/22 11:47:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ Client::~Client(void)
 		/**
 		 * On ferme la connexion avec le client car désormais c'est le ProxyWorker qui s'occupe de la communication.
 		 */
-		Logger::debug("------------------Client upgraded to proxy and closed-------------------", B_YELLOW);
+		Logger::debug("------------------Client upgraded to proxy-------------------", B_YELLOW);
 		return ;
 	}
 	if (this->response && this->response->isUpgraded())
@@ -67,7 +67,7 @@ Client::~Client(void)
 		delete this->response;
 	}
 	close(this->_client);
-	Logger::debug("------------------Client closed-------------------", B_YELLOW);
+	Logger::debug("------------------Client connection closed-------------------", B_YELLOW);
 }
 
 int	Client::process(void)
