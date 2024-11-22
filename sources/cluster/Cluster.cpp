@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 15:32:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/22 13:59:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ ThreadPool Cluster::pool(0);
 static void interruptHandler(int sig_int) {
 	(void)sig_int;
 	std::cout << "\b\b \b\b";
+	Logger::print("Signal received: " + std::string(strsignal(sig_int)), B_GREEN);
 	Cluster::exit = false;
 }
 
