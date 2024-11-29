@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/22 13:59:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/30 00:18:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,30 @@
 #include "client/Client.hpp"
 
 bool Cluster::exit = true;
+bool Cluster::kill = false;
 ThreadPool Cluster::pool(0);
 
 static void interruptHandler(int sig_int) {
 	(void)sig_int;
-	std::cout << "\b\b \b\b";
+	std::cout << "\b\b";
 	Logger::print("Signal received: " + std::string(strsignal(sig_int)), B_GREEN);
-	Cluster::exit = false;
+	/**
+	 * Si le signal reçu est SIGQUIT ou SIGTERM, on met la variable kill à true,
+	 * pour forcer l'arrêt du serveur (notamment des workers).
+	 */
+	// if (sig_int == SIGQUIT || sig_int == SIGTERM)
+	// {
+	// 	Cluster::kill = true;
+	// }
+	/**
+	 * Ou si l'utilisateur a déjà demandé l'arrêt du serveur, on force l'arrêt.
+	 */
+	// else if (Cluster::exit == true)
+	// {
+	// 	Logger::print("Forcing shutdown", B_GREEN);
+	// }
+	Cluster::kill = true;
+	Cluster::exit = true;
 }
 
 Cluster::Cluster(void)
@@ -163,9 +180,10 @@ int		Cluster::start(void)
 		 */
 		if (poll(poll_fds.data(), poll_fds.size(), timeout) == -1)
 		{
-			// Si le signal d'interruption est reçu, on sort de la boucle
+			// Si le signal d'interruption est reçu, on continue
 			if (errno == EINTR) {
-				break;
+				// Logger::debug("Signal received: exiting the server");
+				continue;;
 			}
 			Logger::perror("server error: an error occurred while poll'ing");
 			return (WBS_SOCKET_ERR);
@@ -259,7 +277,7 @@ int		Cluster::start(void)
 			poll_clients.erase(newClient);
 			delete client;
 		}
-	} while (!this->exit);
+	} while (false == this->exit);
 
 	// On ferme les sockets des clients et libère la mémoire
 	for (std::map<int, wbs_pollclient>::iterator it = poll_clients.begin(); it != poll_clients.end(); it++)
@@ -273,7 +291,7 @@ int		Cluster::start(void)
 		(*it)->kill();
 
 	// On ferme la pool de threads
-	Cluster::pool.kill();
+	Cluster::pool.kill(Cluster::kill);
 
 	return (WBS_NOERR);
 }

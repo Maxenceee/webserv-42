@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/22 20:27:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/29 23:41:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ public:
 
 	void	enqueueTask(void (*function)(int, int), int client_fd, int backend_fd);
 
-	void	kill();
+	void	kill(bool force = false);
 
 private:
 	std::vector<pthread_t> workers;
