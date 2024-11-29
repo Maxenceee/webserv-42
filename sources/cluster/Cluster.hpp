@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:47:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:03:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/29 23:51:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ public:
 	~Cluster();
 
 	static bool			exit;
+	static bool			kill;
 
 	static ThreadPool	pool;
 

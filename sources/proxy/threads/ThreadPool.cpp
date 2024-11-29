@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 15:27:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/30 00:09:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,25 @@ ThreadPool::~ThreadPool()
 	}
 }
 
-void	ThreadPool::kill()
+void	ThreadPool::kill(bool force)
 {
+	if (available == false || stop == true) {
+		return;
+	}
+
 	pthread_mutex_lock(&queueMutex);
 	stop = true;
 	pthread_cond_broadcast(&condition);
 	pthread_mutex_unlock(&queueMutex);
+
+	if (force) {
+		Logger::print("Forcing workers to finish", B_GREEN);
+		for (size_t i = 0; i < workers.size(); ++i) {
+			pthread_cancel(workers[i]);
+		}
+	} else {
+		Logger::print("Waiting for workers to finish", B_GREEN);
+	}
 
 	for (size_t i = 0; i < workers.size(); ++i) {
 		pthread_join(workers[i], NULL);
@@ -51,6 +64,7 @@ void	ThreadPool::kill()
 	pthread_mutex_destroy(&queueMutex);
 	pthread_cond_destroy(&condition);
 	Logger::debug("ThreadPool stopped");
+	available = false;
 }
 
 void	ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int backend_fd)
