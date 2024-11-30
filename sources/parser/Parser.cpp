@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/22 20:28:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/30 17:09:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ void	Parser::extract(void)
 			{
 				tokens = tokenize(chunkedLine);
 			}
-			catch(const std::exception& e)
+			catch(...)
 			{
 				this->throwError(chunkedLine, "expected '\"'", chunkedLine.length() - 1);
 			}
@@ -289,7 +289,8 @@ void	Parser::createNewRouter(const std::string &key, const std::string &val, con
 void	Parser::addRule(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
 {
 	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
-	const size_t key_length = key.length() + 1; // +1 pour l'espace après la clé
+	// Taille du nom de la directive (+1 pour l'espace après la clé)
+	const size_t key_length = key.length() + 1;
 
 	// On vérifie que la directive est bien dans un contexte
 	if (context.empty())
@@ -525,7 +526,34 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		}
 		this->tmp_router->addHeader(valtokens[0], valtokens[1], always);
 		return ;
-	
+	}
+
+	/**
+	 * Directive client_header_timeout
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_timeout)
+	 */
+	if (key == "client_header_timeout") {
+		time_t	t = parseTime(valtokens[0]);
+		if (t < 0) {
+			this->throwError(raw_line, "invalid time", key_length);
+		}
+		this->tmp_router->setTimeout(t, "header");
+		return ;
+	}
+
+	/**
+	 * Directive client_body_timeout
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout)
+	 */
+	if (key == "client_body_timeout") {
+		time_t	t = parseTime(valtokens[0]);
+		if (t < 0) {
+			this->throwError(raw_line, "invalid time", key_length);
+		}
+		this->tmp_router->setTimeout(t, "body");
+		return ;
 	}
 
 	/**
@@ -541,7 +569,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		{
 			tu = newURL(url);
 		}
-		catch(const std::exception& e)
+		catch(...)
 		{
 			this->throwError(raw_line, "invalid url", key_length);
 		}
@@ -637,34 +665,6 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 */
 	if (key == "proxy_hide_header") {
 		this->tmp_router->hideProxyHeader(valtokens[0]);
-		return ;
-	}
-
-	/**
-	 * Directive client_header_timeout
-	 * 
-	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_header_timeout)
-	 */
-	if (key == "client_header_timeout") {
-		time_t	t = parseTime(valtokens[0]);
-		if (t < 0) {
-			this->throwError(raw_line, "invalid time", key_length);
-		}
-		this->tmp_router->setTimeout(t, "header");
-		return ;
-	}
-
-	/**
-	 * Directive client_body_timeout
-	 * 
-	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_body_timeout)
-	 */
-	if (key == "client_body_timeout") {
-		time_t	t = parseTime(valtokens[0]);
-		if (t < 0) {
-			this->throwError(raw_line, "invalid time", key_length);
-		}
-		this->tmp_router->setTimeout(t, "body");
 		return ;
 	}
 
