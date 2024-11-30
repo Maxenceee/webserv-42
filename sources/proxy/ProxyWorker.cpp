@@ -6,18 +6,11 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/30 00:23:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/30 17:12:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
-
-/**
- * TODO:
- * supporter les uri dans la directive proxy_pass 
- * si uri => remplacer uri de la requete par celle de la directive
- * sinon => garder uri de la requete
- */
 
 ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
 	_client(client),
@@ -49,7 +42,7 @@ int	ProxyWorker::operator()()
 	{
 		this->_req.addHeader((*it).first, (*it).second);
 	}
-	
+
 	std::string data = this->_req.prepareForProxying();
 	data.append(WBS_CRLF);
 	if (this->_buffer.length() > 0) {
