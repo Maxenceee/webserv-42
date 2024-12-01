@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/30 00:18:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 13:47:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void	Cluster::parse(const std::string &configPath)
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		(*it)->init();
-		if (Logger::_debug)
+		if (Logger::isDebug())
 			std::cout << *(*it) << std::endl;
 	}
 	delete this->parser;

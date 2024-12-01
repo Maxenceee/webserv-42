@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 15:25:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 13:47:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,4 +123,14 @@ void	Logger::debug(const std::string &msg, const std::string &color)
 	std::cout << color << msg << RESET;
 	std::cout << std::endl;
 	Logger::releaseMutex();
+}
+
+void	Logger::setDebug(bool debug)
+{
+	Logger::_debug = debug;
+}
+
+bool	Logger::isDebug(void)
+{
+	return (Logger::_debug);
 }
