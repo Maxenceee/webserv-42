@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:34:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 16:03:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,10 @@ Client::~Client(void)
 
 int	Client::process(void)
 {
+	/**
+	 * TODO:
+	 * Support SSL/TLS
+	 */
 	char buffer[WBS_RECV_SIZE] = {0};
 
 	/**
