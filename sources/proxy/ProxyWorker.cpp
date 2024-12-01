@@ -6,12 +6,20 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:59:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:35:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
 
+/**
+ * TODO: ET EN PRIORITE !
+ * Revoir le worker pour supporter les requêtes via ssl/tls car pour le moment des que le
+ * serveur crée un proxy worker la requête repasse en HTTP ce qui evidemment ne fonctionne pas...
+ * 
+ * A voir dans un second temps pour gerer https dans le proxy_pass car dans ce cas il faut créer
+ * un client https et c'est une autre affaire.
+ */
 /**
  * TODO:
  * Gérer le fait d'avoir un URI dans la config du proxy
@@ -198,99 +206,3 @@ void relay_data(int client_fd, int backend_fd)
 	close(backend_fd);
 	Logger::debug("------------------Proxy task ended-------------------", B_YELLOW);
 }
-
-// enum wbs_proxy_interfacetype
-// {
-// 	WBS_PROXY_INTERFACE_CLIENT	= 0,
-// 	WBS_PROXY_INTERFACE_BACKEND	= 1
-// };
-
-// void relay_data(int client_fd, int backend_fd)
-// {
-// 	pollfd	fds[2];
-// 	char	buffer[4096];
-// 	ssize_t	bytes_read, bytes_sent;
-// 	time_t	current, last_read, last_write;
-
-// 	/**
-// 	 * On initialise les descripteurs à surveiller.
-// 	 */
-// 	fds[WBS_PROXY_INTERFACE_CLIENT] = (pollfd){client_fd, POLLIN, 0};
-// 	fds[WBS_PROXY_INTERFACE_BACKEND] = (pollfd){backend_fd, POLLIN, 0};
-
-// 	while (true)
-// 	{
-// 		if (poll(fds, 2, 100) == -1)
-// 		{
-// 			if (errno == EINTR) {
-// 				break;
-// 			}
-// 			Logger::perror("proxy worker error: poll");
-// 			break;
-// 		}
-
-// 		for (int i = 0; i < 2; i++)
-// 		{
-// 			if (fds[i].revents & POLLHUP)
-// 			{
-// 				Logger::debug("Connection closed by the client (event POLLHUP)");
-// 				return;
-// 			}
-// 			else if (fds[i].revents & POLLIN)
-// 			{
-// 				std::cout << "event on client " << fds[i].fd << std::endl;
-// 				bytes_read = recv(fds[i].fd, buffer, sizeof(buffer), 0);
-// 				std::cout << bytes_read << "bytes_read\n" << buffer << std::endl;
-// 				if (bytes_read <= 0)
-// 				{
-// 					if (bytes_read == 0)
-// 					{
-// 						Logger::debug("Connection closed by the client");
-// 					}
-// 					else
-// 					{
-// 						Logger::perror("proxy worker error: recv");
-// 					}
-// 					break;
-// 				}
-// 				if (i == WBS_PROXY_INTERFACE_CLIENT)
-// 				{
-// 					last_read = getTimestamp();
-// 				}
-
-// 				/**
-// 				 * Sachant qu'il n'y a que deux descripteurs à surveiller, on peut
-// 				 * déterminer l'indice de l'autre par simple soustraction.
-// 				 */
-// 				std::cout << "send buffer to " << fds[1 - i].fd << std::endl;
-// 				bytes_sent = send(fds[1 - i].fd, buffer, bytes_read, 0);
-// 				if (bytes_sent == -1)
-// 				{
-// 					Logger::perror("proxy worker error: send");
-// 					break;
-// 				}
-// 				if (i == WBS_PROXY_INTERFACE_CLIENT)
-// 				{
-// 					last_write = getTimestamp();
-// 				}
-// 			}
-// 			else
-// 			{
-// 				/**
-// 				 * TODO:
-// 				 * Handle timeout from config
-// 				 * Current time - last read time > 60s
-// 				 */
-// 				current = getTimestamp();
-// 				if (current - last_read > 60 * 1000 || current - last_write > 60 * 1000)
-// 				{
-// 					break;
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	close(client_fd);
-// 	close(backend_fd);
-// 	Logger::debug("------------------Proxy task ended-------------------", B_YELLOW);
-// }

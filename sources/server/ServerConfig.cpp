@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 18:44:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:24:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,16 @@ bool	ServerConfig::hasSSL(void) const
 	return (this->_ssl.enabled);
 }
 
+void	ServerConfig::setSSLCertFile(const std::string &cert_file)
+{
+	this->_ssl.cert_file = cert_file;
+}
+
+void	ServerConfig::setSSLKeyFile(const std::string &key_file)
+{
+	this->_ssl.key_file = key_file;
+}
+
 bool	ServerConfig::setupSSL(void)
 {
 	if (this->_ssl.ctx != NULL)
@@ -115,11 +125,16 @@ bool	ServerConfig::setupSSL(void)
 		Logger::warning("server warning: SSL context already set");
 		return (false);
 	}
-	// if (this->_ssl.cert_file.empty() || this->_ssl.key_file.empty())
-	// {
-	// 	Logger::error("server error: SSL certificate or key file not set");
-	// 	return (false);
-	// }
+	if (this->_ssl.cert_file.empty())
+	{
+		Logger::error("server error: SSL certificate file not set");
+		return (false);
+	}
+	if (this->_ssl.key_file.empty())
+	{
+		Logger::error("server error: SSL key file not set");
+		return (false);
+	}
 	/**
 	 * Création du contexte SSL pour le serveur en utilisant le protocole TLS
 	 * (Transport Layer Security).
@@ -134,8 +149,8 @@ bool	ServerConfig::setupSSL(void)
 	/**
 	 * Ajout des fichiers de certificat et de clé privée au contexte SSL.
 	 */
-	if (SSL_CTX_use_certificate_file(this->_ssl.ctx, "./tests/webserv.crt", SSL_FILETYPE_PEM) <= 0 ||
-        SSL_CTX_use_PrivateKey_file(this->_ssl.ctx, "./tests/webserv.key", SSL_FILETYPE_PEM) <= 0) {
+	if (SSL_CTX_use_certificate_file(this->_ssl.ctx, this->_ssl.cert_file.c_str(), SSL_FILETYPE_PEM) <= 0 ||
+        SSL_CTX_use_PrivateKey_file(this->_ssl.ctx, this->_ssl.key_file.c_str(), SSL_FILETYPE_PEM) <= 0) {
         Logger::error("server error: could not add certificate or key file");
 		ERR_print_errors_fp(stderr);
 		return (false);
@@ -197,7 +212,6 @@ void	ServerConfig::print(std::ostream &os) const
 	os << B_CYAN << "Name: " << RESET;
 	if (this->_server_name.empty())
 		os << I_YELLOW << "Any" << RESET;
-	os << this->_ssl.ctx << std::endl;
 	for (wbs_server_names::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{
 		os << it->name;
