@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/29 23:41:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 21:11:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 # define THREADPOOL_HPP
 
 #include "webserv.hpp"
-#include <queue>
 
-class ThreadPool {
+class ThreadPool
+{
 public:
 	ThreadPool(size_t numThreads);
 	~ThreadPool();

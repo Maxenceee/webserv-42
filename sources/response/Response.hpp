@@ -33,7 +33,7 @@ struct wbs_cookie_options {
 class Response
 {
 private:
-	int					_socket;
+	Client				&_client;
 	bool				_sent;
 	int					_status;
 	std::string			_version;
@@ -50,7 +50,7 @@ private:
 	std::string			getTime(void);
 
 public:
-	Response(int socket, const Request &req);
+	Response(Client &client, const Request &req);
 	~Response(void);
 
 	static wbs_mapis_t	http_codes;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 19:01:32 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 21:08:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,7 +244,7 @@ int	Client::processLines(void)
 
 		if (this->response == NULL)
 		{
-			this->response = new Response(this->_client, request);
+			this->response = new Response(*this, request);
 			if (!this->response->canSend())
 			{
 				return (WBS_ERR);
@@ -425,6 +425,30 @@ int	Client::read(char *buffer, size_t buffer_size)
 		 * gestion de la lecture dans un contexte de travail en réseau.
 		 */
 		valread = ::recv(this->_client, buffer, buffer_size, 0);
+	}
+
+	return (valread);
+}
+
+int	Client::send(const char *buffer, size_t buffer_size)
+{
+	int valread;
+
+	if (this->_ssl_session) {
+		/**
+		 * La fonction SSL_read() sert à lire le contenu d'un descripteur de fichier, ici
+		 * le descripteur du client. À la différence de recv(), la fonction SSL_read() est
+		 * spécifiquement conçue pour la lecture à partir de sockets sécurisés par SSL/TLS.
+		 */
+		valread = SSL_write(this->_ssl_session, buffer, buffer_size);
+	} else {
+		/**
+		 * La fonction send() sert à écrire le contenu d'un descripteur de fichier, ici
+		 * le descripteur du client. À la différence de write, la fonction send est
+		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
+		 * gestion de l'écriture dans un contexte de travail en réseau.
+		 */
+		valread = ::send(this->_client, buffer, buffer_size, 0);
 	}
 
 	return (valread);
