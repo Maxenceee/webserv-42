@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 18:05:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:23:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 	this->_client_body.set = false;
 
 	/**
-	 * 
+	 * Par défaut le router hérite de la taille maximale du corps de la requête de son parent.
 	 */
 	if (parent && parent->hasClientMaxBodySize()) {
 		this->_client_body.size = parent->getClientMaxBodySize();
@@ -93,7 +93,7 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 	}
 
 	/**
-	 * 
+	 * Par défaut le router hérite des timeouts de son parent.
 	 */
 	if (parent) {
 		this->_timeout = parent->getTimeout();
@@ -125,8 +125,8 @@ Router		*Router::getParent(void) const
 void	Router::allowMethod(const std::string &method)
 {
 	/**
-	 * Router::allowMethod() indique au router qu'elle méthode HTTP il doit servir. Si aucune méthode
-	 * n'est spécifiée le router les accepte toutes.
+	 * Router::allowMethod() indique au routeur quelle méthode HTTP il doit servir. Si aucune méthode
+	 * n'est spécifiée, le routeur les accepte toutes.
 	 */
 	if (Server::isValidMethod(method)) {
 		if (!this->_allowed_methods.enabled) {
@@ -148,11 +148,11 @@ void	Router::allowMethod(const std::vector<std::string> &method)
 void	Router::setRoot(const std::string &path)
 {
 	/**
-	 * Cette fonction indique au router son dossier racine, dossier à partir duquel il servira le contenu.
-	 * Par défaut il l'hérite de son parent.
+	 * Cette fonction indique au routeur son dossier racine, dossier à partir duquel il servira le contenu.
+	 * Par défaut, il l'hérite de son parent.
 	 * Pour simplifier, le chemin de la requête est ajouté à la fin du chemin de `root` pour former le
 	 * chemin vers la ressource.
-	 * (ex: router = /static, request = /static/chemin/vers, root = ./public, chemin final => ./public/chemin/vers)
+	 * (ex: routeur = /static, requête = /static/chemin/vers, root = ./public, chemin final => ./public/chemin/vers)
 	 * 
 	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `alias` est définie cette
 	 * directive sera écrasée.
@@ -173,10 +173,10 @@ void	Router::setRoot(const std::string &path)
 void	Router::setAlias(const std::string &path)
 {
 	/**
-	 * Permet de définir la directive `alias` pour ce router. Contrairement à `root`,
+	 * Permet de définir la directive `alias` pour ce routeur. Contrairement à `root`,
 	 * la directive `alias` remplace le segment de l'URL correspondant par le chemin spécifié.
-	 * (ex: router = /images, request = /images/photo.jpg, alias = ./public/photos, chemin final => ./public/photos/photo.jpg)
-	 * (dans ce cas root aurait donné: router = /images, request = /images/photo.jpg, root = ./public/photos, chemin final => ./public/photos/images/photo.jpg)
+	 * (ex: routeur = /images, requête = /images/photo.jpg, alias = ./public/photos, chemin final => ./public/photos/photo.jpg)
+	 * (dans ce cas root aurait donné: routeur = /images, requête = /images/photo.jpg, root = ./public/photos, chemin final => ./public/photos/images/photo.jpg)
 	 * 
 	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `root` a été définie
 	 * précédemment cette dernière sera écrasée.
@@ -211,7 +211,7 @@ const struct wbs_router_root	&Router::getRootData(void) const
 void	Router::setRedirection(const std::string &to, int status)
 {
 	/**
-	 * Définit le chemin de redirection du router, le statut par défaut est 302 (Found).
+	 * Définit le chemin de redirection du routeur, le statut par défaut est 302 (Found).
 	 * Si le chemin est vide alors le statut est retourné sans redirection.
 	 */
 	if (status % 300 < 100) {
@@ -246,8 +246,8 @@ void	Router::addIndex(const std::string &index)
 void	Router::addHeader(const std::string &key, const std::string &value, const bool always)
 {
 	/**
-	 * Cette méthode permet d'ajouter des en-têtes à la réponse du router.
-	 * Si `always` est vrai, l'en-tête sera ajouté quelque soit le code de réponse.
+	 * Cette méthode permet d'ajouter des en-têtes à la réponse du routeur.
+	 * Si `always` est vrai, l'en-tête sera ajouté quel que soit le code de réponse.
 	 * Les en-têtes sont héritées des niveaux de configuration précédents si et seulement si
 	 * aucun n'est défini au niveau de configuration actuel. 
 	 */
@@ -394,8 +394,8 @@ const struct wbs_router_timeout	&Router::getTimeout() const
 void	Router::use(Router *router)
 {
 	/**
-	 * Cette méthode permet d'ajouter un router enfant à ce router.
-	 * Les routes du router enfant seront servies par ce router.
+	 * Cette méthode permet d'ajouter un routeur enfant à ce routeur.
+	 * Les routes du routeur enfant seront servies par ce routeur.
 	 */
 	this->_routes.push_back(router);
 }
@@ -410,7 +410,7 @@ Router	*Router::eval(const std::string &path, const std::string &method, Respons
 	Router	*router = NULL;
 
 	/**
-	 * On vérifie si le chemin de la requête correspond à ce router.
+	 * On vérifie si le chemin de la requête correspond à ce routeur.
 	 * Si c'est le cas, on vérifie si la méthode HTTP est autorisée.
 	 * Puis on évalue les routes enfants.
 	 */
@@ -463,15 +463,15 @@ void	Router::route(Request &request, Response &response)
 bool	Router::handleRoutes(Request &request, Response &response)
 {
 	/**
-	 * Avant de faire quelque logique que ce soit on s'assure que la réponse n'a pas déjà été
-	 * envoyé pour une quelconque raison.
+	 * Avant de faire quelque logique que ce soit, on s'assure que la réponse n'a pas déjà été
+	 * envoyée pour une quelconque raison.
 	 */
 	if (!response.canSend())
 		return (false);
 
 	/**
-	 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
-	 * desactive la verification de la limite de taille du corps de la requête.
+	 * Selon Nginx, si la directive `client_max_body_size` a une valeur de 0, cela
+	 * désactive la vérification de la limite de taille du corps de la requête.
 	 */
 	if (this->_client_body.size > 0) {
 		if (request.getBody().size() > this->_client_body.size) {
@@ -481,8 +481,8 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	}
 	
 	/**
-	 * Nginx execute la directive `return` avant toutes les autres.
-	 * Si le code de retour est de type 3xx (redirect) alors la redirection est effectuée, sinon
+	 * Nginx exécute la directive `return` avant toutes les autres.
+	 * Si le code de retour est de type 3xx (redirection), alors la redirection est effectuée, sinon
 	 * le code de retour est envoyé avec le corps de la réponse.
 	 */
 	if (this->_redirection.enabled) {
@@ -675,8 +675,8 @@ void	Router::handleCGI(Request &request, Response &response)
 	}
 
 	/**
-	 * La méthode GET a un comportement légèrement différent des autres, elle
-	 * envoie le contenu du fichier demandé par la requête au CGI. Les autres
+	 * La méthode GET a un comportement légèrement différent des autres. Elle
+	 * envoie le contenu du fichier demandé par la requête au CGI, tandis que les autres
 	 * méthodes envoient directement le corps de la requête.
 	 */
 	if (request.getMethod() == "GET") {
@@ -835,18 +835,18 @@ std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 	}
 	/**
 	 * Nginx n'a pas de comportement spécifique dépendant de la présence ou
-	 * non du '/' au début du chemin de la route. Le chemins 'chemin' et '/chemin'
+	 * non du '/' au début du chemin de la route. Les chemins 'chemin' et '/chemin'
 	 * ont le même comportement.
-	 * Pour simplifier la suite nous l'ajoutons s'il est manquant.
+	 * Pour simplifier la suite, nous l'ajoutons s'il est manquant.
 	 */
 	if (str[0] != '/') {
 		str.insert(0, "/");
 	}
 	/**
-	 * La présence du '/' à la fin influe sur le comportement si le router est
-	 * configuré comme strict, les chemins '/chemin' et '/chemins/' n'ont pas le même
+	 * La présence du '/' à la fin influe sur le comportement si le routeur est
+	 * configuré comme strict, les chemins '/chemin' et '/chemin/' n'ont pas le même
 	 * comportement dans ce cas.
-	 * Si le router n'est pas strict nous le supprimons s'il est présent pour
+	 * Si le routeur n'est pas strict, nous le supprimons s'il est présent pour
 	 * simplifier la suite.
 	 */
 	if (str[str.size() - 1] == '/' && !this->_location.strict) {
@@ -865,7 +865,7 @@ void	Router::reloadChildren(void)
 void	Router::reload(void)
 {
 	/**
-	 * Cette fonction sert à mettre à jour les données héritées des niveaux de configuration précédents (des routers parents).
+	 * Cette fonction sert à mettre à jour les données héritées des niveaux de configuration précédents (des routeurs parents).
 	 */
 	if (!this->_root.set) {
 		this->_root = this->_parent->getRootData();

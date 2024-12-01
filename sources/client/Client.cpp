@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 13:47:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:34:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,15 @@ Client::~Client(void)
 	if (this->response && this->upgraded_to_proxy)
 	{
 		/**
-		 * Lorsque le Client est passé en mode proxy, ce dernier passe le relais au ProxyWorker,
-		 * et doit être detruit mais sans fermer la connexion avec le client.
-		 * Dans ce cas on annule la réponse et on supprime le pointeur.
+		 * Lorsque le client passe en mode proxy, il passe le relais au ProxyWorker
+		 * et doit être détruit sans fermer la connexion avec le client.
+		 * Dans ce cas, on annule la réponse et on supprime le pointeur.
 		 */
 		this->response->cancel();
 		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
 		/**
-		 * On ferme la connexion avec le client car désormais c'est le ProxyWorker qui s'occupe de la communication.
+		 * On ne ferme pas la connexion avec le client car désormais c'est le ProxyWorker qui s'occupe de la communication.
 		 */
 		Logger::debug("------------------Client upgraded to proxy-------------------", B_YELLOW);
 		return ;
@@ -50,7 +50,7 @@ Client::~Client(void)
 	if (this->response && this->response->isUpgraded())
 	{
 		/**
-		 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on ne ferme pas la connexion et
+		 * Dans le cas où le client a demandé une mise à niveau vers WebSocket, on ne ferme pas la connexion et
 		 * on affiche les trames WebSocket du client.
 		 */
 		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
@@ -75,9 +75,9 @@ int	Client::process(void)
 	char buffer[WBS_RECV_SIZE] = {0};
 
 	/**
-	 * La fonction recv() sert à lire le contenu d'un descripteur de fichiers, ici
-	 * le descripteur du client. À la difference de read(), la fonction recv() est
-	 * spécifiquement conçue pour la lecture à partir de socket. Elle offre une meilleure
+	 * La fonction recv() sert à lire le contenu d'un descripteur de fichier, ici
+	 * le descripteur du client. À la différence de read(), la fonction recv() est
+	 * spécifiquement conçue pour la lecture à partir de sockets. Elle offre une meilleure
 	 * gestion de la lecture dans un contexte de travail en réseau.
 	 */
 	int valread = recv(this->_client, buffer, sizeof(buffer), 0);
@@ -93,7 +93,7 @@ int	Client::process(void)
 
 	if (this->processLines())
 	{
-		// La sauvegarde du temps est necessaire pour le calcul de la durée de la requête
+		// La sauvegarde du temps est nécessaire pour le calcul de la durée de la requête
 		this->request_time = getTimestamp();
 		return (WBS_POLL_CLIENT_CLOSED);
 	}
@@ -101,7 +101,7 @@ int	Client::process(void)
 	if (this->response && this->response->isUpgraded())
 	{
 		/**
-		 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on ne ferme pas la connexion et
+		 * Dans le cas où le client a demandé une mise à niveau vers WebSocket, on ne ferme pas la connexion et
 		 * on affiche les trames WebSocket du client.
 		 */
 		std::string payload = decodeWebSocketFrame(this->_buffer);
@@ -156,13 +156,13 @@ int	Client::process(void)
 			// La sauvegarde du temps est necessaire pour le calcul de la durée de la requête
 			this->request_time = getTimestamp();
 			/**
-			 * Une fois que la requête est complètement parsée, on peut effectuer le routage.
+			 * Une fois que la requête est complètement analysée, on peut effectuer le routage.
 			 */
 			if (Logger::isDebug())
 				std::cout << this->request << std::endl;
 			this->_current_router->route(this->request, *this->response);
 			/**
-			 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).
+			 * Pour le moment, le serveur ne gère pas le keep-alive (en-tête connection).
 			 * On indique donc au cluster qu'il faut fermer la connexion.
 			 */
 		}
@@ -173,7 +173,7 @@ int	Client::process(void)
 
 int	Client::processLines(void) {
 	/**
-	 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, evite de traiter la
+	 * Dans le cas où le client a demandé une mise à niveau vers WebSocket, évite de traiter la
 	 * donnée.
 	 */
 	if (this->response && this->response->isUpgraded())
@@ -189,7 +189,7 @@ int	Client::processLines(void) {
 
 		if (request.processLine(line))
 		{
-			// Dans le cas d'une erreur de parsing on envoie une réponse d'erreur
+			// En cas d'erreur de parsing, on envoie une réponse d'erreur
 			this->response->status(400).end();
 			return (WBS_ERR);
 		}
@@ -204,13 +204,13 @@ int	Client::processLines(void) {
 		}
 
 		/**
-		 * Extraction du router correspondant à la requête dès l'arrivée de l'en-tête `Host`.
+		 * Extraction du routeur correspondant à la requête dès l'arrivée de l'en-tête `Host`.
 		 */
 		if (this->_current_router == NULL && this->request.hasHeader("Host"))
 		{
 			/**
-			 * La fonction Server::eval() retourne un pointeur vers le router correspondant à la requête
-			 * ou le router par défaut du server si aucun router correspondant n'a été trouvé, cette fonction
+			 * La fonction Server::eval() retourne un pointeur vers le routeur correspondant à la requête
+			 * ou le routeur par défaut du serveur si aucun routeur correspondant n'a été trouvé, cette fonction
 			 * n'est donc jamais censée retourner NULL, mais on sécurise tout de même.
 			 */
 			this->_current_router = this->_server->eval(this->request, *this->response);
@@ -223,15 +223,15 @@ int	Client::processLines(void) {
 		}
 
 		/**
-		 * On vérifie si les en-têtes ont été reçus. Au quel cas on peut traiter les cas de requêtes
-		 * ne necessitant pas de corps.
+		 * On vérifie si les en-têtes ont été reçus. Auquel cas, on peut traiter les cas de requêtes
+		 * ne nécessitant pas de corps.
 		 */
 		if (!this->_headers_received && this->request.headersReceived())
 		{
 			this->_headers_received = true;
 
 			/**
-			 * Si lors de l'évaluation de la requête, on il y a eu une erreur, le code de statut de la réponse
+			 * Si lors de l'évaluation de la requête, il y a eu une erreur, le code de statut de la réponse
 			 * est alors différent de 200, on envoie donc une réponse d'erreur.
 			 */
 			if (this->response->getStatus() != 200)
@@ -242,10 +242,10 @@ int	Client::processLines(void) {
 			
 			if (this->request.hasHeader("Connection") && this->request.getHeader("Connection") == "Upgrade")
 			{
-				// /**
-				//  * INFO:
-				//  * Le serveur ne supporte pas le protocole WebSocket, on envoie donc une réponse d'erreur 501.
-				//  */
+				/**
+				 * INFO:
+				 * Le serveur ne supporte pas le protocole WebSocket, on envoie donc une réponse d'erreur 501.
+				 */
 				// this->response->status(501).sendDefault().end();
 				// return (WBS_ERR);
 
@@ -285,10 +285,10 @@ int	Client::processLines(void) {
 
 				/**
 				 * INFO:
-				 * Pour supporter le protocole WebSocket, il faudrait créer un état supplémentaire, qui empecherait la
-				 * fermeture de la connexion avec le client une fois le requête traitée.
-				 * Dans le cas d'un serveur statique, une telle implementation n'a aucun interet puisque le serveur ne
-				 * peut pas traiter les requêtes websocket.
+				 * Pour supporter le protocole WebSocket, il faudrait créer un état supplémentaire, qui empêcherait la
+				 * fermeture de la connexion avec le client une fois la requête traitée.
+				 * Dans le cas d'un serveur statique, une telle implémentation n'a aucun intérêt puisque le serveur ne
+				 * peut pas traiter les requêtes WebSocket.
 				 */
 				this->response->status(101).upgrade().end();
 				return (WBS_NOERR);
@@ -297,22 +297,22 @@ int	Client::processLines(void) {
 			/**
 			 * TODO:
 			 * 
-			 * Gerer le proxybuffering on;
-			 * consiste à stocker le contenu recu depuis le client jusqu'a ce que la taille du buffer soit atteinte 
-			 * puis d'envoyer tout le buffer au serveur distant
-			 * edit: pas sur de la faire
+			 * Gérer le proxy buffering;
+			 * consiste à stocker le contenu reçu depuis le client jusqu'à ce que la taille du buffer soit atteinte 
+			 * puis d'envoyer tout le buffer au serveur distant.
+			 * Note: pas sûr de le faire.
 			 */
 			if (this->_current_router->isProxy())
 			{
 				/**
-				 * Si le router est un proxy, on crée un ProxyWorker qui va se charger de la communication
+				 * Si le routeur est un proxy, on crée un ProxyWorker qui va se charger de la communication
 				 * avec le serveur distant.
 				 */
 				switch (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
 				{
 				/**
 				 * Si une erreur s'est produite lors de la création du ProxyWorker,
-				 * on envoie une réponse d'erreur 503 (Service Unavailable) informant le client que la connection
+				 * on envoie une réponse d'erreur 503 (Service Unavailable) informant le client que la connexion
 				 * avec le serveur distant n'a pas pu être établie.
 				 */
 				case WBS_PROXY_UNAVAILABLE:
@@ -338,7 +338,7 @@ int	Client::processLines(void) {
 	{
 		/**
 		 * Si le client envoie un corps de requête alors que la requête n'en attend pas,
-		 * on envoie une réponse d'erreur.
+		 * une réponse d'erreur est envoyée.
 		 */
 		if (this->request.bodyReceived() && !this->request.hasContentLength())
 		{
@@ -348,7 +348,7 @@ int	Client::processLines(void) {
 
 		if (request.processLine(this->_buffer))
 		{
-			// Dans le cas d'une erreur de parsing on envoie une réponse d'erreur
+			// En cas d'erreur de parsing, on envoie une réponse d'erreur
 			this->response->status(400).end();
 			return (WBS_ERR);
 		}
@@ -365,20 +365,20 @@ bool	Client::timeout(void) {
 	 * s'appliquer entre chaque opération de lecture plutôt que sur l'ensemble de la requête. Actuellement, le calcul
 	 * du *timeout* se base sur `this->request.getRequestTime()`, qui correspond à l'heure à laquelle la requête a été 
 	 * acceptée. Il serait préférable de recalculer le *timeout* en utilisant le temps de la dernière lecture pour
-	 * s'assurer que la durée est remise à zéro après chaque lecture.
+	 * s'assurer que la durée est réinitialisée après chaque lecture.
 	 */
 	/**
 	 * Si le client n'a pas envoyé les en-têtes de la requête dans le délai imparti,
-	 * on envoie une réponse d'erreur 408 (Request Timeout) et on ferme la connexion.
+	 * une réponse d'erreur 408 (Request Timeout) est envoyée et la connexion est fermée.
 	 */
 	time_t now = getTimestamp();
 	time_t max = WBS_REQUEST_TIMEOUT;
 	Router *handler = this->_current_router;
 
 	/**
-	 * Étant donné que le server a besoin d'avoir reçu l'en-tête `Host` pour savoir 
-	 * à quel server virtuel la requête est destinée, temps que cet en-tête n'est pas reçu,
-	 * on utilise la configuration du server par défault pour déterminer le timeout.
+	 * Étant donné que le serveur a besoin d'avoir reçu l'en-tête `Host` pour savoir 
+	 * à quel serveur virtuel la requête est destinée, tant que cet en-tête n'est pas reçu,
+	 * on utilise la configuration du serveur par défaut pour déterminer le timeout.
 	 */
 	if (!handler)
 		handler = this->_server->getDefault()->getDefaultHandler();
@@ -407,11 +407,11 @@ bool	Client::timeout(void) {
 			if (this->response)
 			{
 				/**
-				 * Dans le cas ou le client a demandé une mise à niveau vers WebSocket, on envoie une trame
+				 * Dans le cas où le client a demandé une mise à niveau vers WebSocket, on envoie une trame
 				 * de fermeture à la place d'une réponse HTTP.
 				 * 
-				 * Normalement le protocol WebSocket n'a pas de timeout, mais comme l'implementation est une experimention
-				 * on laisse le timeout pour eviter de bloquer le serveur pour rien.
+				 * Normalement, le protocole WebSocket n'a pas de timeout, mais comme l'implémentation est une expérimentation,
+				 * on laisse le timeout pour éviter de bloquer le serveur pour rien.
 				 */
 				if (this->response->isUpgraded())
 				{
