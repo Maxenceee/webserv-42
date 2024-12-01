@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/17 15:18:07 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:37:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ int	Request::processLine(const std::string &line)
 	if (!this->_request_line_received)
 	{
 		/**
-		 * La norme RFC impose que chaque requête HTTP suive un modèle strict.
+		 * La norme RFC impose que chaque requête HTTP suive un modèle strict :
 		 * Ligne de commande (Commande, URL, Version de protocole)
 		 * En-tête de requête
 		 * [Ligne vide]
@@ -63,8 +63,8 @@ int	Request::processLine(const std::string &line)
 				this->getRequestCookies();
 
 				/**
-				 * On s'assure que l'en-tête `Host` est présente dans la
-				 * requête. La cas échéant la requête est invalide.
+				 * On s'assure que l'en-tête `Host` est présent dans la
+				 * requête. Le cas échéant, la requête est invalide.
 				 */
 				if (this->_host.empty())
 				{
@@ -73,7 +73,7 @@ int	Request::processLine(const std::string &line)
 
 				/**
 				 * On vérifie si la requête contient un corps. Si c'est le cas, on
-				 * extrait sa taille ou on vérifie si le codage `chunked` est utilisé.
+				 * en extrait la taille ou on vérifie si le codage `chunked` est utilisé.
 				 */
 				if (this->_method == "GET" || this->_method == "HEAD" || (!this->_headers.count("Content-Length") && !this->_headers.count("Transfer-Encoding")))
 				{
@@ -103,10 +103,10 @@ int	Request::processLine(const std::string &line)
 			}
 
 			/**
-			 * Selon la norme RFC les en-têtes doivent suivrent un modèle précis (Nom-Du-Champs: [espace?] valeur [espace?])
-			 * Le nom de l'en-tête doit avoir une majuscule, s'il contient plusieurs mots, ils
-			 * doivent aussi avoir une majuscule et être liés par un tiré (-). Les en-têtes sont sensibles à
-			 * la case et chaque type d'en-tête a son format spécifique pour ses différentes valeurs.
+			 * Selon la norme RFC, les en-têtes doivent suivre un modèle précis (Nom-Du-Champ: [espace?] valeur [espace?]).
+			 * Le nom de l'en-tête doit commencer par une majuscule. S'il contient plusieurs mots, ils
+			 * doivent aussi commencer par une majuscule et être liés par un tiret (-). Les en-têtes sont sensibles à
+			 * la casse et chaque type d'en-tête a son format spécifique pour ses différentes valeurs.
 			 * 
 			 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2)
 			 */
@@ -120,7 +120,7 @@ int	Request::processLine(const std::string &line)
 			
 			/**
 			 * L'en-tête `Content-Length` indique la taille du corps de la requête en octets.
-			 * On verifie si elle est déjà présente dans les en-têtes, si c'est le cas, on s'assure
+			 * On vérifie si elle est déjà présente dans les en-têtes, si c'est le cas, on s'assure
 			 * que la valeur est la même que celle déjà présente.
 			 */
 			if (key == "Content-Length")
@@ -188,7 +188,7 @@ int	Request::getRequestLine(const std::string &req_line)
 	size_t		j;
 
 	/**
-	 * Une requête HTTP commmence par une ligne de commande
+	 * Une requête HTTP commence par une ligne de commande
 	 * (Commande, URL, Version de protocole), on s'assure qu'elle est correctement
 	 * formée.
 	 * 
@@ -227,10 +227,11 @@ int	Request::getRequestVersion(const std::string &str)
 	if (str.compare(0, 5, http) == 0)
 	{
 		this->_version.assign(str, 5, 3); // on extrait la version du protocole de la requête
-		// Le serveur n'accepte que la version 1.1 du protocole HTTP.
-		// Cette version date du début des années 2000 et offre moins de
-		// fonctionnalitées que les versions plus récentes (HTTP/2 et HTTP/3) mais est, de fait,
-		// plus facilement implémentable.
+		/**
+		 * Cette version date du début des années 2000 et offre moins de
+		 * fonctionnalités que les versions plus récentes (HTTP/2 et HTTP/3) mais est, de fait,
+		 * plus facilement implémentable.
+		 */
 		if (this->_version != "1.1")
 		{
 			Logger::error("request error: unsupported HTTP version");
@@ -243,7 +244,7 @@ int	Request::getRequestVersion(const std::string &str)
 		return (400);
 	}
 	/**
-	 * On vérifie que la méthode de la requête n'est pas éronée.
+	 * On vérifie que la méthode de la requête n'est pas erronée.
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7231#section-4)
 	 */
@@ -255,7 +256,7 @@ int	Request::getRequestVersion(const std::string &str)
 ChunkProcessResult	Request::processChunk(const std::string &chunks)
 {
 	/**
-	 * Le codage `chunked` modifie le corps du la requête afin de le transféré sous frome d'une serie fragments,
+	 * Le codage `chunked` modifie le corps de la requête afin de le transférer sous forme d'une série de fragments,
 	 * chacun avec son propre indicateur de taille, suivi d'une partie facultative de fin (trailer) contenant
 	 * des champs d'en-tête d'entité. Cela permet de transférer du contenu produit dynamiquement avec les
 	 * informations nécessaires pour que le destinataire puisse vérifier qu'il a reçu le message complet.
@@ -265,7 +266,7 @@ ChunkProcessResult	Request::processChunk(const std::string &chunks)
 	 * trailer
 	 * 
 	 * fragment = taille-du-fragment (1*HEX)
-	 * 			  données-du-fragment
+	 *            données-du-fragment
 	 * 
 	 * dernier-fragment = 1*("0")
 	 * 
@@ -337,18 +338,18 @@ int	Request::getRequestQuery(void)
 	std::string	query = "";
 
 	/**
-	 * Le chaine de requête fait partie intégrante des URIs et respectent
+	 * La chaîne de requête fait partie intégrante des URIs et respecte
 	 * un format bien particulier. Les URIs se décomposent en plusieurs
-	 * partie distinctes.
+	 * parties distinctes.
 	 * 
 	 * - Le schéma d'URI (URI Scheme) est une lettre suivie de n'importe quelle combinaison de lettres,
 	 * de chiffres, du signe plus (+), du point (.) ou d'un tiret (-) et se termine par deux points (:). Ici 'http:'.
 	 * - On ajoute (//), chaîne de caractères pour les protocoles dont la requête comprend un chemin d'accès.
 	 * - La partie hiérarchique est prévue pour contenir les informations d'identification de la ressource,
-	 * hiérarchique par nature. En général suivi par le domaine puis un chemin optionnel.
-	 * - La chaine de requête (Query) est une partie optionnelle séparée par un point d'interrogation (?) qui contient
+	 * hiérarchique par nature. En général suivie par le domaine puis un chemin optionnel.
+	 * - La chaîne de requête (Query) est une partie optionnelle séparée par un point d'interrogation (?) qui contient
 	 * des informations complémentaires qui ne sont pas de nature hiérarchique, mais est souvent formée
-	 * d'une suite de paires <clef>=<valeur> séparées par des points virgules ou par des esperluettes.
+	 * d'une suite de paires <clef>=<valeur> séparées par des points-virgules ou par des esperluettes.
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc6920.html#section-3)
 	 */
@@ -394,7 +395,7 @@ int	Request::getRequestHostname(const std::string &host)
 	size_t	i;
 
 	/**
-	 * La norme RFC impose que pour chaque requête l'en-tête `Host` soit présent
+	 * La norme RFC impose que pour chaque requête, l'en-tête `Host` soit présent
 	 * afin de fournir les informations sur l'hôte et le port à partir de l'URI cible,
 	 * permettant au serveur d'origine de distinguer entre les ressources tout en
 	 * traitant les demandes pour plusieurs noms d'hôte sur une seule adresse IP.

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 18:04:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:49:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,6 +154,8 @@ public:
 	Router	*eval(const std::string &path, const std::string &method, Response &response);
 	void	route(Request &request, Response &response);
 
+	void	sendResponse(Response &response);
+
 	void					use(Router *router);
 	std::vector<Router *>	&getRoutes(void);
 
@@ -196,8 +198,6 @@ public:
 	void				enableCGI(void);
 	void				addCGIParam(const std::string &key, const std::string &value);
 	const std::string	&getCGIPath() const;
-
-	void				sendResponse(Response &response);
 
 	void							setProxy(wbs_url &proxy_url);
 	void							addProxyHeader(const std::string &key, const std::string &value);

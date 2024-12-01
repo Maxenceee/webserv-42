@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 13:47:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:27:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ int		Cluster::start(void)
 	const int						timeout = WBS_POLL_TIMEOUT;
 	wsb_v_servers_t::iterator		it;
 
-	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
+	// On vérifie si les serveurs du cluster ont été initialisés avant de les démarrer
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		if (!(*it)->isInit()) {
@@ -136,10 +136,10 @@ int		Cluster::start(void)
 		Logger::print("Listening on port " + toString<int>(server->getPort()), B_GREEN);
 
 		/**
-		 * La fonction listen() permet de marquer un socket comme étant un socket en
+		 * La fonction listen() permet de marquer un socket comme étant en
 		 * attente de connexions entrantes.
 		 * 
-		 * Elle prend en paramètres le descripteur de fichiers du socket et la taille de la file
+		 * Elle prend en paramètres le descripteur de fichier du socket et la taille de la file
 		 * d'attente.
 		 */
 		int error = listen(server->getSocketFD(), WBS_DEFAULT_MAX_WORKERS);
@@ -168,14 +168,14 @@ int		Cluster::start(void)
 		 * une écriture (I/O) ou s'ils ont généré une exception.
 		 * 
 		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
-		 * pour chaque élément, le descripteur de fichiers (pollfd::fd) et l'événements à
+		 * pour chaque élément, le descripteur de fichiers (pollfd::fd) et les événements à
 		 * surveiller (pollfd::events).
 		 * 
 		 * La fonction attend que l'un des événements spécifiés se produise pour l'un
-		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire. L'évènement detecté
-		 * est ecrit dans pollfd::revents.
+		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire. L'événement détecté
+		 * est écrit dans pollfd::revents.
 		 * 
-		 * Dans ce cas elle permet de s'assurer que le descripteur du socket est
+		 * Dans ce cas, elle permet de s'assurer que le descripteur du socket est
 		 * prêt pour la lecture.
 		 */
 		if (poll(poll_fds.data(), poll_fds.size(), timeout) == -1)
@@ -189,24 +189,24 @@ int		Cluster::start(void)
 			return (WBS_SOCKET_ERR);
 		}
 
-		// Vérifier chaque connexions pour voir si elles sont prêtes pour la lecture
+		// Vérifier chaque connexion pour voir si elle est prête pour la lecture
 		for (size_t i = 0; i < poll_fds.size(); ++i)
 		{
-			// Si le client a fermé la connexion ou une erreur s'est produite
+			// Si le client a fermé la connexion ou si une erreur s'est produite
 			if (poll_fds[i].revents & POLLHUP)
 			{
 				Logger::debug("Connection closed by the client (event POLLHUP)");
 				to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 			}
 			/**
-			 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
-			 * les faux positifs lorsque timeout expire ou lorsqu'il y a une exception.
+			 * On s'assure ensuite que l'événement détecté est bien celui attendu. On évite
+			 * les faux positifs lorsque le timeout expire ou lorsqu'il y a une exception.
 			 */
 			else if (poll_fds[i].revents & POLLIN)
 			{
 				/**
 				 * Le fait d'utiliser une structure générique `poll_clients` permet de gérer de manière
-				 * simultanée plusieurs type descripteurs (serveurs, clients, proxy, etc.).
+				 * simultanée plusieurs types de descripteurs (serveurs, clients, proxy, etc.).
 				 * Le type permet d'identifier le descripteur afin de le caster correctement avant de l'utiliser.
 				 */
 				switch (poll_clients[poll_fds[i].fd].type)
@@ -214,13 +214,13 @@ int		Cluster::start(void)
 				case WBS_POLL_SERVER:
 					/**
 					 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
-					 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
-					 * d'une structure `sockaddr` ou seront écrites les informations sur le client (adresse IP, port, etc.).
+					 * Elle prend en paramètres le descripteur de fichier du socket ainsi que le pointeur
+					 * d'une structure `sockaddr` où seront écrites les informations sur le client (adresse IP, port, etc.).
 					 * 
-					 * La fonction retourne un nouveau descripteur de fichiers vers le client.
+					 * La fonction retourne un nouveau descripteur de fichier vers le client.
 					 */
 					/**
-					 * Etant donné que les serveurs sont ajoutés dans l'ordre au début tableau des descripteurs
+					 * Étant donné que les serveurs sont ajoutés dans l'ordre au début du tableau des descripteurs
 					 * à surveiller, on peut déduire l'indice du serveur à partir de l'indice du descripteur.
 					 * D'où l'utilisation de l'indice `i` pour récupérer le serveur correspondant dans `this->_servers`
 					 * au lieu de devoir faire un reinterpret_cast<Server *>(poll_clients[poll_fds[i].fd].data) comme
@@ -235,13 +235,12 @@ int		Cluster::start(void)
 					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)
 					client_addr.sin_port = ntohs(client_addr.sin_port); // Corrige l'ordre des octets du port (endianness)
 					/**
-					 * On ajoute le nouveau client à la liste des descripteurs à surveiller
+					 * On ajoute le nouveau client à la liste des descripteurs à surveiller.
 					 */
 					poll_fds.push_back((pollfd){newClient, POLLIN, 0});
 					/**
-					 * On crée un nouveau client et on l'ajoute à la liste des clients
+					 * Création et ajout d'un nouveau client à la liste des clients.
 					 */
-					// poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr, poll_fds, poll_clients)};
 					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
 					break;
 
@@ -259,7 +258,7 @@ int		Cluster::start(void)
 				}
 			}
 			// Si le descripteur n'est pas prêt pour la lecture et que c'est un client, on
-			// s'assure qu'il ne depasse pas le timeout
+			// s'assure qu'il ne dépasse pas le timeout
 			else if (poll_clients[poll_fds[i].fd].type == WBS_POLL_CLIENT)
 			{
 				if ((reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->timeout())
@@ -267,10 +266,10 @@ int		Cluster::start(void)
 			}
 		}
 
-		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'indice
+		// Nous supprimons les éléments à partir de la fin du vecteur pour éviter les décalages d'index
 		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
 		{
-			// On sauvegarde le descripteur de l'élément à supprimer
+			// Sauvegarde du descripteur de l'élément à supprimer
 			newClient = poll_fds[*it].fd;
 			poll_fds.erase(poll_fds.begin() + *it);
 			client = reinterpret_cast<Client *>(poll_clients[newClient].data);
@@ -286,7 +285,7 @@ int		Cluster::start(void)
 			delete reinterpret_cast<Client *>(it->second.data);
 	}
 
-	// On eteint les serveurs et libère la mémoire
+	// On éteint les serveurs et libère la mémoire
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->kill();
 

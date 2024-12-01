@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 13:47:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:45:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void	Logger::init(void)
 	displayDate(std::cerr);
 	std::cerr << WBS_PREFIX << "Starting server: New logger session" << RESET << std::endl;
 	/**
-	 * Initialisation du mutex pour eviter les conflits d'affichage
+	 * Initialisation du mutex pour éviter les conflits d'affichage
 	 */
 	pthread_mutex_init(&Logger::_loggerMutex, NULL);
 	std::atexit(Logger::destroy);
@@ -56,7 +56,7 @@ bool	Logger::aquireMutex(void)
 	if (!Logger::_initiated)
 	{
 		/**
-		 * If the logger is not initiated, we need to init it
+		 * Si le logger n'est pas initialisé, nous devons l'initialiser
 		 */
 		Logger::init();
 	}

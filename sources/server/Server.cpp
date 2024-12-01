@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 13:44:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:29:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ Server::~Server(void)
 std::vector<std::string>	Server::initMethods()
 {
 	/**
-	 * Seules les méthodes GET, POST et DELETE sont obligatoires.
+	 * Note: Seules les méthodes GET, POST et DELETE sont obligatoires pour le rendu du projet WEBSERV.
 	 * 
 	 * La méthode HEAD est similaire à GET à ceci près qu'elle ne renvoie que l'en-tête
 	 * de réponse.
@@ -50,15 +50,15 @@ std::vector<std::string>	Server::initMethods()
 	 * Les méthodes PUT et PATCH sont similaires à POST, les différences étant la nature
 	 * des modifications apportées. POST permet la création/ajout d'une ressource sur le serveur,
 	 * PUT et PATCH permettent la modification de ladite ressource à la différence que PATCH
-	 * a pour but de ne faire qu'une modification partielle. Cepedant PUT est idempotent, c'est
-	 * à dire que si la ressource existe déjà, elle sera remplacée, si elle n'existe pas elle sera
+	 * a pour but de ne faire qu'une modification partielle. Cependant PUT est idempotent, c'est-à-dire
+	 * que si la ressource existe déjà, elle sera remplacée, si elle n'existe pas elle sera
 	 * créée. POST et PATCH ne sont pas idempotents, elles peuvent être utilisées pour modifier une ressource
 	 * plusieurs fois et obtenir des résultats différents.
 	 * 
 	 * La méthode TRACE est aussi assez simple, elle consiste à simplement retourner le contenu
 	 * de la requête au client afin que celui-ci puisse évaluer la qualité de la connexion.
 	 * 
-	 * OPTION et CONNECT sont inutiles dans notre cas.
+	 * OPTIONS et CONNECT sont inutiles dans notre cas.
 	 */
 	std::vector<std::string>	methods;
 
@@ -105,13 +105,13 @@ int	Server::init(void)
 	 * 
 	 * La macro AF_INET permet de spécifier à la fonction quel type de connexion
 	 * nous voulons, dans notre cas une connexion IPV4 (Internet Protocol Version 4) (pour se connecter à internet).
-	 * Pour utiliser le protocole IPV6 il faut utiliser la macro AF_INET6. 
+	 * Pour utiliser le protocole IPV6, il faut utiliser la macro AF_INET6. 
 	 * 
 	 * La macro SOCK_STREAM décrit le type de flux de données que nous voulons. Dans
-	 * notre cas nous voulons utiliser la protocol TCP (Transmission Control Protocol)
-	 * offrant un connexion fiable et sans perte de données. La fonction offre aussi
-	 * la possibilité d'utiliser la protocole UDP (User Datagram Protocol) avec la
-	 * macro SOCK_DGRAM privilégiant quant à lui la rapidité au détriment de la fiabilité. 
+	 * notre cas, nous voulons utiliser le protocole TCP (Transmission Control Protocol)
+	 * offrant une connexion fiable et sans perte de données. La fonction offre aussi
+	 * la possibilité d'utiliser le protocole UDP (User Datagram Protocol) avec la
+	 * macro SOCK_DGRAM, privilégiant quant à lui la rapidité au détriment de la fiabilité. 
 	 * 
 	 * La fonction renvoie un descripteur de fichiers.
 	 */
@@ -129,7 +129,7 @@ int	Server::init(void)
 	/**
 	 * La fonction setsockopt() permet de configurer notre socket créé précédemment.
 	 * 
-	 * Ici nous spécifions grâce à la macro SOL_SOCKET que le paramètre s'applique directement
+	 * Ici, nous spécifions grâce à la macro SOL_SOCKET que le paramètre s'applique directement
 	 * au socket.
 	 * 
 	 * SO_REUSEADDR permet de réutiliser une adresse locale immédiatement après que le socket
@@ -152,20 +152,20 @@ int	Server::init(void)
 	 * sur le réseau. Cela signifie que le socket utilisera cette adresse
 	 * pour communiquer sur le réseau.
 	 * 
-	 * Elle prend un paramètres le descripteur de fichiers du socket conserné et une structure
-	 * de donné d'un type spéfique en fonction du type de connexion. Dans nôtre cas (INET)
-	 * `sockaddr_in` ou `sockaddr_in6` en fonction de la version passé lors de la
+	 * Elle prend en paramètre le descripteur de fichier du socket concerné et une structure
+	 * de données d'un type spécifique en fonction du type de connexion. Dans notre cas (INET),
+	 * `sockaddr_in` ou `sockaddr_in6` en fonction de la version passée lors de la
 	 * création du socket, dans notre cas nous utilisons IPV4 donc sockaddr_in.
 	 * 
-	 * - Le champs sin_family permet de spécifier le type connexion, il doit être identique
+	 * - Le champ sin_family permet de spécifier le type de connexion, il doit être identique
 	 * à celui passé à la fonction socket() précédemment.
-	 * - Le champs sin_port permet de spécifier le port auquel on souhaite attacher le socket. Le
+	 * - Le champ sin_port permet de spécifier le port auquel on souhaite attacher le socket. Le
 	 * numéro du port doit être passé dans la fonction htons() en raison des différents ordres
-	 * d'octet (endianness) entre le réseau et la machine hôte. Le réseau utilisant un Big-Endian
-	 * cette fonction s'assure que la valeur passé soit convertie en conséquence. Cette conversion
-	 * est éssentielle pour éviter les problèmes de compatibilités.
-	 * - En enfin le champs sin_addr permet de spécifier l'adresse IP que nous voulons associer,
-	 * dans nôtre cas nous utilisons INADDR_ANY par defaut afin d'indiquer que le socket peut être associé à
+	 * d'octets (endianness) entre le réseau et la machine hôte. Le réseau utilisant un Big-Endian,
+	 * cette fonction s'assure que la valeur passée soit convertie en conséquence. Cette conversion
+	 * est essentielle pour éviter les problèmes de compatibilité.
+	 * - Enfin, le champ sin_addr permet de spécifier l'adresse IP que nous voulons associer,
+	 * dans notre cas nous utilisons INADDR_ANY par défaut afin d'indiquer que le socket peut être associé à
 	 * n'importe quelle adresse IP disponible sur la machine.
 	 */
 	int ret_conn = bind(this->socket_fd, (sockaddr *)&this->socket_addr, sizeof(this->socket_addr));
@@ -238,7 +238,7 @@ Router	*Server::eval(Request &request, Response &response) const
 
 	/**
 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
-	 * Si aucun nom de serveur n'est spécifié ou il n'a pas de configuration definit, on utilise
+	 * Si aucun nom de serveur n'est spécifié ou s'il n'a pas de configuration définie, on utilise
 	 * la configuration par défaut.
 	 */
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
@@ -248,8 +248,8 @@ Router	*Server::eval(Request &request, Response &response) const
 		}
 	}
 	/**
-	 * On retourne le router l'evaluation du router, c'est à dire le plus approprié pour
-	 * traiter la requête. Cette fonction regarde recursivement les sous-routers
+	 * On retourne le résultat de l'évaluation du router, c'est-à-dire le plus approprié pour
+	 * traiter la requête. Cette fonction regarde récursivement les sous-routers
 	 * définis dans le router et retourne celui qui correspond le mieux à la requête.
 	 */
 	return (router->eval(request.getPath(), request.getMethod(), response));
