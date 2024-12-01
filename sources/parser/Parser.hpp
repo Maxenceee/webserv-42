@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 18:01:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:15:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,11 @@
 #include "cluster/Cluster.hpp"
 #include "server/Server.hpp"
 #include "server/ServerConfig.hpp"
-#include "routes/Router.hpp"
 #include "logger/Logger.hpp"
 
 class Cluster;
 class Router;
+class ServerConfig;
 
 class Parser
 {

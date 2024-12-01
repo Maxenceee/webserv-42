@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 20:47:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:13:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
+#include "client/Client.hpp"
 #include "MIMEType.hpp"
 #include "websocket/websocket.hpp"
 

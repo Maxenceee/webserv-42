@@ -6,12 +6,11 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 18:45:51 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:16:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
-#include "client/Client.hpp"
 
 bool Cluster::exit = true;
 bool Cluster::kill = false;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 18:24:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:17:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 #include "routes/Router.hpp"
 #include "logger/Logger.hpp"
 
+class Cluster;
 class Router;
-class Request;
 class Response;
 class ServerConfig;
 

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 18:27:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:24:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,12 @@
 
 #include "webserv.hpp"
 #include "Server.hpp"
-#include "request/Request.hpp"
-#include "response/Response.hpp"
-#include "routes/Router.hpp"
 #include "logger/Logger.hpp"
 
-class Router;
+class Server;
 class Request;
 class Response;
+class Router;
 
 struct wbs_server_name {
 	std::string		name;
@@ -73,6 +71,8 @@ public:
 	void		setSSL(bool ssl);
 	bool		hasSSL(void) const;
 	bool		setupSSL(void);
+	void		setSSLCertFile(const std::string &cert_file);
+	void		setSSLKeyFile(const std::string &key_file);
 	SSL_CTX		*getSSLCTX(void) const;
 
 	

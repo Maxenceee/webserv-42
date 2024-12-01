@@ -6,13 +6,11 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 18:40:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 21:36:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "webserv.hpp"
 #include "Server.hpp"
-#include "routes/Router.hpp"
 
 std::ostream	&operator<<(std::ostream &os, const Server &server)
 {

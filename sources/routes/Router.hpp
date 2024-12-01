@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:49:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:16:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,6 @@
 #include "webserv.hpp"
 #include "server/Server.hpp"
 #include "server/ServerConfig.hpp"
-#include "request/Request.hpp"
-#include "response/Response.hpp"
 #include "cgi/CGIWorker.hpp"
 
 class Server;

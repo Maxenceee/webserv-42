@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 17:52:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:14:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 
 #include "webserv.hpp"
 #include "server/Server.hpp"
-#include "request/Request.hpp"
 
 class Server;
+class Client;
 class Request;
 
 struct wbs_cookie_options {

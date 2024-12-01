@@ -6,11 +6,10 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 21:08:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 21:36:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "webserv.hpp"
 #include "Client.hpp"
 #include "proxy/ProxyWorker.hpp"
 #include "base64.hpp"
