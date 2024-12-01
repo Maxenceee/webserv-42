@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/22 11:47:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 13:47:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ Client::~Client(void)
 	}
 	if (this->response)
 	{
-		if (Logger::_debug)
+		if (Logger::isDebug())
 			std::cout << *this->response << std::endl;
 		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
@@ -158,7 +158,7 @@ int	Client::process(void)
 			/**
 			 * Une fois que la requête est complètement parsée, on peut effectuer le routage.
 			 */
-			if (Logger::_debug)
+			if (Logger::isDebug())
 				std::cout << this->request << std::endl;
 			this->_current_router->route(this->request, *this->response);
 			/**

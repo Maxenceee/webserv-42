@@ -6,11 +6,18 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/30 17:12:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 13:57:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
+
+/**
+ * TODO:
+ * Gérer le fait d'avoir un URI dans la config du proxy
+ * ex: 
+ * proxy_pass http://localhost:3000/api;
+ */
 
 ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
 	_client(client),
@@ -56,7 +63,7 @@ int	ProxyWorker::operator()()
 	}
 	Cluster::pool.enqueueTask(relay_data, this->_client, this->socket_fd);
 	Logger::debug("Worker task pushed to pool", RESET);
-	if (Logger::_debug)
+	if (Logger::isDebug())
 		std::cout << this->_req << std::endl;
 	return (WBS_PROXY_OK);
 }
@@ -64,18 +71,6 @@ int	ProxyWorker::operator()()
 int	ProxyWorker::connect()
 {
 	int option = 1;
-
-	this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->socket_fd < 0)
-	{
-		Logger::perror("proxy worker error: socket");
-		return (WBS_PROXY_ERROR);
-	}
-
-	if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
-		Logger::perror("proxy worker error: setsockopt");
-		return (WBS_SOCKET_ERR);
-	}
 
 	struct hostent *hostent = gethostbyname(this->_config.host.c_str());
 	if (hostent == NULL) {
@@ -99,10 +94,21 @@ int	ProxyWorker::connect()
 	this->socket_addr.sin_port = htons(this->_config.port);
 
 	for (char **addr = hostent->h_addr_list; *addr != NULL; ++addr) {
+		this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+		if (this->socket_fd < 0)
+		{
+			Logger::perror("proxy worker error: socket");
+			return (WBS_PROXY_ERROR);
+		}
+
+		if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
+			Logger::perror("proxy worker error: setsockopt");
+			return (WBS_SOCKET_ERR);
+		}
 		struct in_addr inAddr;
 		memcpy(&inAddr, *addr, sizeof(struct in_addr));
 
-		ss << "Trying IP Address: " << inet_ntoa(inAddr);
+		ss << "Trying IP Address: " << inet_ntoa(inAddr) << " on port " << this->_config.port;
 		Logger::debug(ss.str());
 		ss.str("");
 
@@ -117,6 +123,7 @@ int	ProxyWorker::connect()
 			break;
 		} else {
 			Logger::perror("proxy worker error: connect");
+			close(this->socket_fd);
 		}
 	}
 
@@ -154,12 +161,8 @@ void relay_data(int client_fd, int backend_fd)
 		// Check if there's data to read from the client
 		if (FD_ISSET(client_fd, &read_fds)) {
 			bytes_read = recv(client_fd, buffer, sizeof(buffer), 0);
-			if (bytes_read <= 0) {
-				if (bytes_read == 0) {
-					// printf("client closed connection\n");
-				} else {
-					Logger::perror("proxy worker error: recv from client");
-				}
+			if (bytes_read == -1) {
+				Logger::perror("proxy worker error: recv from client");
 				break;
 			}
 
@@ -173,12 +176,8 @@ void relay_data(int client_fd, int backend_fd)
 		// Check if there's data to read from the backend
 		if (FD_ISSET(backend_fd, &read_fds)) {
 			bytes_read = recv(backend_fd, buffer, sizeof(buffer), 0);
-			if (bytes_read <= 0) {
-				if (bytes_read == 0) {
-					// printf("backend closed connection\n");
-				} else {
-					Logger::perror("proxy worker error: recv from backend");
-				}
+			if (bytes_read == -1) {
+				Logger::perror("proxy worker error: recv from client");
 				break;
 			}
 

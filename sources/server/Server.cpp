@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/22 11:00:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 13:44:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,8 +92,6 @@ std::vector<std::string>	Server::initMethods()
 
 int	Server::init(void)
 {
-	int	option = 1;
-
 	// on verifie si le port du serveur a été configuré
 	if (this->port == 0) {
 		Logger::error("server error: could not start server: port not set");
@@ -123,6 +121,11 @@ int	Server::init(void)
 		Logger::perror("server error: Could not create socket");
 		return (WBS_SOCKET_ERR);
 	}
+
+	/**
+	 * Option vaux 1 pour activer l'option SO_REUSEADDR.
+	 */
+	int	option = 1;
 	/**
 	 * La fonction setsockopt() permet de configurer notre socket créé précédemment.
 	 * 
