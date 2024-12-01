@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:45:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 20:47:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,8 @@
 
 wbs_mapis_t	Response::http_codes = Response::initCodes();
 
-Response::Response(int socket, const Request &req): _sent(false), _upgrade_to_socket(false)
+Response::Response(Client &client, const Request &req): _client(client), _sent(false), _upgrade_to_socket(false)
 {
-	this->_socket = socket;
 	this->_version = req.getVersion();
 	this->_method = req.getMethod();
 	this->_status = req.getStatus();
@@ -244,7 +243,7 @@ Response	&Response::sendFrame(const std::string& message, uint16_t closeCode)
 	else
 		data = ::sendCloseFrame(closeCode, message);
 
-	(void)::send(this->_socket, data.c_str(), data.size(), 0);
+	(void)this->_client.send(data.c_str(), data.size());
 	return (*this);
 }
 
@@ -371,8 +370,7 @@ Response	&Response::end(void)
 		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
 		 * gestion de l'écriture dans un contexte de travail en réseau.
 		 */
-		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
-		(void)ret;
+		this->_client.send(res.c_str(), res.size());
 		this->_sent = true;
 		if (this->_upgrade_to_socket)
 			Logger::debug(B_YELLOW"------------------WebSocket handshake response sent-------------------");
