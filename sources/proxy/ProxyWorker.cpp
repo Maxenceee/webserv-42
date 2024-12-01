@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 13:57:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:59:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,11 @@ int	ProxyWorker::operator()()
 		close(this->socket_fd);
 		return (WBS_PROXY_UNAVAILABLE);
 	}
+	/**
+	 * TODO:
+	 * Support forward headers
+	 * See: Router::wbs_router_proxy::forwared
+	 */
 	for (size_t i = 0; i < this->_config.hidden.size(); i++)
 	{
 		this->_req.removeHeader(this->_config.hidden[i]);
