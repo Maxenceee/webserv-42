@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/30 17:09:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 18:32:47 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -305,7 +305,10 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		this->throwError(raw_line, "listen directive must be inside server block");
 	else if (key == "listen") {
 		if (valtokens.size() > 1) {
-			this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
+			if (valtokens[1] == "ssl")
+				this->new_server->setSSL(true);
+			else
+				this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
 		}
 		// Si la directive listen contient `:` on s'assure que le port est correct
 		std::string line = valtokens[0];
@@ -665,6 +668,24 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 */
 	if (key == "proxy_hide_header") {
 		this->tmp_router->hideProxyHeader(valtokens[0]);
+		return ;
+	}
+
+	/**
+	 * Directive ssl_certificate
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate)
+	 */
+	if (key == "ssl_certificate") {
+		return ;
+	}
+
+	/**
+	 * Directive ssl_certificate_key
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate_key)
+	 */
+	if (key == "ssl_certificate_key") {
 		return ;
 	}
 

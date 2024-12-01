@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 18:06:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 18:27:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,15 +29,23 @@ struct wbs_server_name {
 	int				port;	
 };
 
+struct wbs_server_ssl {
+	bool			enabled;
+	std::string		cert_file;
+	std::string		key_file;
+	SSL_CTX			*ctx;
+};
+
 typedef std::vector<struct wbs_server_name>	wbs_server_names;
 
 class ServerConfig
 {
 private:
-	Server				*_server;
-	uint32_t			address;
-	uint16_t			port;
-	wbs_server_names	_server_name;
+	Server					*_server;
+	uint32_t				_address;
+	uint16_t				_port;
+	struct wbs_server_ssl	_ssl;
+	wbs_server_names		_server_name;
 
 	// les comportements par default du serveur sont stockés dans un router spécifique
 	Router				*_default;
@@ -50,7 +58,7 @@ public:
 
 	void		setServer(Server *server);
 
-	void		handleRoutes(Request &req, Response &res);
+	// void		handleRoutes(Request &req, Response &res);
 
 	Router		*getDefaultHandler(void);
 	void		use(Router *router);
@@ -61,11 +69,17 @@ public:
 
 	void		setPort(const uint16_t port);
 	uint16_t	getPort(void) const;
+
+	void		setSSL(bool ssl);
+	bool		hasSSL(void) const;
+	bool		setupSSL(void);
+	SSL_CTX		*getSSLCTX(void) const;
+
 	
 	void					addNames(const std::vector<std::string> &name);
 	void					addName(const std::string &name);
 	const wbs_server_names	&getNames(void) const;
-	bool					evalName(const std::string &name, const uint16_t port = 80) const;
+	bool					evalName(const std::string &name) const;
 
 	void	print(std::ostream &os) const;
 };

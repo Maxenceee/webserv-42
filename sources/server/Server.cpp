@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:29:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 18:40:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,11 @@ std::ostream	&operator<<(std::ostream &os, const Server &server)
 
 std::vector<std::string>	Server::methods = Server::initMethods();
 
-Server::Server(int id, uint16_t port, uint32_t address):
+Server::Server(int id, uint16_t port, uint32_t address, bool ssl):
 	_id(id),
-	port(port),
-	_address(address)
+	_port(port),
+	_address(address),
+	_ssl_enabled(ssl)
 {
 	this->_default = NULL;
 	this->_init = false;
@@ -93,7 +94,7 @@ std::vector<std::string>	Server::initMethods()
 int	Server::init(void)
 {
 	// on verifie si le port du serveur a été configuré
-	if (this->port == 0) {
+	if (this->_port == 0) {
 		Logger::error("server error: could not start server: port not set");
 		return (WBS_ERR);
 	}
@@ -144,7 +145,7 @@ int	Server::init(void)
 
 	bzero(&this->socket_addr, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
-	this->socket_addr.sin_port = htons(this->port);
+	this->socket_addr.sin_port = htons(this->_port);
 	this->socket_addr.sin_addr.s_addr = htonl(this->_address);
 	/**
 	 * La fonction bind permet d'attacher un socket à une adresse IP et un port
@@ -181,6 +182,18 @@ int	Server::init(void)
 		}
 		close(this->socket_fd);
 		return (WBS_ERR);
+	}
+	
+	Logger::debug("Setting up SSL context");
+	for (std::vector<ServerConfig *>::iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+		if ((*it)->hasSSL()) {
+			/**
+			 * Si une erreur survient lors de la configuration du SSL, on retourne une erreur.
+			 */
+			if (!(*it)->setupSSL()) {
+				return (WBS_ERR);
+			}
+		}
 	}
 	this->_init = true;
 	return (WBS_NOERR);
@@ -227,13 +240,31 @@ uint32_t	Server::getAddress(void) const
 
 uint16_t	Server::getPort(void) const
 {
-	return (this->port);
+	return (this->_port);
+}
+
+bool	Server::hasSSL(void) const
+{
+	return (this->_ssl_enabled);
+}
+
+ServerConfig	*Server::getConfig(const char *name) const
+{
+	return (this->getConfig(std::string(name)));
+}
+
+ServerConfig	*Server::getConfig(const std::string &name) const
+{
+	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
+		if ((*it)->evalName(name)) {
+			return (*it);
+		}
+	}
+	return (this->_default);
 }
 
 Router	*Server::eval(Request &request, Response &response) const
-{
-	Router	*router = this->_default->getDefaultHandler();
-	
+{	
 	Logger::debug("Evaluating server config for name " + request.getHost() + ":" + toString<int>(request.getPort()));
 
 	/**
@@ -241,12 +272,8 @@ Router	*Server::eval(Request &request, Response &response) const
 	 * Si aucun nom de serveur n'est spécifié ou s'il n'a pas de configuration définie, on utilise
 	 * la configuration par défaut.
 	 */
-	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-		if ((*it)->evalName(request.getHost(), request.getPort())) {
-			router = (*it)->getDefaultHandler();
-			break;
-		}
-	}
+	Router	*router = this->getConfig(request.getHost())->getDefaultHandler();
+
 	/**
 	 * On retourne le résultat de l'évaluation du router, c'est-à-dire le plus approprié pour
 	 * traiter la requête. Cette fonction regarde récursivement les sous-routers
@@ -304,7 +331,9 @@ void	Server::print(std::ostream &os) const
 	os << B_BLUE << "<--- Server " << this->_id << " --->" << RESET << "\n";
 	os << B_CYAN << "Initiated: " << RESET << (this->_init ? "true" : "false") << "\n";
 	os << B_CYAN << "Address: " << RESET << getIPAddress(this->_address) << "\n";
-	os << B_CYAN << "Port: " << RESET << this->port << "\n\n";
+	os << B_CYAN << "Port: " << RESET << this->_port << "\n";
+	os << B_CYAN << "SSL: " << RESET << (this->_ssl_enabled ? "enabled" : "disabled") << "\n";
+	os << "\n";
 	os << B_ORANGE << "Configurations: " << RESET << "\n";
 	for (std::vector<ServerConfig *>::const_iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
 		os << **it;
