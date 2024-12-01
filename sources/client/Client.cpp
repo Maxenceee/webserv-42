@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 16:03:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 19:01:32 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,48 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	request(client, clientAddr),
 	response(NULL)
 {
+	if (server->hasSSL())
+	{
+		/**
+		 * Création d'un contexte SSL générique pour le serveur.
+		 * Ce contexte est utilisé pour créer une nouvelle session SSL pour chaque connexion,
+		 * ce contexte est temporaire et ne sert qu'à créer une session SSL pour le client.
+		 * Il est remplacé par le bon contexte SSL lors de la réception du SNI.
+		 */
+		SSL_CTX *ssl_ctx = SSL_CTX_new(TLS_server_method());
+		if (!ssl_ctx)
+		{
+			throw std::runtime_error("Failed to create SSL_CTX");
+		}
+
+		/**
+		 * Ajout de la fonction de rappel pour le nom du serveur (SNI).
+		 */
+		SSL_CTX_set_tlsext_servername_callback(ssl_ctx, &serverNameCallback);
+		/**
+		 * On passe le serveur en tant qu'argument pour la fonction de rappel, afin de pouvoir
+		 * récupérer les configurations du serveur en fonction du nom du serveur.
+		 */
+		SSL_CTX_set_tlsext_servername_arg(ssl_ctx, server);
+
+		/**
+		 * Création de la session SSL pour le client.
+		 */
+		this->_ssl_session = SSL_new(ssl_ctx);
+		if (!this->_ssl_session)
+		{
+			throw std::runtime_error("Failed to create SSL session");
+		}
+
+		SSL_set_fd(this->_ssl_session, client);
+		/**
+		 * Acceptation de la connexion SSL.
+		 */
+		if (SSL_accept(this->_ssl_session) <= 0)
+		{
+			throw std::runtime_error("Failed to accept SSL connection");
+		}
+	}
 	Logger::debug("New client on fd: "+toString(client));
 }
 
@@ -66,16 +108,17 @@ Client::~Client(void)
 		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
 	}
+	if (this->_ssl_session)
+	{
+		SSL_shutdown(this->_ssl_session);
+		SSL_free(this->_ssl_session);
+	}
 	close(this->_client);
 	Logger::debug("------------------Client connection closed-------------------", B_YELLOW);
 }
 
 int	Client::process(void)
 {
-	/**
-	 * TODO:
-	 * Support SSL/TLS
-	 */
 	char buffer[WBS_RECV_SIZE] = {0};
 
 	/**
@@ -84,7 +127,7 @@ int	Client::process(void)
 	 * spécifiquement conçue pour la lecture à partir de sockets. Elle offre une meilleure
 	 * gestion de la lecture dans un contexte de travail en réseau.
 	 */
-	int valread = recv(this->_client, buffer, sizeof(buffer), 0);
+	int valread = this->read(buffer, WBS_RECV_SIZE);
 	if (valread == -1) {
 		Logger::error("server error: an error occurred while reading from client");
 		return (WBS_POLL_CLIENT_ERROR);
@@ -175,7 +218,8 @@ int	Client::process(void)
 	return (WBS_POLL_CLIENT_OK);
 }
 
-int	Client::processLines(void) {
+int	Client::processLines(void)
+{
 	/**
 	 * Dans le cas où le client a demandé une mise à niveau vers WebSocket, évite de traiter la
 	 * donnée.
@@ -191,7 +235,7 @@ int	Client::processLines(void) {
 		std::string line = this->_buffer.substr(0, pos); // Extraire une ligne complète du buffer
 		this->_buffer.erase(0, pos + 2); // Supprimer la ligne traitée du buffer (incluant \r\n)
 
-		if (request.processLine(line))
+		if (this->request.processLine(line))
 		{
 			// En cas d'erreur de parsing, on envoie une réponse d'erreur
 			this->response->status(400).end();
@@ -362,7 +406,55 @@ int	Client::processLines(void) {
 	return (WBS_NOERR);
 }
 
-bool	Client::timeout(void) {
+int	Client::read(char *buffer, size_t buffer_size)
+{
+	int valread;
+
+	if (this->_ssl_session) {
+		/**
+		 * La fonction SSL_read() sert à lire le contenu d'un descripteur de fichier, ici
+		 * le descripteur du client. À la différence de recv(), la fonction SSL_read() est
+		 * spécifiquement conçue pour la lecture à partir de sockets sécurisés par SSL/TLS.
+		 */
+		valread = SSL_read(this->_ssl_session, buffer, buffer_size);
+	} else {
+		/**
+		 * La fonction recv() sert à lire le contenu d'un descripteur de fichier, ici
+		 * le descripteur du client. À la différence de read(), la fonction recv() est
+		 * spécifiquement conçue pour la lecture à partir de sockets. Elle offre une meilleure
+		 * gestion de la lecture dans un contexte de travail en réseau.
+		 */
+		valread = ::recv(this->_client, buffer, buffer_size, 0);
+	}
+
+	return (valread);
+}
+
+int	serverNameCallback(SSL *ssl, int *ad, void *arg)
+{
+	const char *servername = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
+	
+	if (servername == NULL)
+	{
+		Logger::error("SSL error: no server name received");
+		return (SSL_TLSEXT_ERR_ALERT_FATAL);
+	}
+
+	ServerConfig *config = ((Server *)arg)->getConfig(servername);
+	/**
+	 * La fonction SSL_set_SSL_CTX() permet de définir le contexte SSL à utiliser pour la session SSL.
+	 */
+	if (SSL_set_SSL_CTX(ssl, config->getSSLCTX()) == 0)
+	{
+		Logger::error("SSL error: could not set SSL context");
+		return (SSL_TLSEXT_ERR_ALERT_FATAL);
+	}
+	
+	return (SSL_TLSEXT_ERR_OK);
+}
+
+bool	Client::timeout(void)
+{
 	/**
 	 * TODO:
 	 * Conformément à la documentation de Nginx, contrairement aux en-têtes, le *timeout* du corps de la requête doit

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:55:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 18:45:51 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,12 @@ Cluster::~Cluster()
 
 void	Cluster::parse(const std::string &configPath)
 {
+	/**
+	 * Initialisation de la librairie OpenSSL pour le chiffrement des données.
+	 */
+	SSL_load_error_strings();
+	OpenSSL_add_ssl_algorithms();
+
 	this->parser->parse(configPath);
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
@@ -82,13 +88,13 @@ Server	*Cluster::addConfig(ServerConfig *config)
 	wsb_v_servers_t::iterator it;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
-		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress())
+		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress() && (*it)->hasSSL() == config->hasSSL())
 		{
 			(*it)->addConfig(config);
 			return (*it);
 		}
 	}
-	Server *server = new Server(this->_servers.size() + 1, config->getPort(), config->getAddress());
+	Server *server = new Server(this->_servers.size() + 1, config->getPort(), config->getAddress(), config->hasSSL());
 	server->addConfig(config);
 	this->_servers.push_back(server);
 	return (server);
@@ -235,13 +241,25 @@ int		Cluster::start(void)
 					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)
 					client_addr.sin_port = ntohs(client_addr.sin_port); // Corrige l'ordre des octets du port (endianness)
 					/**
+					 * On encapsule le client dans un try/catch pour gérer les exceptions créées lors de la création du client.
+					 */
+					try
+					{
+						/**
+						 * Création et ajout d'un nouveau client à la liste des clients.
+						 */
+						poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
+					}
+					catch(const std::exception& e)
+					{
+						Logger::error("server error: " + std::string(e.what()));
+						close(newClient);
+						break;
+					}
+					/**
 					 * On ajoute le nouveau client à la liste des descripteurs à surveiller.
 					 */
 					poll_fds.push_back((pollfd){newClient, POLLIN, 0});
-					/**
-					 * Création et ajout d'un nouveau client à la liste des clients.
-					 */
-					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
 					break;
 
 				case WBS_POLL_CLIENT:
