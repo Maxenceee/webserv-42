@@ -35,6 +35,7 @@
 #include <iterator>
 #include <list>
 #include <utility>
+#include <queue>
 
 // C Includes
 #include <stdint.h>

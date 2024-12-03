@@ -48,6 +48,7 @@ void	ThreadPool::kill(bool force)
 	pthread_cond_broadcast(&condition);
 	pthread_mutex_unlock(&queueMutex);
 
+#ifdef __APPLE__
 	if (force) {
 		Logger::print("Forcing workers to finish", B_GREEN);
 		for (size_t i = 0; i < workers.size(); ++i) {
@@ -56,6 +57,9 @@ void	ThreadPool::kill(bool force)
 	} else {
 		Logger::print("Waiting for workers to finish", B_GREEN);
 	}
+#else
+	Logger::print("Waiting for workers to finish", B_GREEN);
+# endif /* __APPLE__ */
 
 	for (size_t i = 0; i < workers.size(); ++i) {
 		pthread_join(workers[i], NULL);
