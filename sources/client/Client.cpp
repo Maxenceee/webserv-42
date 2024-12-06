@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 21:36:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/06 19:47:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,8 +326,8 @@ int	Client::processLines(void)
 				/**
 				 * le client a demandé une mise à niveau, nous devons le gérer et renvoyer la réponse appropriée.
 				 */
-				this->response->setHeader("Upgrade", "websocket");
 				this->response->setHeader("Connection", "upgrade");
+				this->response->setHeader("Upgrade", "websocket");
 				this->response->setHeader("Sec-WebSocket-Accept", calculateSecWebSocketAccept(key));
 
 				/**
