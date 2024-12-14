@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/14 10:46:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/14 20:52:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,6 +121,15 @@ int	Client::process(void)
 	char buffer[WBS_RECV_SIZE] = {0};
 
 	/**
+	 * Si le client a été mis à niveau vers un proxy, on ne traite pas la donnée car c'est le ProxyWorker
+	 * qui s'en charge.
+	 */
+	if (this->upgraded_to_proxy)
+	{
+		return (WBS_POLL_CLIENT_OK);
+	}
+
+	/**
 	 * La fonction recv() sert à lire le contenu d'un descripteur de fichier, ici
 	 * le descripteur du client. À la différence de read(), la fonction recv() est
 	 * spécifiquement conçue pour la lecture à partir de sockets. Elle offre une meilleure
@@ -194,7 +203,6 @@ int	Client::process(void)
 			// 	this->response->status(502).sendDefault().end();
 			// 	return (WBS_POLL_CLIENT_ERROR);
 			// }
-			// printf("request finished: new ProxyWorker !!!\n");
 			return (WBS_POLL_CLIENT_CLOSED);
 		}
 		else
@@ -355,7 +363,7 @@ int	Client::processLines(void)
 				 * Si le routeur est un proxy, on crée un ProxyWorker qui va se charger de la communication
 				 * avec le serveur distant.
 				 */
-				switch (ProxyWorker(this->_client, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
+				switch (ProxyWorker(this, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
 				{
 				/**
 				 * Si une erreur s'est produite lors de la création du ProxyWorker,
@@ -376,7 +384,7 @@ int	Client::processLines(void)
 					this->upgraded_to_proxy = true;
 					break;
 				}
-				return (WBS_POLL_CLIENT_CLOSED);
+				return (WBS_POLL_CLIENT_OK);
 			}
 		}
 	}
@@ -451,6 +459,16 @@ int	Client::send(const char *buffer, size_t buffer_size)
 	}
 
 	return (valread);
+}
+
+int	Client::getClientFD(void) const
+{
+	return (this->_client);
+}
+
+SSL	*Client::getSSLSession(void) const
+{
+	return (this->_ssl_session);
 }
 
 int	serverNameCallback(SSL *ssl, int *ad, void *arg)

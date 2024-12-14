@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/14 14:58:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:15:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/14 20:13:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,9 @@ public:
 
 	int 	read(char *buffer, size_t buffer_size);
 	int 	send(const char *buffer, size_t buffer_size);
+
+	int		getClientFD(void) const;
+	SSL		*getSSLSession(void) const;
 };
 
 int	serverNameCallback(SSL *ssl, int *ad, void *arg);
