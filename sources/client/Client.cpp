@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/06 19:47:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/14 10:46:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -435,9 +435,9 @@ int	Client::send(const char *buffer, size_t buffer_size)
 
 	if (this->_ssl_session) {
 		/**
-		 * La fonction SSL_read() sert à lire le contenu d'un descripteur de fichier, ici
-		 * le descripteur du client. À la différence de recv(), la fonction SSL_read() est
-		 * spécifiquement conçue pour la lecture à partir de sockets sécurisés par SSL/TLS.
+		 * La fonction SSL_send() sert à écrire le contenu d'un descripteur de fichier, ici
+		 * le descripteur du client. À la différence de write, la fonction SSL_send est
+		 * spécifiquement conçue pour écrire dans un socket sécurisé par SSL/TLS.
 		 */
 		valread = SSL_write(this->_ssl_session, buffer, buffer_size);
 	} else {
