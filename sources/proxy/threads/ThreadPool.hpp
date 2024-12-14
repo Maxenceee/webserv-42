@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 21:11:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/14 20:15:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,20 +15,23 @@
 
 #include "webserv.hpp"
 
+typedef void* wbs_threadpool_client;
+typedef int wbs_threadpool_backend;
+
 class ThreadPool
 {
 public:
 	ThreadPool(size_t numThreads);
 	~ThreadPool();
 
-	void	enqueueTask(void (*function)(int, int), int client_fd, int backend_fd);
+	void	enqueueTask(void (*function)(wbs_threadpool_client, wbs_threadpool_backend), wbs_threadpool_client client, wbs_threadpool_backend backend_fd);
 
 	void	kill(bool force = false);
 
 private:
 	std::vector<pthread_t> workers;
-	std::queue<void (*)(int, int)> tasks;
-	std::queue<std::pair<int, int> > taskArgs;
+	std::queue<void (*)(wbs_threadpool_client, wbs_threadpool_backend)> tasks;
+	std::queue<std::pair<wbs_threadpool_client, wbs_threadpool_backend> > taskArgs;
 
 	pthread_mutex_t	queueMutex;
 	pthread_cond_t	condition;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:16:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/14 20:41:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,6 +119,8 @@ int		Cluster::start(void)
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
 	signal(SIGTERM, interruptHandler);
+	// Handler pour SIGPIPE
+	signal(SIGPIPE, SIG_IGN);
 
 	/**
 	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).

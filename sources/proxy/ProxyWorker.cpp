@@ -6,20 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:35:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/14 20:37:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ProxyWorker.hpp"
 
-/**
- * TODO: ET EN PRIORITE !
- * Revoir le worker pour supporter les requêtes via ssl/tls car pour le moment des que le
- * serveur crée un proxy worker la requête repasse en HTTP ce qui evidemment ne fonctionne pas...
- * 
- * A voir dans un second temps pour gerer https dans le proxy_pass car dans ce cas il faut créer
- * un client https et c'est une autre affaire.
- */
 /**
  * TODO:
  * Gérer le fait d'avoir un URI dans la config du proxy
@@ -27,19 +19,28 @@
  * proxy_pass http://localhost:3000/api;
  */
 
-ProxyWorker::ProxyWorker(int client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
-	_client(client),
+ProxyWorker::ProxyWorker(Client *client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
 	_config(config),
 	socket_fd(-1),
 	_buffer(buffer),
 	_req(req)
 {
+	this->_client = new struct wbs_proxyworker_client(client);
 	Logger::debug("New ProxyWorker handling task");
 }
 
 ProxyWorker::~ProxyWorker()
 {
-	Logger::debug("ProxyWorker task completed");
+	// if (this->_client) {
+	// 	close(this->_client->fd);
+	// 	if (this->_client->session) {
+	// 		SSL_shutdown(this->_client->session);
+	// 		SSL_free(this->_client->session);
+	// 	}
+	// 	delete this->_client;
+	// }
+	// close(this->socket_fd);
+	Logger::warning("ProxyWorker task completed");
 }
 
 int	ProxyWorker::operator()()
@@ -149,12 +150,17 @@ int	ProxyWorker::connect()
 	return (WBS_PROXY_OK);
 }
 
-void relay_data(int client_fd, int backend_fd)
+void relay_data(wbs_threadpool_client client, wbs_threadpool_backend backend)
 {
 	fd_set read_fds;
-	int max_fd = (client_fd > backend_fd ? client_fd : backend_fd) + 1;
 	char buffer[4096];
 	ssize_t bytes_read, bytes_sent;
+	struct wbs_proxyworker_client *client_instance = reinterpret_cast<struct wbs_proxyworker_client *>(client);
+
+	int client_fd = client_instance->fd;
+	int backend_fd = backend;
+
+	int max_fd = (client_fd > backend_fd ? client_fd : backend_fd) + 1;
 
 	/**
 	 * TODO:
@@ -173,7 +179,7 @@ void relay_data(int client_fd, int backend_fd)
 
 		// Check if there's data to read from the client
 		if (FD_ISSET(client_fd, &read_fds)) {
-			bytes_read = recv(client_fd, buffer, sizeof(buffer), 0);
+			bytes_read = client_instance->read(buffer, sizeof(buffer));
 			if (bytes_read == -1) {
 				Logger::perror("proxy worker error: recv from client");
 				break;
@@ -194,7 +200,7 @@ void relay_data(int client_fd, int backend_fd)
 				break;
 			}
 
-			bytes_sent = send(client_fd, buffer, bytes_read, 0);
+			bytes_sent = client_instance->send(buffer, bytes_read);
 			if (bytes_sent == -1) {
 				Logger::perror("proxy worker error: send to client");
 				break;
@@ -202,7 +208,5 @@ void relay_data(int client_fd, int backend_fd)
 		}
 	}
 
-	close(client_fd);
-	close(backend_fd);
 	Logger::debug("------------------Proxy task ended-------------------", B_YELLOW);
 }
