@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 14:07:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:09:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -368,6 +368,7 @@ int	Client::processLines(void)
 				case WBS_PROXY_UNAVAILABLE:
 					this->response->status(503).sendDefault().end();
 					delete worker;
+					// La session SSL est détruite par le ProxyWorker donc on la met à NULL pour éviter de la détruire deux fois
 					this->_ssl_session = NULL;
 					return (WBS_ERR);
 				/**
