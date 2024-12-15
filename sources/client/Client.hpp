@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/14 14:58:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/14 20:13:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 01:54:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ class Server;
 class Request;
 class Response;
 class Router;
-class ProxyClient;
+class ProxyWorker;
 
 class Client
 {
