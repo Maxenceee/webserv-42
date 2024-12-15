@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:25:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:26:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -677,6 +677,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate)
 	 */
 	if (key == "ssl_certificate") {
+		if (context != "server")
+			this->throwError(raw_line, "ssl_certificate directive must be inside server block");
 		this->new_server->setSSLCertFile(valtokens[0]);
 		return ;
 	}
@@ -687,6 +689,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate_key)
 	 */
 	if (key == "ssl_certificate_key") {
+		if (context != "server")
+			this->throwError(raw_line, "ssl_certificate_key directive must be inside server block");
 		this->new_server->setSSLKeyFile(valtokens[0]);
 		return ;
 	}
