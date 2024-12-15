@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 13:39:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:57:59 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,7 @@ int	Server::init(void)
 		}
 		else
 		{
-			Logger::error("server error: bind error");
+			Logger::perror("server error: bind error");
 		}
 		close(this->socket_fd);
 		return (WBS_ERR);
