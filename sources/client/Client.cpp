@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 14:05:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:07:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -368,6 +368,7 @@ int	Client::processLines(void)
 				case WBS_PROXY_UNAVAILABLE:
 					this->response->status(503).sendDefault().end();
 					delete worker;
+					this->_ssl_session = NULL;
 					return (WBS_ERR);
 				/**
 				 * Ou le code 502 (Bad Gateway) informant qu'il y a eu une erreur lors de la communication
@@ -376,6 +377,7 @@ int	Client::processLines(void)
 				case WBS_PROXY_ERROR:
 					this->response->status(502).sendDefault().end();
 					delete worker;
+					this->_ssl_session = NULL;
 					return (WBS_ERR);
 				case WBS_PROXY_OK:
 					this->upgraded_to_proxy = true;
