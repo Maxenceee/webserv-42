@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/20 21:07:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 18:00:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,8 +91,8 @@ public:
 	const wbs_mapss_t		&getQueries(void) const;
 	const std::string		getQueryString(void) const;
 	const wbs_mapss_t		&getHeaders(void) const;
-	bool					hasHeader(const std::string name) const;
-	const std::string		&getHeader(const std::string name) const;
+	bool					hasHeader(const std::string &name) const;
+	const std::string		&getHeader(const std::string &name) const;
 	const wbs_mapss_t		&getCookies(void) const;
 	const std::string		&getBody(void) const;
 	int						getStatus(void) const;

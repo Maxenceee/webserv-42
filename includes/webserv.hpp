@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 18:12:57 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 16:33:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@
 #include <iterator>
 #include <list>
 #include <utility>
+#include <queue>
 
 // C Includes
 #include <stdint.h>
@@ -61,6 +62,10 @@
 #include <netinet/ip.h> 
 #include <netdb.h>
 #include <arpa/inet.h>
+
+// Open SSL Includes
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #include "pcolors.hpp"
 #include "utils/utils.hpp"

@@ -6,15 +6,19 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:49:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:26:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ThreadPool.hpp"
 #include "cluster/Cluster.hpp"
 
-ThreadPool::ThreadPool(size_t numThreads): stop(false)
+ThreadPool::ThreadPool(size_t numThreads): stop(false), available(true)
 {
+	if (numThreads == 0) {
+		available = false;
+		return;
+	}
 	pthread_mutex_init(&queueMutex, NULL);
 	pthread_cond_init(&condition, NULL);
 
@@ -23,22 +27,39 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false)
 		pthread_create(&worker, NULL, workerThread, this);
 		workers.push_back(worker);
 	}
-	Logger::debug("ThreadPool started");
+	Logger::debug("ThreadPool started with " + toString<int>(numThreads) + " threads");
 }
 
 ThreadPool::~ThreadPool()
 {
-	if (!stop) {
+	if (available && !stop) {
 		this->kill();
 	}
 }
 
-void	ThreadPool::kill()
+void	ThreadPool::kill(bool force)
 {
+	if (available == false || stop == true) {
+		return;
+	}
+
 	pthread_mutex_lock(&queueMutex);
 	stop = true;
 	pthread_cond_broadcast(&condition);
 	pthread_mutex_unlock(&queueMutex);
+
+#ifdef __APPLE__
+	if (force) {
+		Logger::print("Forcing workers to finish", B_GREEN);
+		for (size_t i = 0; i < workers.size(); ++i) {
+			pthread_cancel(workers[i]);
+		}
+	} else {
+		Logger::print("Waiting for workers to finish", B_GREEN);
+	}
+#else
+	Logger::print("Waiting for workers to finish", B_GREEN);
+# endif /* __APPLE__ */
 
 	for (size_t i = 0; i < workers.size(); ++i) {
 		pthread_join(workers[i], NULL);
@@ -47,13 +68,13 @@ void	ThreadPool::kill()
 	pthread_mutex_destroy(&queueMutex);
 	pthread_cond_destroy(&condition);
 	Logger::debug("ThreadPool stopped");
+	available = false;
 }
 
-void	ThreadPool::enqueueTask(void (*function)(int, int), int client_fd, int backend_fd)
+void	ThreadPool::enqueueWorker(ProxyWorker *worker)
 {
 	pthread_mutex_lock(&queueMutex);
-	tasks.push(function);
-	taskArgs.push(std::make_pair(client_fd, backend_fd));
+	tasks.push(worker);
 	pthread_cond_signal(&condition);
 	pthread_mutex_unlock(&queueMutex);
 }
@@ -82,13 +103,12 @@ void	ThreadPool::run()
 			return;
 		}
 
-		void (*task)(int, int) = tasks.front();
-		std::pair<int, int> args = taskArgs.front();
+		ProxyWorker *worker = tasks.front();
 		tasks.pop();
-		taskArgs.pop();
 
 		pthread_mutex_unlock(&queueMutex);
 
-		task(args.first, args.second);
+		worker->work();
+		delete worker;
 	}
 }

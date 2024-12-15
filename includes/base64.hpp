@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 14:57:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 15:36:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/30 21:13:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,11 @@
 #include <openssl/buffer.h>
 
 static const std::string base64_chars =
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789+/";
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			"abcdefghijklmnopqrstuvwxyz"
+			"0123456789+/";
 
-std::vector<uint8_t> base64_decode(std::string const& encoded_string) {
+std::vector<uint8_t> base64_decode(std::string const &encoded_string) {
 	int in_len = encoded_string.size();
 	int i = 0;
 	int j = 0;
@@ -34,7 +34,7 @@ std::vector<uint8_t> base64_decode(std::string const& encoded_string) {
 	uint8_t char_array_4[4], char_array_3[3];
 	std::vector<uint8_t> ret;
 
-	while (in_len-- && ( encoded_string[in_] != '=')) {
+	while (in_len-- && (encoded_string[in_] != '=')) {
 		char_array_4[i++] = encoded_string[in_]; in_++;
 		if (i ==4) {
 			for (i = 0; i <4; i++)
@@ -67,7 +67,7 @@ std::vector<uint8_t> base64_decode(std::string const& encoded_string) {
 	return ret;
 }
 
-std::string base64_encode(const std::vector<uint8_t>& input)
+std::string base64_encode(const std::vector<uint8_t> &input)
 {
 	std::string encoded;
 	encoded.reserve(((input.size() / 3) + (input.size() % 3 > 0)) * 4);

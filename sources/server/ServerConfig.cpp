@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 13:41:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:24:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,15 +27,20 @@ ServerConfig::ServerConfig(Server *server): _server(server), used(false)
 	 * configure le serveur pour que le port par defaut soit 80, sinon on utilise le port 8080.
 	 */
 	if (getuid() == 0)
-		this->port = 80;
+		this->_port = 80;
 	else
-		this->port = 8000;
-	this->address = INADDR_ANY;
+		this->_port = 8000;
+	this->_address = INADDR_ANY;
+
+	this->_ssl.enabled = false;
+	this->_ssl.ctx = NULL;
 }
 
 ServerConfig::~ServerConfig(void)
 {
 	delete this->_default;
+	if (this->_ssl.ctx)
+		SSL_CTX_free(this->_ssl.ctx);
 	Logger::debug("ServerConfig destroyed");
 }
 
@@ -54,14 +59,14 @@ void	ServerConfig::use(Router *router)
 	this->_default->use(router);
 }
 
-void	ServerConfig::setAddress(const std::string address)
+void	ServerConfig::setAddress(const std::string &address)
 {
 	if (!this->_server || !this->_server->isInit())
 	{
 		if (address == "*")
-			this->address = INADDR_ANY;
+			this->_address = INADDR_ANY;
 		else
-			this->address = setIPAddress(address);
+			this->_address = setIPAddress(address);
 	}
 	else
 		Logger::error("server error: could not set address after server startup");
@@ -70,30 +75,95 @@ void	ServerConfig::setAddress(const std::string address)
 void	ServerConfig::setAddress(const uint32_t address)
 {
 	if (!this->_server || !this->_server->isInit())
-		this->address = address;
+		this->_address = address;
 	else
 		Logger::error("server error: could not set address after server startup");
 }
 
 uint32_t	ServerConfig::getAddress(void) const
 {
-	return (this->address);
+	return (this->_address);
 }
 
 void	ServerConfig::setPort(const uint16_t port)
 {
 	if (!this->_server || !this->_server->isInit())
-		this->port = port;
+		this->_port = port;
 	else
 		Logger::error("server error: could not set port after server startup");
 }
 
 uint16_t	ServerConfig::getPort(void) const
 {
-	return (this->port);
+	return (this->_port);
 }
 
-void	ServerConfig::addNames(const std::vector<std::string> name)
+void	ServerConfig::setSSL(bool ssl)
+{
+	this->_ssl.enabled = ssl;
+}
+
+bool	ServerConfig::hasSSL(void) const
+{
+	return (this->_ssl.enabled);
+}
+
+void	ServerConfig::setSSLCertFile(const std::string &cert_file)
+{
+	this->_ssl.cert_file = cert_file;
+}
+
+void	ServerConfig::setSSLKeyFile(const std::string &key_file)
+{
+	this->_ssl.key_file = key_file;
+}
+
+bool	ServerConfig::setupSSL(void)
+{
+	if (this->_ssl.ctx != NULL)
+	{
+		Logger::warning("server warning: SSL context already set");
+		return (false);
+	}
+	if (this->_ssl.cert_file.empty())
+	{
+		Logger::error("server error: SSL certificate file not set");
+		return (false);
+	}
+	if (this->_ssl.key_file.empty())
+	{
+		Logger::error("server error: SSL key file not set");
+		return (false);
+	}
+	/**
+	 * Création du contexte SSL pour le serveur en utilisant le protocole TLS
+	 * (Transport Layer Security).
+	 */
+	this->_ssl.ctx = SSL_CTX_new(TLS_server_method());
+	if (!this->_ssl.ctx)
+	{
+		Logger::error("server error: could not create SSL context");
+		ERR_print_errors_fp(stderr);
+		return (false);
+	}
+	/**
+	 * Ajout des fichiers de certificat et de clé privée au contexte SSL.
+	 */
+	if (SSL_CTX_use_certificate_file(this->_ssl.ctx, this->_ssl.cert_file.c_str(), SSL_FILETYPE_PEM) <= 0 ||
+        SSL_CTX_use_PrivateKey_file(this->_ssl.ctx, this->_ssl.key_file.c_str(), SSL_FILETYPE_PEM) <= 0) {
+        Logger::error("server error: could not add certificate or key file");
+		ERR_print_errors_fp(stderr);
+		return (false);
+    }
+	return (true);
+}
+
+SSL_CTX	*ServerConfig::getSSLCTX(void) const
+{
+	return (this->_ssl.ctx);
+}
+
+void	ServerConfig::addNames(const std::vector<std::string> &name)
 {
 	for (std::vector<std::string>::const_iterator it = name.begin(); it != name.end(); it++)
 	{
@@ -101,7 +171,7 @@ void	ServerConfig::addNames(const std::vector<std::string> name)
 	}
 }
 
-void	ServerConfig::addName(const std::string name)
+void	ServerConfig::addName(const std::string &name)
 {
 	size_t pos = name.find(':');
 	if (pos != std::string::npos && pos != name.rfind(':'))
@@ -119,14 +189,14 @@ const wbs_server_names	&ServerConfig::getNames(void) const
 	return (this->_server_name);
 }
 
-bool	ServerConfig::evalName(const std::string name, const uint16_t port) const
+bool	ServerConfig::evalName(const std::string &name) const
 {
 	/**
 	 * Si le port n'est pas spécifié dans le nom du serveur, ceci sous-entend que le serveur
 	 * accepte les requêtes sur tous les ports.
 	 */
 	for (size_t i = 0; i < this->_server_name.size(); ++i) {
-		if (this->_server_name[i].name == name && (this->_server_name[i].port == port || this->_server_name[i].port == -1)) {
+		if (this->_server_name[i].name == name) {
 			return (true);
 		}
 	}
@@ -140,6 +210,8 @@ void	ServerConfig::print(std::ostream &os) const
 		os << B_GREEN << "default" << RESET;
 	os << "\n";
 	os << B_CYAN << "Name: " << RESET;
+	if (this->_server_name.empty())
+		os << I_YELLOW << "Any" << RESET;
 	for (wbs_server_names::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{
 		os << it->name;

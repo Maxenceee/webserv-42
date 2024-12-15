@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
@@ -6,19 +6,19 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/15 15:38:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:13:27 by mgama            ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "Response.hpp"
+#include "client/Client.hpp"
 #include "MIMEType.hpp"
 #include "websocket/websocket.hpp"
 
 wbs_mapis_t	Response::http_codes = Response::initCodes();
 
-Response::Response(int socket, const Request &req): _sent(false), _upgrade_to_socket(false)
+Response::Response(Client &client, const Request &req): _client(client), _sent(false), _upgrade_to_socket(false)
 {
-	this->_socket = socket;
 	this->_version = req.getVersion();
 	this->_method = req.getMethod();
 	this->_status = req.getStatus();
@@ -135,8 +135,8 @@ bool	Response::isValidStatus(int status)
 Response::~Response(void)
 {
 	/**
-	 * Si la réponse n'a pas été envoyé au client avant qu'elle ne soit
-	 * détruite on l'envoie.
+	 * Si la réponse n'a pas été envoyée au client avant qu'elle ne soit
+	 * détruite, on l'envoie.
 	 */
 	if (!this->_sent)
 		this->end();
@@ -148,11 +148,11 @@ Response	&Response::status(const int status)
 	return (*this);
 }
 
-Response	&Response::send(const std::string data)
+Response	&Response::send(const std::string &data)
 {	
 	this->_body = data;
 	/**
-	 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille de
+	 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille
 	 * de la ressource.
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
@@ -161,7 +161,7 @@ Response	&Response::send(const std::string data)
 	return (*this);
 }
 
-Response	&Response::sendFile(const std::string filepath)
+Response	&Response::sendFile(const std::string &filepath)
 {
 	std::ofstream		file;
 	std::stringstream	buffer;
@@ -171,6 +171,7 @@ Response	&Response::sendFile(const std::string filepath)
 		file.open(filepath.c_str(), std::ifstream::in);
 		if (file.is_open() == false)
 		{
+			Logger::perror("response error: open");
 			this->sendNotFound();
 			return (*this);
 		}
@@ -178,16 +179,16 @@ Response	&Response::sendFile(const std::string filepath)
 		file.close();
 		this->setHeader("Last-Modified", getLastModifiedDate(filepath));
 		/**
-		 * Lors de l'envoie d'un fichier il est préférable d'envoyer son
+		 * Lors de l'envoi d'un fichier, il est préférable d'envoyer son
 		 * type MIME via l'en-tête `Content-Type` afin de préciser au client
-		 * à quel type de fichier/données il a à faire.
+		 * à quel type de fichier/données il a affaire.
 		 * 
 		 * (https://www.rfc-editor.org/rfc/rfc2616#section-14.17)
 		 */
 		this->setHeader("Content-Type", MimeTypes::getMimeType(getExtension(filepath))); // +"; charset=utf-8"
 		this->_body = buffer.str();
 		/**
-		 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille de
+		 * On ajoute l'en-tête `Content-Length` afin d'indiquer au client la taille
 		 * de la ressource.
 		 * 
 		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
@@ -220,9 +221,11 @@ Response	&Response::sendDefault(const int code)
 	return (*this);
 }
 
-// Send WebSocket frame
-// If the closeCode is greater than 0, send a close frame with the message as reason
-// Else send a normal frame with the message as payload
+/**
+ * Envoie une trame WebSocket
+ * Si le closeCode est supérieur à 0, envoie une trame de fermeture avec le message comme raison
+ * Sinon, envoie une trame normale avec le message comme charge utile
+ */
 Response	&Response::sendFrame(const std::string& message, uint16_t closeCode)
 {
 	/**
@@ -241,7 +244,7 @@ Response	&Response::sendFrame(const std::string& message, uint16_t closeCode)
 	else
 		data = ::sendCloseFrame(closeCode, message);
 
-	(void)::send(this->_socket, data.c_str(), data.size(), 0);
+	(void)this->_client.send(data.c_str(), data.size());
 	return (*this);
 }
 
@@ -277,7 +280,7 @@ std::string		Response::getTime(void)
 	 * Création de l'en-tête `Date` selon la norme. Une valeur de date HTTP
 	 * représente l'heure en tant qu'instance de Universal Time Coordinated (UTC).
 	 * La date indique UTC par l'abréviation de trois lettres pour
-	 * Greenwich Mean Time, "GMT", un prédécesseur du standard UTC.
+	 * Greenwich Mean Time, "GMT", un prédécesseur de la norme UTC.
 	 * Les valeurs au format asctime sont supposées être en UTC.
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-7.1.1.1)
@@ -293,7 +296,7 @@ std::string		Response::getTime(void)
 	return (date);
 }
 
-Response	&Response::sendCGI(const std::string data)
+Response	&Response::sendCGI(const std::string &data)
 {
 	size_t	i = 0;
 	size_t	j = data.size();
@@ -333,7 +336,7 @@ Response	&Response::end(void)
 	{
 		this->setHeader("Date", this->getTime());
 		/**
-		 * On force l'ajout de l'en-tête `Content-Length` afin d'indiquer au client la taille de
+		 * On force l'ajout de l'en-tête `Content-Length` afin d'indiquer au client la taille
 		 * de la ressource.
 		 */
 		if (!this->_headers.count("Content-Length") && !this->_body.empty())
@@ -342,14 +345,15 @@ Response	&Response::end(void)
 		/**
 		 * TODO:
 		 * 
-		 * Pour le moment, le server ne gère pas le keep-alive (en-tête connection).
+		 * Pour le moment, le serveur ne gère pas le keep-alive (en-tête connection).
 		 * On envoie donc une réponse avec l'en-tête Connection: close pour fermer la connexion
 		 * après chaque requête.
 		 */
-		// this->setHeader("Connection", "close");
+		if (!this->isUpgraded())
+			this->setHeader("Connection", "close");
 
 		/**
-		 * La norme HTTP impose que certaines réponses ne doivent pas contenir de corps.
+		 * La norme HTTP impose que certaines réponses ne doivent pas contenir de corps de réponse.
 		 * 
 		 * (https://www.rfc-editor.org/rfc/rfc7230#section-3.3.3)
 		 */
@@ -362,13 +366,12 @@ Response	&Response::end(void)
 		std::string	res = this->prepareResponse();
 
 		/**
-		 * La fonction send() sert à écrire le contenu d'un descripteur de fichiers, ici
-		 * le descripteur du client. À la difference de write, la fonction send est
+		 * La fonction send() sert à écrire le contenu d'un descripteur de fichier, ici
+		 * le descripteur du client. À la différence de write, la fonction send est
 		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
-		 * gestion de la l'écriture dans un contexte de travail en réseau.
+		 * gestion de l'écriture dans un contexte de travail en réseau.
 		 */
-		int ret = ::send(this->_socket, res.c_str(), res.size(), 0);
-		(void)ret;
+		this->_client.send(res.c_str(), res.size());
 		this->_sent = true;
 		if (this->_upgrade_to_socket)
 			Logger::debug(B_YELLOW"------------------WebSocket handshake response sent-------------------");
@@ -383,32 +386,32 @@ const std::string	Response::prepareResponse(void)
 	std::string	res;
 
 	/**
-	 * Pour éviter les mauvaises surprises, on vérifie que le code de statut
+	 * Pour éviter les mauvaises surprises, nous vérifions que le code de statut
 	 * de la réponse est bien un code de statut HTTP valide.
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7231.html#section-6)
 	 */
 	if (!this->http_codes.count(this->_status))
 	{
-		Logger::error("Response error: invalid status code");
+		Logger::error("response error: invalid status code");
 		this->_status = 500;
 	}
 
 	/**
 	 * Une réponse HTTP doit obligatoirement contenir une version HTTP valide.
-	 * Dans le cas ou la requête n'a pas été parsée correctement, la version
+	 * Dans le cas où la requête n'a pas été parsée correctement, la version
 	 * par défaut est la version 1.1.
 	 */
 	if (this->_version.empty())
 	{
-		Logger::error("Response error: invalid HTTP version");
+		Logger::error("response error: invalid HTTP version");
 		this->_version = "1.1";
 	}
 
 	/**
 	 * La norme RFC impose que chaque réponse HTTP suive un modèle strict.
 	 * Ligne de statut (Version, Code-réponse, Texte-réponse)
-	 * En-tête de réponse
+	 * En-têtes de réponse
 	 * [Ligne vide]
 	 * Corps de réponse
 	 * 
@@ -427,19 +430,19 @@ const std::string	Response::prepareResponse(void)
 	return (res);
 }
 
-Response	&Response::setHeader(const std::string header, const std::string value)
+Response	&Response::setHeader(const std::string &header, const std::string &value)
 {
 	if (!this->_sent)
 		this->_headers[header] = value;
 	else
-		Logger::error("Response error: cannot set header after it was sent");
+		Logger::error("response error: cannot set header after it was sent");
 	return (*this);
 }
 
 bool	Response::canAddHeader(void) const
 {
 	/**
-	 * Nginx offre la possibilité d'ajouter des en-têtes de réponses personnalisés
+	 * Nginx offre la possibilité d'ajouter des en-têtes de réponse personnalisés
 	 * en fonction du code de statut de la réponse.
 	 * Cette fonction permet de vérifier si l'ajout d'en-tête est possible.
 	 * 
@@ -459,7 +462,7 @@ bool	Response::canAddHeader(void) const
 	);
 }
 
-Response	&Response::setCookie(const std::string name, const std::string value, const wbs_cookie_options &options)
+Response	&Response::setCookie(const std::string &name, const std::string &value, const wbs_cookie_options &options)
 {
 	/**
 	 * L'en-tête `Set-Cookie` est envoyé par le serveur dans les réponses HTTP pour définir des cookies sur le client. Une
@@ -474,7 +477,7 @@ Response	&Response::setCookie(const std::string name, const std::string value, c
 	 * - Max-Age (durée de validité en secondes)
 	 * - Domain (domaine pour lequel le cookie est valide)
 	 * - Path (chemin de l'URL pour lequel le cookie est valide)
-	 * - Secure (indique si le cookie doit être envoyé uniquement via une connexion sécurisée HTTPS),
+	 * - Secure (indique si le cookie doit être envoyé uniquement via une connexion sécurisée HTTPS)
 	 * - HttpOnly (indique si le cookie ne doit être accessible que via HTTP et non via des scripts JavaScript)
 	 * - etc.
 	 * 
@@ -483,7 +486,7 @@ Response	&Response::setCookie(const std::string name, const std::string value, c
 
 	if (this->_sent)
 	{
-		Logger::error("Response error: cannot set header after it was sent");
+		Logger::error("response error: cannot set header after it was sent");
 		return (*this);
 	}
 

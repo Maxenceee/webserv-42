@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 14:08:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:32:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 #include "routes/Router.hpp"
 #include "logger/Logger.hpp"
 
+class Cluster;
 class Router;
-class Request;
 class Response;
 class ServerConfig;
 
@@ -30,24 +30,19 @@ class Server
 private:
 	int							_id;
 	bool						_init;
-	uint16_t					port;
+	uint16_t					_port;
 	uint32_t					_address;
+	bool						_ssl_enabled;
 	int							socket_fd;
 	struct sockaddr_in			socket_addr;
 
 	ServerConfig				*_default;
 	std::vector<ServerConfig *>	_configs;
 
-	// les comportements par default du serveur sont stocké dans un router spécifique
-	// Router						*_default;
-	// std::vector<Router*>		_routes;
-
 	static std::vector<std::string>		initMethods();
 
-	// void		handleRoutes(Request &req, Response &res);
-
 public:
-	Server(int id, uint16_t port = 80, uint32_t address = 0);
+	Server(int id, uint16_t port = 80, uint32_t address = 0, bool ssl = false);
 	~Server(void);
 
 	int				init(void);
@@ -61,16 +56,21 @@ public:
 
 	uint16_t		getPort(void) const;
 	uint32_t		getAddress(void) const;
+
+	bool			hasSSL(void) const;
 	
 	static std::vector<std::string>		methods;
 	
 	Router		*eval(Request &request, Response &response) const;
-	// void		handleRouting(Request *request, Response *response);
+
+	ServerConfig	*getConfig(const char *name) const;
+	ServerConfig	*getConfig(const std::string &name) const;
 	
 	static void		printResponse(const Request &req, const Response &res, const double response_duration);
+	static void		printProxyResponse(const std::string &method, const std::string &path, const double response_duration);
 	void			print(std::ostream &os) const;
 
-	static bool	isValidMethod(const std::string method);
+	static bool	isValidMethod(const std::string &method);
 };
 
 std::ostream	&operator<<(std::ostream &os, const Server &server);

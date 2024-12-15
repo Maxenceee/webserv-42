@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 16:53:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 21:50:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 	this->_client_body.set = false;
 
 	/**
-	 * 
+	 * Par défaut le router hérite de la taille maximale du corps de la requête de son parent.
 	 */
 	if (parent && parent->hasClientMaxBodySize()) {
 		this->_client_body.size = parent->getClientMaxBodySize();
@@ -93,7 +93,7 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 	}
 
 	/**
-	 * 
+	 * Par défaut le router hérite des timeouts de son parent.
 	 */
 	if (parent) {
 		this->_timeout = parent->getTimeout();
@@ -122,11 +122,11 @@ Router		*Router::getParent(void) const
 	return (this->_parent);
 }
 
-void	Router::allowMethod(const std::string method)
+void	Router::allowMethod(const std::string &method)
 {
 	/**
-	 * Router::allowMethod() indique au router qu'elle méthode HTTP il doit servir. Si aucune méthode
-	 * n'est spécifiée le router les accepte toutes.
+	 * Router::allowMethod() indique au routeur quelle méthode HTTP il doit servir. Si aucune méthode
+	 * n'est spécifiée, le routeur les accepte toutes.
 	 */
 	if (Server::isValidMethod(method)) {
 		if (!this->_allowed_methods.enabled) {
@@ -139,20 +139,20 @@ void	Router::allowMethod(const std::string method)
 		Logger::error("router error: Invalid method found. No such `" + method + "`");
 }
 
-void	Router::allowMethod(const std::vector<std::string> method)
+void	Router::allowMethod(const std::vector<std::string> &method)
 {
 	for (std::vector<std::string>::const_iterator it = method.begin(); it != method.end(); it++)
 		this->allowMethod(*it);
 }
 
-void	Router::setRoot(const std::string path)
+void	Router::setRoot(const std::string &path)
 {
 	/**
-	 * Cette fonction indique au router son dossier racine, dossier à partir duquel il servira le contenu.
-	 * Par défaut il l'hérite de son parent.
+	 * Cette fonction indique au routeur son dossier racine, dossier à partir duquel il servira le contenu.
+	 * Par défaut, il l'hérite de son parent.
 	 * Pour simplifier, le chemin de la requête est ajouté à la fin du chemin de `root` pour former le
 	 * chemin vers la ressource.
-	 * (ex: router = /static, request = /static/chemin/vers, root = ./public, chemin final => ./public/chemin/vers)
+	 * (ex: routeur = /static, requête = /static/chemin/vers, root = ./public, chemin final => ./public/chemin/vers)
 	 * 
 	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `alias` est définie cette
 	 * directive sera écrasée.
@@ -170,13 +170,13 @@ void	Router::setRoot(const std::string path)
 	}
 }
 
-void	Router::setAlias(const std::string path)
+void	Router::setAlias(const std::string &path)
 {
 	/**
-	 * Permet de définir la directive `alias` pour ce router. Contrairement à `root`,
+	 * Permet de définir la directive `alias` pour ce routeur. Contrairement à `root`,
 	 * la directive `alias` remplace le segment de l'URL correspondant par le chemin spécifié.
-	 * (ex: router = /images, request = /images/photo.jpg, alias = ./public/photos, chemin final => ./public/photos/photo.jpg)
-	 * (dans ce cas root aurait donné: router = /images, request = /images/photo.jpg, root = ./public/photos, chemin final => ./public/photos/images/photo.jpg)
+	 * (ex: routeur = /images, requête = /images/photo.jpg, alias = ./public/photos, chemin final => ./public/photos/photo.jpg)
+	 * (dans ce cas root aurait donné: routeur = /images, requête = /images/photo.jpg, root = ./public/photos, chemin final => ./public/photos/images/photo.jpg)
 	 * 
 	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `root` a été définie
 	 * précédemment cette dernière sera écrasée.
@@ -208,10 +208,10 @@ const struct wbs_router_root	&Router::getRootData(void) const
 	return (this->_root);
 }
 
-void	Router::setRedirection(std::string to, int status)
+void	Router::setRedirection(const std::string &to, int status)
 {
 	/**
-	 * Définit le chemin de redirection du router, le statut par défaut est 302 (Found).
+	 * Définit le chemin de redirection du routeur, le statut par défaut est 302 (Found).
 	 * Si le chemin est vide alors le statut est retourné sans redirection.
 	 */
 	if (status % 300 < 100) {
@@ -233,21 +233,21 @@ void	Router::setAutoIndex(const bool autoindex)
 	this->_autoindex = autoindex;
 }
 
-void	Router::setIndex(const std::vector<std::string> index)
+void	Router::setIndex(const std::vector<std::string> &index)
 {
 	this->_index = index;
 }
 
-void	Router::addIndex(const std::string index)
+void	Router::addIndex(const std::string &index)
 {
 	this->_index.push_back(index);
 }
 
-void	Router::addHeader(const std::string key, const std::string value, const bool always)
+void	Router::addHeader(const std::string &key, const std::string &value, const bool always)
 {
 	/**
-	 * Cette méthode permet d'ajouter des en-têtes à la réponse du router.
-	 * Si `always` est vrai, l'en-tête sera ajouté quelque soit le code de réponse.
+	 * Cette méthode permet d'ajouter des en-têtes à la réponse du routeur.
+	 * Si `always` est vrai, l'en-tête sera ajouté quel que soit le code de réponse.
 	 * Les en-têtes sont héritées des niveaux de configuration précédents si et seulement si
 	 * aucun n'est défini au niveau de configuration actuel. 
 	 */
@@ -264,7 +264,7 @@ const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
 	return (this->_headers.list);
 }
 
-void	Router::setErrorPage(const int code, const std::string path)
+void	Router::setErrorPage(const int code, const std::string &path)
 {
 	if (code == 304) {
 		Logger::warning("router warning: Cannot set error page for "+toString<int>(code));
@@ -310,7 +310,7 @@ bool	Router::hasClientMaxBodySize(void) const
 	return (this->_client_body.set);
 }
 
-void	Router::setCGI(const std::string path)
+void	Router::setCGI(const std::string &path)
 {
 	this->_cgi.path = path;
 	this->_cgi.enabled = true;
@@ -321,7 +321,7 @@ void	Router::enableCGI(void)
 	this->_cgi.enabled = true;
 }
 
-void	Router::addCGIParam(const std::string key, const std::string value)
+void	Router::addCGIParam(const std::string &key, const std::string &value)
 {
 	this->_cgi.params[key] = value;
 }
@@ -331,7 +331,7 @@ const std::string	&Router::getCGIPath(void) const
 	return (this->_cgi.path);
 }
 
-void	Router::setProxy(const std::string &host, const int port, const std::string &path)
+void	Router::setProxy(wbs_url &proxy_url)
 {
 	if (this->_proxy.enabled)
 	{
@@ -340,9 +340,10 @@ void	Router::setProxy(const std::string &host, const int port, const std::string
 	}
 
 	this->_proxy.enabled = true;
-	this->_proxy.host = host;
-	this->_proxy.port = port;
-	this->_proxy.path = path;
+	this->_proxy.protocol = proxy_url.protocol;
+	this->_proxy.host = proxy_url.host;
+	this->_proxy.port = proxy_url.port;
+	this->_proxy.path = proxy_url.path;
 }
 
 void	Router::addProxyHeader(const std::string &key, const std::string &value)
@@ -393,8 +394,8 @@ const struct wbs_router_timeout	&Router::getTimeout() const
 void	Router::use(Router *router)
 {
 	/**
-	 * Cette méthode permet d'ajouter un router enfant à ce router.
-	 * Les routes du router enfant seront servies par ce router.
+	 * Cette méthode permet d'ajouter un routeur enfant à ce routeur.
+	 * Les routes du routeur enfant seront servies par ce routeur.
 	 */
 	this->_routes.push_back(router);
 }
@@ -409,7 +410,7 @@ Router	*Router::eval(const std::string &path, const std::string &method, Respons
 	Router	*router = NULL;
 
 	/**
-	 * On vérifie si le chemin de la requête correspond à ce router.
+	 * On vérifie si le chemin de la requête correspond à ce routeur.
 	 * Si c'est le cas, on vérifie si la méthode HTTP est autorisée.
 	 * Puis on évalue les routes enfants.
 	 */
@@ -442,10 +443,10 @@ void	Router::sendResponse(Response &response)
 	{
 		if (this->_error_page.count(response.getStatus())) {
 			std::string fullpath = resolve(this->_root.nearest_root, this->_error_page[response.getStatus()]);
-			Logger::debug("router full path: " + fullpath);
+			Logger::debug("No response body sending error page at " + fullpath);
 			response.sendFile(fullpath);
 		} else {
-			Logger::debug("router default response");
+			Logger::debug("No response body sending default response");
 			response.sendDefault();
 		}
 	}
@@ -462,15 +463,15 @@ void	Router::route(Request &request, Response &response)
 bool	Router::handleRoutes(Request &request, Response &response)
 {
 	/**
-	 * Avant de faire quelque logique que ce soit on s'assure que la réponse n'a pas déjà été
-	 * envoyé pour une quelconque raison.
+	 * Avant de faire quelque logique que ce soit, on s'assure que la réponse n'a pas déjà été
+	 * envoyée pour une quelconque raison.
 	 */
 	if (!response.canSend())
 		return (false);
 
 	/**
-	 * Selon Nginx si la directive `client_max_body_size` a une valeur de 0 alors cela
-	 * desactive la verification de la limite de taille du corps de la requête.
+	 * Selon Nginx, si la directive `client_max_body_size` a une valeur de 0, cela
+	 * désactive la vérification de la limite de taille du corps de la requête.
 	 */
 	if (this->_client_body.size > 0) {
 		if (request.getBody().size() > this->_client_body.size) {
@@ -480,8 +481,8 @@ bool	Router::handleRoutes(Request &request, Response &response)
 	}
 	
 	/**
-	 * Nginx execute la directive `return` avant toutes les autres.
-	 * Si le code de retour est de type 3xx (redirect) alors la redirection est effectuée, sinon
+	 * Nginx exécute la directive `return` avant toutes les autres.
+	 * Si le code de retour est de type 3xx (redirection), alors la redirection est effectuée, sinon
 	 * le code de retour est envoyé avec le corps de la réponse.
 	 */
 	if (this->_redirection.enabled) {
@@ -490,7 +491,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 			return (true);
 		}
 		if (this->_redirection.status % 300 < 100) {
-			Logger::debug("redirect to: " + this->_redirection.path);
+			Logger::debug("Redirect to: " + this->_redirection.path);
 			response.redirect(this->_redirection.path, this->_redirection.status);
 		} else {
 			response.status(this->_redirection.status).send(this->_redirection.data);
@@ -513,14 +514,13 @@ bool	Router::handleRoutes(Request &request, Response &response)
 void	Router::handleGETMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ " B_BLUE "GET" B_GREEN " handler" RESET " ------------>");
-	Logger::debug("requestPath: " + request.getPath());
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isDirectory(fullpath)) {
 		std::string file_p = fullpath + "/"; 
@@ -562,14 +562,13 @@ void	Router::handleHEADMethod(Request &request, Response &response)
 void	Router::handlePOSTMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ " B_BLUE "POST" B_GREEN " handler" RESET " ------------>");
-	Logger::debug("post request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (appendFile(fullpath, request.getBody())) {
@@ -593,14 +592,13 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 void	Router::handlePUTMethod(Request &request, Response &response)
 {
 	Logger::debug("<------------ " B_BLUE "PUT" B_GREEN " handler" RESET " ------------>");
-	Logger::debug("put request: " + cropoutputs(request.getBody()));
 
 	std::string fullpath = this->getLocalFilePath(request.getPath());
 	if (!fullpath.size()) {
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
@@ -634,7 +632,7 @@ void	Router::handleDELETEMethod(Request &request, Response &response)
 		response.status(500).end();
 		return ;
 	}
-	Logger::debug("full path: " + fullpath);
+	Logger::debug("Full local path: " + fullpath);
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
@@ -677,8 +675,8 @@ void	Router::handleCGI(Request &request, Response &response)
 	}
 
 	/**
-	 * La méthode GET a un comportement légèrement différent des autres, elle
-	 * envoie le contenu du fichier demandé par la requête au CGI. Les autres
+	 * La méthode GET a un comportement légèrement différent des autres. Elle
+	 * envoie le contenu du fichier demandé par la requête au CGI, tandis que les autres
 	 * méthodes envoient directement le corps de la requête.
 	 */
 	if (request.getMethod() == "GET") {
@@ -687,7 +685,7 @@ void	Router::handleCGI(Request &request, Response &response)
 			response.status(500).end();
 			return ;
 		}
-		Logger::debug("full path: " + fullpath);
+		Logger::debug("Full local path: " + fullpath);
 		
 		if (!isFile(fullpath)) {
 			response.status(404).end();
@@ -733,13 +731,13 @@ bool Router::matchRoute(const std::string& route, Response &response) const
 		regexPattern = "^" + this->_location.path; // Prefix Match
 	}
 
-	Logger::debug("location pattern: " + regexPattern);
+	Logger::debug("Trying location pattern: " + regexPattern);
 
 	// Compiler l'expression régulière
 	result = regcomp(&regex, regexPattern.c_str(), flags);
 
 	if (result != 0) {
-		Logger::error("Regex compilation failed");
+		Logger::error("router error: Regex compilation failed");
 		response.status(500).end();
 		return (false);
 	}
@@ -797,7 +795,7 @@ std::string	Router::getLocalFilePath(const std::string &requestPath)
 		// Compiler l'expression régulière du modificateur
 		result = regcomp(&regex, this->_location.path.c_str(), flags);
 		if (result != 0) {
-			Logger::error("Regex compilation failed");
+			Logger::error("router error: Regex compilation failed");
 			return ("");
 		}
 
@@ -837,18 +835,18 @@ std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 	}
 	/**
 	 * Nginx n'a pas de comportement spécifique dépendant de la présence ou
-	 * non du '/' au début du chemin de la route. Le chemins 'chemin' et '/chemin'
+	 * non du '/' au début du chemin de la route. Les chemins 'chemin' et '/chemin'
 	 * ont le même comportement.
-	 * Pour simplifier la suite nous l'ajoutons s'il est manquant.
+	 * Pour simplifier la suite, nous l'ajoutons s'il est manquant.
 	 */
 	if (str[0] != '/') {
 		str.insert(0, "/");
 	}
 	/**
-	 * La présence du '/' à la fin influe sur le comportement si le router est
-	 * configuré comme strict, les chemins '/chemin' et '/chemins/' n'ont pas le même
+	 * La présence du '/' à la fin influe sur le comportement si le routeur est
+	 * configuré comme strict, les chemins '/chemin' et '/chemin/' n'ont pas le même
 	 * comportement dans ce cas.
-	 * Si le router n'est pas strict nous le supprimons s'il est présent pour
+	 * Si le routeur n'est pas strict, nous le supprimons s'il est présent pour
 	 * simplifier la suite.
 	 */
 	if (str[str.size() - 1] == '/' && !this->_location.strict) {
@@ -867,7 +865,7 @@ void	Router::reloadChildren(void)
 void	Router::reload(void)
 {
 	/**
-	 * Cette fonction sert à mettre à jour les données héritées des niveaux de configuration précédents (des routers parents).
+	 * Cette fonction sert à mettre à jour les données héritées des niveaux de configuration précédents (des routeurs parents).
 	 */
 	if (!this->_root.set) {
 		this->_root = this->_parent->getRootData();
@@ -906,7 +904,8 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 	std::string	res;
 
 	this->checkLeadingTrailingSlash(reqPath);
-	content.insert(content.begin(), std::pair<std::string, std::string>("..", reqPath));
+	if (reqPath != "/")
+		content.insert(content.begin(), std::pair<std::string, std::string>("..", reqPath));
 	listFilesInDirectory(dirpath, content, false);
 	res = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>listing directory <%= dir_name %></title><style>*{margin:0;padding:0;outline:0}body{padding:80px 100px;font:13px \"Helvetica Neue\",\"Lucida Grande\",Arial;background:#ece9e9 -webkit-gradient(linear,0 0,0 100%,from(#fff),to(#ece9e9));background:#ece9e9 -moz-linear-gradient(top,#fff,#ece9e9);background-repeat:no-repeat;color:#555;-webkit-font-smoothing:antialiased}h1,h2,h3{font-size:22px;color:#343434}h1 em,h2 em{padding:0 5px;font-weight:400}h1{font-size:60px}h2{margin-top:10px}h3{margin:5px 0 10px 0;padding-bottom:5px;border-bottom:1px solid #eee;font-size:18px}ul li{list-style:none}ul li:hover{cursor:pointer;color:#2e2e2e}ul li .path{padding-left:5px;font-weight:700}ul li .line{padding-right:5px;font-style:italic}ul li:first-child .path{padding-left:0}p{line-height:1.5}a{color:#555;text-decoration:none}a:hover{color:#303030}#stacktrace{margin-top:15px}.directory h1{margin-bottom:15px;font-size:18px}ul#files{width:100%;height:100%;overflow:hidden}ul#files li{float:left;width:30%;line-height:25px;margin:1px}ul#files li a{display:block;height:25px;border:1px solid transparent;-webkit-border-radius:5px;-moz-border-radius:5px;border-radius:5px;overflow:hidden;white-space:nowrap}ul#files li a:focus,ul#files li a:hover{background:rgba(255,255,255,.65);border:1px solid #ececec}ul#files li a.highlight{-webkit-transition:background .4s ease-in-out;background:#ffff4f;border-color:#e9dc51}#search{display:block;position:fixed;top:20px;right:20px;width:90px;-webkit-transition:width ease .2s,opacity ease .4s;-moz-transition:width ease .2s,opacity ease .4s;-webkit-border-radius:32px;-moz-border-radius:32px;-webkit-box-shadow:inset 0 0 3px rgba(0,0,0,.25),inset 0 1px 3px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.03);-moz-box-shadow:inset 0 0 3px rgba(0,0,0,.25),inset 0 1px 3px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.03);-webkit-font-smoothing:antialiased;text-align:left;font:13px \"Helvetica Neue\",Arial,sans-serif;padding:4px 10px;border:none;background:0 0;margin-bottom:0;outline:0;opacity:.7;color:#888}#search:focus{width:120px;opacity:1}#files span{display:inline-block;overflow:hidden;text-overflow:ellipsis;text-indent:10px}#files .name{background-repeat:no-repeat}#files .icon .name{text-indent:28px}.view-tiles .name{width:100%;background-position:8px 5px}.view-tiles .date,.view-tiles .size{display:none}ul#files.view-details li{float:none;display:block;width:90%}ul#files.view-details li.header{height:25px;background:#000;color:#fff;font-weight:700}.view-details .header{border-radius:5px}.view-details .name{width:60%;background-position:8px 5px}.view-details .size{width:10%}.view-details .date{width:30%}.view-details .date,.view-details .size{text-align:right;direction:rtl}@media (max-width:768px){body{font-size:13px;line-height:16px;padding:0}#search{position:static;width:100%;font-size:2em;line-height:1.8em;text-indent:10px;border:0;border-radius:0;padding:10px 0;margin:0}#search:focus{width:100%;border:0;opacity:1}.directory h1{font-size:2em;line-height:1.5em;color:#fff;background:#000;padding:15px 10px;margin:0}ul#files{border-top:1px solid #cacaca}ul#files li{float:none;width:auto!important;display:block;border-bottom:1px solid #cacaca;font-size:2em;line-height:1.2em;text-indent:0;margin:0}ul#files li:nth-child(odd){background:#e0e0e0}ul#files li a{height:auto;border:0;border-radius:0;padding:15px 10px}ul#files li a:focus,ul#files li a:hover{border:0}#files .date,#files .header,#files .size{display:none!important}#files .name{float:none;display:inline-block;width:100%;text-indent:0;background-position:0 50%}#files .icon .name{text-indent:41px}}#files .icon-directory .name{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAAWtQTFRFAAAA/PPQ9Nhc2q402qQ12qs2/PTX2pg12p81+/LM89NE9dto2q82+/fp2rM22qY39d6U+/bo2qo2/frx/vz32q812qs12qE279SU8c4w9NZP+/LK//367s9y7s925cp0/vzw9t92//342po2/vz25s1579B6+OSO2bQ0/v799NyT8tE79dld8Msm+OrC/vzx79KA2IYs7s6I9d6R4cJe9+OF/PLI/fry79OF/v30//328tWB89RJ8c9p8c0u9eCf//7+9txs6sts5Mdr+++5+u2z/vrv+/fq6cFz8dBs8tA57cpq+OaU9uGs27Y8//799NdX/PbY9uB89unJ//z14sNf+emh+emk+vDc+uys9+OL8dJy89NH+eic8tN5+OaV+OWR9N2n9dtl9t529+KF9+GB9Nue9NdU8tR/9t5y89qW9dpj89iO89eG/vvu2pQ12Y4z/vzy2Ict/vvv48dr/vzz4sNg///+2Igty3PqwQAAAAF0Uk5TAEDm2GYAAACtSURBVBjTY2AgA2iYlJWVhfohBPg0yx38y92dS0pKVOVBAqIi6sb2vsWWpfrFeTI8QAEhYQEta28nCwM1OVleZqCAmKCEkUdwYWmhQnFeOStQgL9cySqkNNDHVJGbiY0FKCCuYuYSGRsV5KgjxcXIARRQNncNj09JTgqw0ZbkZAcK5LuFJaRmZqfHeNnpSucDBQoiEtOycnIz4qI9bfUKQA6pKKqAgqIKQyK8BgAZ5yfODmnHrQAAAABJRU5ErkJggg==)}#files .icon-text .name {background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADoSURBVBgZBcExblNBGAbA2ceegTRBuIKOgiihSZNTcC5LUHAihNJR0kGKCDcYJY6D3/77MdOinTvzAgCw8ysThIvn/VojIyMjIyPP+bS1sUQIV2s95pBDDvmbP/mdkft83tpYguZq5Jh/OeaYh+yzy8hTHvNlaxNNczm+la9OTlar1UdA/+C2A4trRCnD3jS8BB1obq2Gk6GU6QbQAS4BUaYSQAf4bhhKKTFdAzrAOwAxEUAH+KEM01SY3gM6wBsEAQB0gJ+maZoC3gI6iPYaAIBJsiRmHU0AALOeFC3aK2cWAACUXe7+AwO0lc9eTHYTAAAAAElFTkSuQmCC);}</style></head><body class=\"directory\"><div id=\"wrapper\"><h1><%= dir_tree %></h1><ul id=\"files\" class=\"view-tiles\"> <%= dir_content %> </ul></div></body></html>";
 	replace(res, "<%= dir_name %>", reqPath);
@@ -918,10 +917,12 @@ const std::string	Router::getDirList(const std::string dirpath, std::string reqP
 		temp += *it;
 		*it = "<a href=\""+temp+"\">"+*it+"</a>";
 	}
-	std::string dirhierachy = join(list, " / ");
+	std::string dirhierachy = list.size() == 1 ? "/" : join(list, " / ");
 	replace(res, "<%= dir_tree %>", dirhierachy);
 	temp = "";
 	std::string icon;
+	if (reqPath == "/")
+		reqPath.clear();
 	for (wbs_mapss_t::iterator it = content.begin(); it != content.end(); it++) {
 		if ((it->first == "..") || isDirectory(it->second))
 			icon = "icon-directory";

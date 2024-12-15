@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:20 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/19 11:30:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:38:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,7 @@
 
 #include "webserv.hpp"
 #include "client/Client.hpp"
-#include "routes/Router.hpp"
 #include "request/Request.hpp"
-
-class Client;
-
-void	relay_data(int client_fd, int backend_fd);
 
 enum wbs_proxy_code
 {
@@ -30,24 +25,55 @@ enum wbs_proxy_code
 	WBS_PROXY_TIMEOUT		= 3
 };
 
+struct wbs_proxyworker_client {
+	int			fd;
+	SSL			*session;
+	time_t		request_time;
+	std::string	method;
+	std::string	path;
+
+	wbs_proxyworker_client(Client *client) {
+		this->fd = client->getClientFD();
+		this->session = client->getSSLSession();
+		this->request_time = client->getRequestTime();
+		this->method = client->request.getMethod();
+		this->path = client->request.getRawPath();
+	}
+
+	int read(char *buffer, size_t size)
+	{
+		if (this->session)
+			return (SSL_read(this->session, buffer, size));
+		return (::recv(this->fd, buffer, size, 0));
+	}
+
+	int send(char *buffer, size_t size)
+	{
+		if (this->session)
+			return (SSL_write(this->session, buffer, size));
+		return (::send(this->fd, buffer, size, 0));
+	}
+};
+
 class ProxyWorker
 {
 private:
-	int						_client;
-	struct wbs_router_proxy	_config;
-	int						socket_fd;
-	struct sockaddr_in		socket_addr;
-	const std::string		&_buffer;
-	Request					&_req;
+	struct wbs_proxyworker_client	_client;
+	struct wbs_router_proxy			_config;
+	int								socket_fd;
+	struct sockaddr_in				socket_addr;
+	const std::string				&_buffer;
+	Request							&_req;
 	// pthread_t				_tid;
-	
+
+	int		sendrequest();
+
 public:
-	ProxyWorker(int client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer);
+	ProxyWorker(Client *client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer);
 	~ProxyWorker();
 
-	int		operator()();	
-
 	int		connect();
+	void	work();
 };
 
 #endif /* PROXYWORKER_HPP */
