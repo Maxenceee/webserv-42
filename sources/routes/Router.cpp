@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 21:50:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 19:19:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 
 	/**
 	 * Par défaut le router hérite des en-têtes de son parent. Celles-ci peuvent être
-	 * changées en appellant la méthode Router::addHeader().
+	 * changées en appellant la méthode Router::setHeader().
 	 */
 	this->_headers.enabled = false;
 	if (parent) {
@@ -243,7 +243,7 @@ void	Router::addIndex(const std::string &index)
 	this->_index.push_back(index);
 }
 
-void	Router::addHeader(const std::string &key, const std::string &value, const bool always)
+void	Router::setHeader(const std::string &key, const std::string &value, const bool always)
 {
 	/**
 	 * Cette méthode permet d'ajouter des en-têtes à la réponse du routeur.
@@ -963,6 +963,7 @@ void	Router::print(std::ostream &os) const
 	}
 	os << space << B_CYAN"Proxy: " << RESET << (this->_proxy.enabled ? "enabled" : "disabled") << "\n";
 	if (this->_proxy.enabled) {
+		os << space << B_CYAN"Proxy protocol: " << RESET << this->_proxy.protocol << "\n";
 		os << space << B_CYAN"Proxy host: " << RESET << this->_proxy.host << "\n";
 		os << space << B_CYAN"Proxy port: " << RESET << this->_proxy.port << "\n";
 		os << space << B_CYAN"Proxy set headers: " << RESET << "\n";

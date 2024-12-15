@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 14:26:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 19:13:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -527,7 +527,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 				this->throwError(raw_line, "unknown option", key_length + val.length() - valtokens[2].length());
 			always = true;
 		}
-		this->tmp_router->addHeader(valtokens[0], valtokens[1], always);
+		this->tmp_router->setHeader(valtokens[0], valtokens[1], always);
 		return ;
 	}
 
@@ -578,12 +578,12 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		}
 
 		if (tu.protocol != "http" && tu.protocol != "https")
-			this->throwError(raw_line, "unsupported protocol (only http: is supported)", key_length);
+			this->throwError(raw_line, "unsupported protocol (only http: and https: are supported)", key_length);
 
-		if (tu.protocol == "https") {
-			Logger::warning("parser info: unsupported protocol (https:), using http instead.");
-			tu.protocol = "http";
-		}
+		// if (tu.protocol == "https") {
+		// 	Logger::warning("parser info: unsupported protocol (https:), using http instead.");
+		// 	tu.protocol = "http";
+		// }
 
 		this->tmp_router->setProxy(tu);
 		
