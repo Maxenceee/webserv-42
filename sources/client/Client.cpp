@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/14 20:52:13 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 01:54:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,7 @@ int	Client::process(void)
 			// 	this->response->status(502).sendDefault().end();
 			// 	return (WBS_POLL_CLIENT_ERROR);
 			// }
-			return (WBS_POLL_CLIENT_CLOSED);
+			return (WBS_POLL_CLIENT_OK);
 		}
 		else
 		{
@@ -363,6 +363,17 @@ int	Client::processLines(void)
 				 * Si le routeur est un proxy, on crée un ProxyWorker qui va se charger de la communication
 				 * avec le serveur distant.
 				 */
+				/**
+				 * TODO:
+				 * Deplacer la logique et la gestion des worker dans le cluster ou dans les serveurs voir meme directement dans la pool.
+				 * - Ajouter la logique dans la pool permet de synchroniser les jobs et les workers au meme endroit et etant donné que la pool
+				 *  est stocké de maniere globale, on peut y acceder de n'importe ou rendant le tout plus facile.
+				 * 
+				 * Dans ce cas on supprime les clients et on passe le relais pour la gestion des workers sans devoir se preoccuper
+				 * de la synchronisation entre le worker et le client.
+				 * L'ideal serait de creer une liste/queue ou un peut pousser un nouveau worker et a chaque cicle on verifie un worker
+				 * a fini son travail et si oui on le supprime.
+				 */
 				switch (ProxyWorker(this, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
 				{
 				/**
@@ -384,6 +395,7 @@ int	Client::processLines(void)
 					this->upgraded_to_proxy = true;
 					break;
 				}
+				Logger::info("ProxyWorker created");
 				return (WBS_POLL_CLIENT_OK);
 			}
 		}

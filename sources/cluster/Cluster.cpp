@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/14 20:41:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 01:33:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -265,6 +265,7 @@ int		Cluster::start(void)
 
 				case WBS_POLL_CLIENT:
 					if ((client = reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
+						Logger::info("Client disconnected");
 						to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 					}
 					break;
