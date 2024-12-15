@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 14:14:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:33:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,10 @@
  * Gérer le fait d'avoir un URI dans la config du proxy
  * ex: 
  * proxy_pass http://localhost:3000/api;
+ */
+/**
+ * TODO:
+ * Ajouter le support de ssl/tls pour les connexions proxy avec le serveur distant
  */
 
 ProxyWorker::ProxyWorker(Client *client, const struct wbs_router_proxy &config, Request &req, const std::string &buffer):
