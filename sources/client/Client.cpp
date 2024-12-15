@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 01:54:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 02:06:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -368,6 +368,8 @@ int	Client::processLines(void)
 				 * Deplacer la logique et la gestion des worker dans le cluster ou dans les serveurs voir meme directement dans la pool.
 				 * - Ajouter la logique dans la pool permet de synchroniser les jobs et les workers au meme endroit et etant donné que la pool
 				 *  est stocké de maniere globale, on peut y acceder de n'importe ou rendant le tout plus facile.
+				 * - Pousser directement le worker dans la pool, deplacer la fonction de relais directement dans le worker, ainsi lorsque le worker
+				 * a fini son travail, il se supprime de lui meme en etant retiré de la pool.
 				 * 
 				 * Dans ce cas on supprime les clients et on passe le relais pour la gestion des workers sans devoir se preoccuper
 				 * de la synchronisation entre le worker et le client.
