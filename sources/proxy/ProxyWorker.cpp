@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 13:50:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:09:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ ProxyWorker::~ProxyWorker()
 	}
 	close(this->socket_fd);
 	Logger::debug("ProxyWorker task completed");
-	Server::printProxyResponse(this->_client.method, this->_client.path, getTimestamp() - this->_client.request_time);
 }
 
 int	ProxyWorker::connect()
@@ -222,5 +221,6 @@ void	ProxyWorker::work()
 		}
 	}
 
+	Server::printProxyResponse(this->_client.method, this->_client.path, getTimestamp() - this->_client.request_time);
 	Logger::debug("------------------Proxy task ended-------------------", B_YELLOW);
 }
