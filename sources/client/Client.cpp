@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 14:19:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 17:59:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ Client::~Client(void)
 		 * Dans ce cas, on annule la réponse et on supprime le pointeur.
 		 */
 		this->response->cancel();
-		// Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
 		/**
 		 * On ne ferme pas la connexion avec le client car désormais c'est le ProxyWorker qui s'occupe de la communication.
