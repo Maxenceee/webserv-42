@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:16:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 19:13:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,7 @@ public:
 	void	setIndex(const std::vector<std::string> &index);
 	void	addIndex(const std::string &index);
 
-	void	addHeader(const std::string &key, const std::string &value, const bool always = false);
+	void	setHeader(const std::string &key, const std::string &value, const bool always = false);
 	const std::vector<wbs_router_header_t>	&getHeaders(void) const;
 
 	void				setErrorPage(const int code, const std::string &path);

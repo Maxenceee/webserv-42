@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:37:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 19:13:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -471,7 +471,7 @@ void	Request::updateHost(const std::string &host)
 	this->_headers["Host"] = host;
 }
 
-void	Request::addHeader(const std::string &header, const std::string &value)
+void	Request::setHeader(const std::string &header, const std::string &value)
 {
 	this->_headers[header] = value;
 }
