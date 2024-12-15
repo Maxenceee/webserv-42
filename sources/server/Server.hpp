@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:17:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:32:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ public:
 	ServerConfig	*getConfig(const std::string &name) const;
 	
 	static void		printResponse(const Request &req, const Response &res, const double response_duration);
+	static void		printProxyResponse(const std::string &method, const std::string &path, const double response_duration);
 	void			print(std::ostream &os) const;
 
 	static bool	isValidMethod(const std::string &method);

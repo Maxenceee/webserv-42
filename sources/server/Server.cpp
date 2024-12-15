@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 21:36:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:39:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,6 +316,17 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 		response += toString<int>(res.getBody().size());
 	else
 		response += "-";
+	Logger::print(response);
+}
+
+void	Server::printProxyResponse(const std::string &method, const std::string &path, const double response_duration)
+{
+	std::string response = method + " " + path;
+
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(3) << response_duration;
+	std::string duration_str = ss.str();
+	response += " " + duration_str + " ms - ";
 	Logger::print(response);
 }
 

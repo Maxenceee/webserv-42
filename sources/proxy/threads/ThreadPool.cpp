@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/14 19:53:06 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:26:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,11 +71,10 @@ void	ThreadPool::kill(bool force)
 	available = false;
 }
 
-void	ThreadPool::enqueueTask(void (*function)(wbs_threadpool_client, wbs_threadpool_backend), wbs_threadpool_client client, wbs_threadpool_backend backend_fd)
+void	ThreadPool::enqueueWorker(ProxyWorker *worker)
 {
 	pthread_mutex_lock(&queueMutex);
-	tasks.push(function);
-	taskArgs.push(std::make_pair(client, backend_fd));
+	tasks.push(worker);
 	pthread_cond_signal(&condition);
 	pthread_mutex_unlock(&queueMutex);
 }
@@ -104,13 +103,12 @@ void	ThreadPool::run()
 			return;
 		}
 
-		void (*task)(void *, int) = tasks.front();
-		std::pair<void *, int> args = taskArgs.front();
+		ProxyWorker *worker = tasks.front();
 		tasks.pop();
-		taskArgs.pop();
 
 		pthread_mutex_unlock(&queueMutex);
 
-		task(args.first, args.second);
+		worker->work();
+		delete worker;
 	}
 }

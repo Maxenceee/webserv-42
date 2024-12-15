@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/14 14:58:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 01:54:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:34:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,12 @@
 # define CLIENT_HPP
 
 #include "webserv.hpp"
-#include "cluster/Cluster.hpp"
 #include "server/Server.hpp"
 
 class Server;
 class Request;
 class Response;
 class Router;
-class ProxyWorker;
 
 class Client
 {
@@ -54,6 +52,7 @@ public:
 
 	int		getClientFD(void) const;
 	SSL		*getSSLSession(void) const;
+	time_t	getRequestTime(void) const;
 };
 
 int	serverNameCallback(SSL *ssl, int *ad, void *arg);
