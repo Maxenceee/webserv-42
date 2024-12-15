@@ -3,5 +3,3 @@ mainserver
 proxy
 threads
 ssl_support
-*.key
-*.crt
