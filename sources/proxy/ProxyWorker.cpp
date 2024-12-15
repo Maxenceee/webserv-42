@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 14:09:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:14:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,8 @@ ProxyWorker::~ProxyWorker()
 		SSL_shutdown(this->_client.session);
 		SSL_free(this->_client.session);
 	}
-	close(this->socket_fd);
+	if (this->socket_fd != -1)
+		close(this->socket_fd);
 	Logger::debug("ProxyWorker task completed");
 }
 
