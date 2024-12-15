@@ -6,11 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 02:06:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:56:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
+#include "cluster/Cluster.hpp"
 #include "proxy/ProxyWorker.hpp"
 #include "base64.hpp"
 #include "websocket/websocket.hpp"
@@ -66,6 +67,7 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 		{
 			throw std::runtime_error("Failed to accept SSL connection");
 		}
+		SSL_CTX_free(ssl_ctx);
 	}
 	Logger::debug("New client on fd: "+toString(client));
 }
@@ -80,7 +82,7 @@ Client::~Client(void)
 		 * Dans ce cas, on annule la réponse et on supprime le pointeur.
 		 */
 		this->response->cancel();
-		Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
+		// Server::printResponse(this->request, *this->response, getTimestamp() - this->request_time);
 		delete this->response;
 		/**
 		 * On ne ferme pas la connexion avec le client car désormais c'est le ProxyWorker qui s'occupe de la communication.
@@ -119,15 +121,6 @@ Client::~Client(void)
 int	Client::process(void)
 {
 	char buffer[WBS_RECV_SIZE] = {0};
-
-	/**
-	 * Si le client a été mis à niveau vers un proxy, on ne traite pas la donnée car c'est le ProxyWorker
-	 * qui s'en charge.
-	 */
-	if (this->upgraded_to_proxy)
-	{
-		return (WBS_POLL_CLIENT_OK);
-	}
 
 	/**
 	 * La fonction recv() sert à lire le contenu d'un descripteur de fichier, ici
@@ -203,7 +196,7 @@ int	Client::process(void)
 			// 	this->response->status(502).sendDefault().end();
 			// 	return (WBS_POLL_CLIENT_ERROR);
 			// }
-			return (WBS_POLL_CLIENT_OK);
+			return (WBS_POLL_CLIENT_CLOSED);
 		}
 		else
 		{
@@ -363,20 +356,8 @@ int	Client::processLines(void)
 				 * Si le routeur est un proxy, on crée un ProxyWorker qui va se charger de la communication
 				 * avec le serveur distant.
 				 */
-				/**
-				 * TODO:
-				 * Deplacer la logique et la gestion des worker dans le cluster ou dans les serveurs voir meme directement dans la pool.
-				 * - Ajouter la logique dans la pool permet de synchroniser les jobs et les workers au meme endroit et etant donné que la pool
-				 *  est stocké de maniere globale, on peut y acceder de n'importe ou rendant le tout plus facile.
-				 * - Pousser directement le worker dans la pool, deplacer la fonction de relais directement dans le worker, ainsi lorsque le worker
-				 * a fini son travail, il se supprime de lui meme en etant retiré de la pool.
-				 * 
-				 * Dans ce cas on supprime les clients et on passe le relais pour la gestion des workers sans devoir se preoccuper
-				 * de la synchronisation entre le worker et le client.
-				 * L'ideal serait de creer une liste/queue ou un peut pousser un nouveau worker et a chaque cicle on verifie un worker
-				 * a fini son travail et si oui on le supprime.
-				 */
-				switch (ProxyWorker(this, this->_current_router->getProxyConfig(), this->request, this->_buffer)())
+				ProxyWorker *worker = new ProxyWorker(this, this->_current_router->getProxyConfig(), this->request, this->_buffer);
+				switch (worker->connect())
 				{
 				/**
 				 * Si une erreur s'est produite lors de la création du ProxyWorker,
@@ -397,8 +378,9 @@ int	Client::processLines(void)
 					this->upgraded_to_proxy = true;
 					break;
 				}
-				Logger::info("ProxyWorker created");
-				return (WBS_POLL_CLIENT_OK);
+				Cluster::pool.enqueueWorker(worker);
+				Logger::debug("Worker task pushed to pool", RESET);
+				return (WBS_POLL_CLIENT_CLOSED);
 			}
 		}
 	}
@@ -483,6 +465,11 @@ int	Client::getClientFD(void) const
 SSL	*Client::getSSLSession(void) const
 {
 	return (this->_ssl_session);
+}
+
+time_t	Client::getRequestTime(void) const
+{
+	return (this->request_time);
 }
 
 int	serverNameCallback(SSL *ssl, int *ad, void *arg)
