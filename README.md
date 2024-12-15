@@ -456,7 +456,7 @@ Defines files that will be used as an index. Files are checked in the specified 
 
 ```
 Syntax:     listen address[:port] [ssl];
-			listen port [ssl];
+            listen port [ssl];
 Default:    listen *:80 | *:8000;
 Context:    server
 ```
