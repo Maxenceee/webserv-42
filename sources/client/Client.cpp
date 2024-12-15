@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 14:09:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:19:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -480,6 +480,7 @@ time_t	Client::getRequestTime(void) const
 
 int	serverNameCallback(SSL *ssl, int *ad, void *arg)
 {
+	(void)ad;
 	const char *servername = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
 	
 	if (servername == NULL)
