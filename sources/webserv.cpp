@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/17 14:28:54 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 15:49:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,13 +54,14 @@ int	main(int argc, char const **argv)
 	}
 	if (argc == 3) {
 		if (std::string(argv[1]) == "-d" || std::string(argv[1]) == "--debug") {
-			Logger::_debug = true;
+			Logger::setDebug(true);
 			fpath = argv[2];
 		} else if (std::string(argv[2]) == "-d" || std::string(argv[2]) == "--debug") {
-			Logger::_debug = true;
+			Logger::setDebug(true);
 			fpath = argv[1];
 		}
 	}
+
 	Logger::init();
 	Cluster	cluster;
 	try

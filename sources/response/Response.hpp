@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 19:52:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:14:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 
 #include "webserv.hpp"
 #include "server/Server.hpp"
-#include "request/Request.hpp"
 
 class Server;
+class Client;
 class Request;
 
 struct wbs_cookie_options {
@@ -33,7 +33,7 @@ struct wbs_cookie_options {
 class Response
 {
 private:
-	int					_socket;
+	Client				&_client;
 	bool				_sent;
 	int					_status;
 	std::string			_version;
@@ -50,7 +50,7 @@ private:
 	std::string			getTime(void);
 
 public:
-	Response(int socket, const Request &req);
+	Response(Client &client, const Request &req);
 	~Response(void);
 
 	static wbs_mapis_t	http_codes;
@@ -58,18 +58,18 @@ public:
 	static bool		isValidStatus(int status);
 
 	Response		&status(const int code);
-	Response		&send(const std::string data);
-	Response		&sendFile(const std::string filepath);
+	Response		&send(const std::string &data);
+	Response		&sendFile(const std::string &filepath);
 	Response		&sendNotFound(const int code = 404);
 	Response		&sendDefault(const int code = -1);
-	Response		&sendFrame(const std::string& message, uint16_t closeCode = 0);
+	Response		&sendFrame(const std::string &message, uint16_t closeCode = 0);
 	Response		&redirect(const std::string &path, int status = 302);
-	Response		&sendCGI(const std::string data);
+	Response		&sendCGI(const std::string &data);
 	Response		&end(void);
 	Response		&upgrade(void);
 
-	Response		&setHeader(const std::string header, const std::string value);
-	Response		&setCookie(const std::string name, const std::string value, const wbs_cookie_options &options = wbs_cookie_options());
+	Response		&setHeader(const std::string &header, const std::string &value);
+	Response		&setCookie(const std::string &name, const std::string &value, const wbs_cookie_options &options = wbs_cookie_options());
 
 	Response		&clearBody(void);
 	bool			hasBody(void) const;

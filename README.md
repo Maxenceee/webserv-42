@@ -1,6 +1,7 @@
 # Webserv
 
-My Webserv project for the 42 School cursus, a [`Nginx`](https://nginx.org) like web server made in c++98. This project is much more complete and complex than what is required by the subject to be validated at 125. It includes many Nginx directives and advanced features such as proxies. See the [Features](#features) section below.
+My ***Webserv*** project for the 42 School cursus, a [`Nginx`](https://nginx.org) like web server made in c++98. This project is much more complete and complex than what is required by the subject to be validated at 125. It includes many Nginx directives and advanced features such as proxies, SSL/TLS support, WebSocket, etc...
+See the [Features](#features) section below.
 
 Final grade : `125/100` & `Outstanding Project`
 
@@ -171,7 +172,7 @@ for (size_t i = 0; i < poll_fds.size(); ++i)
 
 ### Let's combine it all
 
-``` c++
+```c++
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -317,6 +318,8 @@ int main() {
 - [root](#root)
 - [server](#server)
 - [server_name](#server_name)
+- [ssl_certificate](#ssl_certificate)
+- [ssl_certificate_key](#ssl_certificate_key)
 
 ## Documentation
 
@@ -452,7 +455,8 @@ Defines files that will be used as an index. Files are checked in the specified 
 ### `listen`
 
 ```
-Syntax:     listen address[:port]
+Syntax:     listen address[:port] [ssl];
+			listen port [ssl];
 Default:    listen *:80 | *:8000;
 Context:    server
 ```
@@ -472,7 +476,9 @@ If the directive is not present then either **\*:80** is used if nginx runs with
 
 If none of the directives have the server_name set to **_** then the first server with the address:port pair will be the default server for this pair.
 
-<!-- If the directive is not present then either *:80 is used if nginx runs with the superuser privileges, or *:8000 otherwise -->
+The ssl parameter allows specifying that all connections accepted on this port should work in SSL mode.
+
+Note that for the moment, only on address and port can be specified for each virtual server.
 
 ### `location`
 
@@ -634,3 +640,23 @@ server {
 ```
 
 If an underscore (_) is used as the server name for a server with an address:port pair, the server will be the default server for that pair.
+
+### `ssl_certificate`
+
+```
+Syntax: 	ssl_certificate file;
+Default: 	—
+Context: 	server
+```
+
+Specifies a `file` with the certificate in the PEM format for the given virtual server. If intermediate certificates should be specified in addition to a primary certificate, they should be specified in the same file in the following order: the primary certificate comes first, then the intermediate certificates. A secret key in the PEM format may be placed in the same file.
+
+### `ssl_certificate_key`
+
+```
+Syntax: 	ssl_certificate_key file;
+Default: 	—
+Context: 	server
+```
+
+Specifies a `file` with the secret key in the PEM format for the given virtual server. 

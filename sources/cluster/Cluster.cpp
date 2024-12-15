@@ -6,20 +6,37 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 14:12:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 13:39:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
-#include "client/Client.hpp"
 
 bool Cluster::exit = true;
+bool Cluster::kill = false;
 ThreadPool Cluster::pool(0);
 
 static void interruptHandler(int sig_int) {
 	(void)sig_int;
-	std::cout << "\b\b \b\b";
-	Cluster::exit = false;
+	std::cout << "\b\b";
+	Logger::print("Signal received: " + std::string(strsignal(sig_int)), B_GREEN);
+	/**
+	 * Si le signal reçu est SIGQUIT ou SIGTERM, on met la variable kill à true,
+	 * pour forcer l'arrêt du serveur (notamment des workers).
+	 */
+	// if (sig_int == SIGQUIT || sig_int == SIGTERM)
+	// {
+	// 	Cluster::kill = true;
+	// }
+	/**
+	 * Ou si l'utilisateur a déjà demandé l'arrêt du serveur, on force l'arrêt.
+	 */
+	// else if (Cluster::exit == true)
+	// {
+	// 	Logger::print("Forcing shutdown", B_GREEN);
+	// }
+	Cluster::kill = true;
+	Cluster::exit = true;
 }
 
 Cluster::Cluster(void)
@@ -40,11 +57,17 @@ Cluster::~Cluster()
 
 void	Cluster::parse(const std::string &configPath)
 {
+	/**
+	 * Initialisation de la librairie OpenSSL pour le chiffrement des données.
+	 */
+	SSL_load_error_strings();
+	OpenSSL_add_ssl_algorithms();
+
 	this->parser->parse(configPath);
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		(*it)->init();
-		if (Logger::_debug)
+		if (Logger::isDebug())
 			std::cout << *(*it) << std::endl;
 	}
 	delete this->parser;
@@ -64,13 +87,13 @@ Server	*Cluster::addConfig(ServerConfig *config)
 	wsb_v_servers_t::iterator it;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
-		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress())
+		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress() && (*it)->hasSSL() == config->hasSSL())
 		{
 			(*it)->addConfig(config);
 			return (*it);
 		}
 	}
-	Server *server = new Server(this->_servers.size() + 1, config->getPort(), config->getAddress());
+	Server *server = new Server(this->_servers.size() + 1, config->getPort(), config->getAddress(), config->hasSSL());
 	server->addConfig(config);
 	this->_servers.push_back(server);
 	return (server);
@@ -83,24 +106,28 @@ int		Cluster::start(void)
 	const int						timeout = WBS_POLL_TIMEOUT;
 	wsb_v_servers_t::iterator		it;
 
+	// On vérifie si les serveurs du cluster ont été initialisés avant de les démarrer
+	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
+	{
+		if (!(*it)->isInit()) {
+			Logger::error("could not start server: the server has not been properly initialized");
+			return (WBS_SOCKET_ERR);
+		}
+	}
+
 	// Gestion des signaux pour fermer proprement le serveur
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
 	signal(SIGTERM, interruptHandler);
+	// Handler pour SIGPIPE
+	signal(SIGPIPE, SIG_IGN);
 
 	/**
 	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
 	 */
-	Cluster::initializePool(8);
-
-	// On verifie si les serveurs du cluster ont été initialisé avant de le démarer
-	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
-	{
-		if (!(*it)->isInit()) {
-			Logger::error("server error: could not start server: the server has not been properly initialized");
-			return (WBS_SOCKET_ERR);
-		}
-	}
+	const int availableThreads = sysconf(_SC_NPROCESSORS_ONLN);
+	Logger::debug("Available threads on device: " + toString<int>(availableThreads));
+	Cluster::initializePool(availableThreads);
 
 	// Initialise le tableau des descripteurs à surveiller
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -116,16 +143,16 @@ int		Cluster::start(void)
 		Logger::print("Listening on port " + toString<int>(server->getPort()), B_GREEN);
 
 		/**
-		 * La fonction listen() permet de marquer un socket comme étant un socket en
+		 * La fonction listen() permet de marquer un socket comme étant en
 		 * attente de connexions entrantes.
 		 * 
-		 * Elle prend en paramètres le descripteur de fichiers du socket et la taille de la file
+		 * Elle prend en paramètres le descripteur de fichier du socket et la taille de la file
 		 * d'attente.
 		 */
 		int error = listen(server->getSocketFD(), WBS_DEFAULT_MAX_WORKERS);
 		if (error == -1)
 		{
-			Logger::error("server error: an error occurred while listening: " + std::string(strerror(errno)));
+			Logger::perror("server error: an error occurred while listening");
 			return (WBS_SOCKET_ERR);
 		}
 	}
@@ -148,44 +175,45 @@ int		Cluster::start(void)
 		 * une écriture (I/O) ou s'ils ont généré une exception.
 		 * 
 		 * La fonction prend un tableau de structures `pollfd` dans lequel il faut spécifier
-		 * pour chaque élément, le descripteur de fichiers (pollfd::fd) et l'événements à
+		 * pour chaque élément, le descripteur de fichiers (pollfd::fd) et les événements à
 		 * surveiller (pollfd::events).
 		 * 
 		 * La fonction attend que l'un des événements spécifiés se produise pour l'un
-		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire. L'évènement detecté
-		 * est ecrit dans pollfd::revents.
+		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire. L'événement détecté
+		 * est écrit dans pollfd::revents.
 		 * 
-		 * Dans ce cas elle permet de s'assurer que le descripteur du socket est
+		 * Dans ce cas, elle permet de s'assurer que le descripteur du socket est
 		 * prêt pour la lecture.
 		 */
 		if (poll(poll_fds.data(), poll_fds.size(), timeout) == -1)
 		{
-			// Si le signal d'interruption est reçu, on sort de la boucle
+			// Si le signal d'interruption est reçu, on continue
 			if (errno == EINTR) {
-				break;
+				// Logger::debug("Signal received: exiting the server");
+				continue;;
 			}
-			Logger::error("server error: an error occurred while poll'ing: " + std::string(strerror(errno)), RESET);
+			Logger::perror("server error: an error occurred while poll'ing");
 			return (WBS_SOCKET_ERR);
 		}
 
-		// Vérifier chaque connexions pour voir si elles sont prêtes pour la lecture
+		// Vérifier chaque connexion pour voir si elle est prête pour la lecture
 		for (size_t i = 0; i < poll_fds.size(); ++i)
 		{
-			// Si le client a fermé la connexion ou une erreur s'est produite
+			// Si le client a fermé la connexion ou si une erreur s'est produite
 			if (poll_fds[i].revents & POLLHUP)
 			{
 				Logger::debug("Connection closed by the client (event POLLHUP)");
 				to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 			}
 			/**
-			 * On s'assure ensuite que l'évenement détécté est bien celui attendu. On évite
-			 * les faux positifs lorsque timeout expire ou lorsqu'il y a une exception.
+			 * On s'assure ensuite que l'événement détecté est bien celui attendu. On évite
+			 * les faux positifs lorsque le timeout expire ou lorsqu'il y a une exception.
 			 */
 			else if (poll_fds[i].revents & POLLIN)
 			{
 				/**
 				 * Le fait d'utiliser une structure générique `poll_clients` permet de gérer de manière
-				 * simultanée plusieurs type descripteurs (serveurs, clients, proxy, etc.).
+				 * simultanée plusieurs types de descripteurs (serveurs, clients, proxy, etc.).
 				 * Le type permet d'identifier le descripteur afin de le caster correctement avant de l'utiliser.
 				 */
 				switch (poll_clients[poll_fds[i].fd].type)
@@ -193,13 +221,13 @@ int		Cluster::start(void)
 				case WBS_POLL_SERVER:
 					/**
 					 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
-					 * Elle prend en paramètres le descripteur de fichiers du socket ainsi que le pointeur
-					 * d'une structure `sockaddr` ou seront écrites les informations sur le client (adresse IP, port, etc.).
+					 * Elle prend en paramètres le descripteur de fichier du socket ainsi que le pointeur
+					 * d'une structure `sockaddr` où seront écrites les informations sur le client (adresse IP, port, etc.).
 					 * 
-					 * La fonction retourne un nouveau descripteur de fichiers vers le client.
+					 * La fonction retourne un nouveau descripteur de fichier vers le client.
 					 */
 					/**
-					 * Etant donné que les serveurs sont ajoutés dans l'ordre au début tableau des descripteurs
+					 * Étant donné que les serveurs sont ajoutés dans l'ordre au début du tableau des descripteurs
 					 * à surveiller, on peut déduire l'indice du serveur à partir de l'indice du descripteur.
 					 * D'où l'utilisation de l'indice `i` pour récupérer le serveur correspondant dans `this->_servers`
 					 * au lieu de devoir faire un reinterpret_cast<Server *>(poll_clients[poll_fds[i].fd].data) comme
@@ -208,20 +236,31 @@ int		Cluster::start(void)
 					newClient = accept(this->_servers[i]->getSocketFD(), (sockaddr *)&client_addr, &len);
 					if (newClient == -1)
 					{
-						Logger::error("server error: an error occurred while accept'ing the client: " + std::string(strerror(errno)), RESET);
+						Logger::perror("server error: an error occurred while accept'ing the client");
 						continue;
 					}
 					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)
 					client_addr.sin_port = ntohs(client_addr.sin_port); // Corrige l'ordre des octets du port (endianness)
 					/**
-					 * On ajoute le nouveau client à la liste des descripteurs à surveiller
+					 * On encapsule le client dans un try/catch pour gérer les exceptions créées lors de la création du client.
+					 */
+					try
+					{
+						/**
+						 * Création et ajout d'un nouveau client à la liste des clients.
+						 */
+						poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
+					}
+					catch(const std::exception& e)
+					{
+						Logger::error("server error: " + std::string(e.what()));
+						close(newClient);
+						break;
+					}
+					/**
+					 * On ajoute le nouveau client à la liste des descripteurs à surveiller.
 					 */
 					poll_fds.push_back((pollfd){newClient, POLLIN, 0});
-					/**
-					 * On crée un nouveau client et on l'ajoute à la liste des clients
-					 */
-					// poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr, poll_fds, poll_clients)};
-					poll_clients[newClient] = (wbs_pollclient){WBS_POLL_CLIENT, new Client(this->_servers[i], newClient, client_addr)};
 					break;
 
 				case WBS_POLL_CLIENT:
@@ -238,7 +277,7 @@ int		Cluster::start(void)
 				}
 			}
 			// Si le descripteur n'est pas prêt pour la lecture et que c'est un client, on
-			// s'assure qu'il ne depasse pas le timeout
+			// s'assure qu'il ne dépasse pas le timeout
 			else if (poll_clients[poll_fds[i].fd].type == WBS_POLL_CLIENT)
 			{
 				if ((reinterpret_cast<Client *>(poll_clients[poll_fds[i].fd].data))->timeout())
@@ -246,17 +285,17 @@ int		Cluster::start(void)
 			}
 		}
 
-		// On supprime les éléments à partir de la fin du vecteur pour éviter les décalages d'indice
+		// Nous supprimons les éléments à partir de la fin du vecteur pour éviter les décalages d'index
 		for (std::vector<int>::reverse_iterator it = to_remove.rbegin(); it != to_remove.rend(); it++)
 		{
-			// On sauvegarde le descripteur de l'élément à supprimer
+			// Sauvegarde du descripteur de l'élément à supprimer
 			newClient = poll_fds[*it].fd;
 			poll_fds.erase(poll_fds.begin() + *it);
 			client = reinterpret_cast<Client *>(poll_clients[newClient].data);
 			poll_clients.erase(newClient);
 			delete client;
 		}
-	} while (!this->exit);
+	} while (false == this->exit);
 
 	// On ferme les sockets des clients et libère la mémoire
 	for (std::map<int, wbs_pollclient>::iterator it = poll_clients.begin(); it != poll_clients.end(); it++)
@@ -265,12 +304,12 @@ int		Cluster::start(void)
 			delete reinterpret_cast<Client *>(it->second.data);
 	}
 
-	// On eteint les serveurs et libère la mémoire
+	// On éteint les serveurs et libère la mémoire
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 		(*it)->kill();
 
 	// On ferme la pool de threads
-	Cluster::pool.kill();
+	Cluster::pool.kill(Cluster::kill);
 
 	return (WBS_NOERR);
 }

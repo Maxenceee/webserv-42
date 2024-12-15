@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/18 12:19:55 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/01 22:15:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,11 @@
 #include "cluster/Cluster.hpp"
 #include "server/Server.hpp"
 #include "server/ServerConfig.hpp"
-#include "routes/Router.hpp"
 #include "logger/Logger.hpp"
 
 class Cluster;
 class Router;
+class ServerConfig;
 
 class Parser
 {
@@ -46,7 +46,7 @@ private:
 	bool	isValidModifier(const std::string &modifier) const;
 
 	void	throwError(const std::string &raw_line, const int pos = 0);
-	void	throwError(const std::string &raw_line, const std::string message, const int pos = 0);
+	void	throwError(const std::string &raw_line, const std::string &message, const int pos = 0);
 
 public:
 	Parser(Cluster &c);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/11 17:24:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/15 14:26:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ int		Parser::open_and_read_file(const std::string &file_name)
 
 	while (getline(this->file, line))
 	{
-		this->buffer.push_back(line);
+		// Toutes les tabulations sont remplacées par des espaces pour éviter les erreurs d'espacement
+		this->buffer.push_back(replaceAll(line, '\t', ' '));
 	}
 	this->file.close();
 	return (EXIT_SUCCESS);
@@ -78,25 +79,31 @@ void	Parser::extract(void)
 		// Si le ligne est vide ou si elle commence par un commentaire, on l'ignore
 		if (lineRaw.empty() || lineRaw[0] == '#') continue;
 
-		// Les lignes peuvent contenir des commentaires, donc on les ignore
-		lineRaw = split(lineRaw, '#')[0];
-		trim(lineRaw);
-
 		// Accumuler les lignes tant qu'on ne rencontre pas un '{', '}' ou ';'
 		chunkedLine += (chunkedLine.empty() ? "" : " ") + lineRaw;
 
-		// Vérification et mise à jour du compteur d'accolades
-		for (size_t i = 0; i < lineRaw.length(); ++i) {
-			if (lineRaw[i] == '{') {
-				braceCount++;  // Incrémenter lors d'une accolade ouvrante
-			} else if (lineRaw[i] == '}') {
-				braceCount--;  // Décrémenter lors d'une accolade fermante
-			}
-		}
-
 		// Si la ligne contient une accolade ouvrante, fermante ou un point-virgule
 		if (lineRaw.find('{') != std::string::npos || lineRaw.find('}') != std::string::npos || lineRaw.find(';') != std::string::npos) {
-			std::vector<std::string> tokens = tokenize(chunkedLine);
+			std::vector<std::string> tokens;
+
+			try
+			{
+				tokens = tokenize(chunkedLine);
+			}
+			catch(...)
+			{
+				this->throwError(chunkedLine, "expected '\"'", chunkedLine.length() - 1);
+			}
+
+			// Vérification et mise à jour du compteur d'accolades
+			for (std::vector<std::string>::const_iterator it = tokens.begin(); it != tokens.end(); ++it) {
+				if (*it == "{") {
+					braceCount++;  // Incrémenter lors d'une accolade ouvrante
+				} else if (*it == "}") {
+					braceCount--;  // Décrémenter lors d'une accolade fermante
+				}
+			}
+
 			if (!tokens.empty()) {
 				lastProcessedLine = lineRaw; // Stock la dernière ligne traitée pour les erreurs
 
@@ -115,7 +122,6 @@ void	Parser::extract(void)
 	}
 
 	if (braceCount != 0) {
-		replaceAll(lastProcessedLine, '\t', ' ');
 		this->throwError(lastProcessedLine, "expected '}'", lastProcessedLine.length() - 1);
 	}
 }
@@ -179,7 +185,7 @@ void	Parser::throwError(const std::string &raw_line, const int pos)
 	this->throwError(raw_line, "invalid directive found", pos);
 }
 
-void	Parser::throwError(const std::string &raw_line, const std::string message, const int pos)
+void	Parser::throwError(const std::string &raw_line, const std::string &message, const int pos)
 {
 	std::string	tmp("parser error: ");
 	tmp += message;
@@ -283,7 +289,8 @@ void	Parser::createNewRouter(const std::string &key, const std::string &val, con
 void	Parser::addRule(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
 {
 	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
-	const size_t key_length = key.length() + 1; // +1 pour l'espace après la clé
+	// Taille du nom de la directive (+1 pour l'espace après la clé)
+	const size_t key_length = key.length() + 1;
 
 	// On vérifie que la directive est bien dans un contexte
 	if (context.empty())
@@ -298,7 +305,10 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		this->throwError(raw_line, "listen directive must be inside server block");
 	else if (key == "listen") {
 		if (valtokens.size() > 1) {
-			this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
+			if (valtokens[1] == "ssl")
+				this->new_server->setSSL(true);
+			else
+				this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
 		}
 		// Si la directive listen contient `:` on s'assure que le port est correct
 		std::string line = valtokens[0];
@@ -467,7 +477,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 */
 	if (key == "client_max_body_size") {
 		size_t ts = parseSize(valtokens[0]);
-		if (ts == -1) {
+		if (ts == (size_t)-1) {
 			this->throwError(raw_line, "invalid size", key_length);
 		}
 		this->tmp_router->setClientMaxBodySize(ts);
@@ -519,7 +529,34 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		}
 		this->tmp_router->addHeader(valtokens[0], valtokens[1], always);
 		return ;
-	
+	}
+
+	/**
+	 * Directive client_header_timeout
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_timeout)
+	 */
+	if (key == "client_header_timeout") {
+		time_t	t = parseTime(valtokens[0]);
+		if (t < 0) {
+			this->throwError(raw_line, "invalid time", key_length);
+		}
+		this->tmp_router->setTimeout(t, "header");
+		return ;
+	}
+
+	/**
+	 * Directive client_body_timeout
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout)
+	 */
+	if (key == "client_body_timeout") {
+		time_t	t = parseTime(valtokens[0]);
+		if (t < 0) {
+			this->throwError(raw_line, "invalid time", key_length);
+		}
+		this->tmp_router->setTimeout(t, "body");
+		return ;
 	}
 
 	/**
@@ -530,52 +567,73 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "proxy_pass") {
 		std::string url = valtokens[0];
 
-		std::string protocol;
-		std::string host;
-		std::string port;
-		std::string path;
-		
-		// Vérifie si la chaîne commence par "http://" ou "https://"
-		if (url.substr(0, 7) == "http://") {
-			protocol = "http";
-			url = url.substr(7);
-		} else if (url.substr(0, 8) == "https://") {
-			protocol = "https";
-			url = url.substr(8);
-		} else {
-			this->throwError(raw_line, "unsupported protocol", key_length);
+		wbs_url tu;
+		try
+		{
+			tu = newURL(url);
+		}
+		catch(...)
+		{
+			this->throwError(raw_line, "invalid url", key_length);
 		}
 
-		if (protocol == "https") {
+		if (tu.protocol != "http" && tu.protocol != "https")
+			this->throwError(raw_line, "unsupported protocol (only http: is supported)", key_length);
+
+		if (tu.protocol == "https") {
 			Logger::warning("parser info: unsupported protocol (https:), using http instead.");
+			tu.protocol = "http";
 		}
+
+		this->tmp_router->setProxy(tu);
 		
-		size_t pos = url.find('/');
-		if (pos == std::string::npos) {
-			host = url;
-			path = "/";
-		} else {
-			host = url.substr(0, pos);
-			path = url.substr(pos);
-		}
 
-		if (host.find(':') != std::string::npos) {
-			std::vector<std::string> hostTokens = split(host, ':');
-			host = hostTokens[0];
-			port = hostTokens[1];
-		} else {
-			port = "80"; // Par défaut
-		}
+		// std::string protocol;
+		// std::string host;
+		// std::string port;
+		// std::string path;
+		
+		// // Vérifie si la chaîne commence par "http://" ou "https://"
+		// if (url.substr(0, 7) == "http://") {
+		// 	protocol = "http";
+		// 	url = url.substr(7);
+		// } else if (url.substr(0, 8) == "https://") {
+		// 	protocol = "https";
+		// 	url = url.substr(8);
+		// } else {
+		// 	this->throwError(raw_line, "unsupported protocol", key_length);
+		// }
 
-		if (host.length() < 2) {
-			this->throwError(raw_line, "invalid host", key_length + protocol.length() + 3);
-		}
+		// if (protocol == "https") {
+		// 	Logger::warning("parser info: unsupported protocol (https:), using http instead.");
+		// }
+		
+		// size_t pos = url.find('/');
+		// if (pos == std::string::npos) {
+		// 	host = url;
+		// 	path = "/";
+		// } else {
+		// 	host = url.substr(0, pos);
+		// 	path = url.substr(pos);
+		// }
 
-		if (!isNumber(port))
-			// Key + protocol + :// + host + :
-			this->throwError(raw_line, "invalid port", key_length + protocol.length() + 3 + host.length() + 1);
+		// if (host.find(':') != std::string::npos) {
+		// 	std::vector<std::string> hostTokens = split(host, ':');
+		// 	host = hostTokens[0];
+		// 	port = hostTokens[1];
+		// } else {
+		// 	port = "80"; // Par défaut
+		// }
 
-		this->tmp_router->setProxy(host, std::atoi(port.c_str()), path);
+		// if (host.length() < 2) {
+		// 	this->throwError(raw_line, "invalid host", key_length + protocol.length() + 3);
+		// }
+
+		// if (!isNumber(port))
+		// 	// Key + protocol + :// + host + :
+		// 	this->throwError(raw_line, "invalid port", key_length + protocol.length() + 3 + host.length() + 1);
+
+		// this->tmp_router->setProxy(host, std::atoi(port.c_str()), path);
 		return ;
 	}
 
@@ -614,30 +672,26 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	}
 
 	/**
-	 * Directive client_header_timeout
+	 * Directive ssl_certificate
 	 * 
-	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_header_timeout)
+	 * (https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate)
 	 */
-	if (key == "client_header_timeout") {
-		time_t	t = parseTime(valtokens[0]);
-		if (t < 0) {
-			this->throwError(raw_line, "invalid time", key_length);
-		}
-		this->tmp_router->setTimeout(t, "header");
+	if (key == "ssl_certificate") {
+		if (context != "server")
+			this->throwError(raw_line, "ssl_certificate directive must be inside server block");
+		this->new_server->setSSLCertFile(valtokens[0]);
 		return ;
 	}
 
 	/**
-	 * Directive client_body_timeout
+	 * Directive ssl_certificate_key
 	 * 
-	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#client_body_timeout)
+	 * (https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate_key)
 	 */
-	if (key == "client_body_timeout") {
-		time_t	t = parseTime(valtokens[0]);
-		if (t < 0) {
-			this->throwError(raw_line, "invalid time", key_length);
-		}
-		this->tmp_router->setTimeout(t, "body");
+	if (key == "ssl_certificate_key") {
+		if (context != "server")
+			this->throwError(raw_line, "ssl_certificate_key directive must be inside server block");
+		this->new_server->setSSLKeyFile(valtokens[0]);
 		return ;
 	}
 

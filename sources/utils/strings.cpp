@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   strings.cpp                                        :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/15 15:34:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/11/21 16:59:02 by mgama            ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "utils.hpp"
@@ -81,7 +81,8 @@ std::vector<std::string>	parseQuotedAndSplit(const std::string &input)
 	return result;
 }
 
-std::vector<std::string> tokenize(const std::string &line) {
+std::vector<std::string> tokenize(const std::string &line)
+{
 	std::vector<std::string> tokens;
 	std::string token;
 	bool inQuotes = false;
@@ -92,7 +93,10 @@ std::vector<std::string> tokenize(const std::string &line) {
 		if (c == '"') {
 			inQuotes = !inQuotes; // Toggle quote state
 			token += c;
-		} else if ((isspace(c) || c == '\t') && !inQuotes) {
+		} else if (c == '#' && !inQuotes) {
+            // Ignore the rest of the line after a '#' if not inside quotes
+            break;
+        } else if ((isspace(c) || c == '\t') && !inQuotes) {
 			if (!token.empty()) {
 				tokens.push_back(token);
 				token.clear();
@@ -110,6 +114,10 @@ std::vector<std::string> tokenize(const std::string &line) {
 
 	if (!token.empty()) {
 		tokens.push_back(token);
+	}
+
+	if (inQuotes) {
+		throw std::runtime_error("Unterminated quote");
 	}
 
 	return tokens;
