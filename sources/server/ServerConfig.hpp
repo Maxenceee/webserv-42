@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:24:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 16:17:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ struct wbs_server_ssl {
 	bool			enabled;
 	std::string		cert_file;
 	std::string		key_file;
+	std::string		ciphers;
 	SSL_CTX			*ctx;
 };
 
@@ -73,6 +74,7 @@ public:
 	bool		setupSSL(void);
 	void		setSSLCertFile(const std::string &cert_file);
 	void		setSSLKeyFile(const std::string &key_file);
+	void		setSSLCiphers(const std::string &ciphers);
 	SSL_CTX		*getSSLCTX(void) const;
 
 	

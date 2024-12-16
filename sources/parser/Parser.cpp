@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:13:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 16:17:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -580,60 +580,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		if (tu.protocol != "http" && tu.protocol != "https")
 			this->throwError(raw_line, "unsupported protocol (only http: and https: are supported)", key_length);
 
-		// if (tu.protocol == "https") {
-		// 	Logger::warning("parser info: unsupported protocol (https:), using http instead.");
-		// 	tu.protocol = "http";
-		// }
-
 		this->tmp_router->setProxy(tu);
-		
-
-		// std::string protocol;
-		// std::string host;
-		// std::string port;
-		// std::string path;
-		
-		// // Vérifie si la chaîne commence par "http://" ou "https://"
-		// if (url.substr(0, 7) == "http://") {
-		// 	protocol = "http";
-		// 	url = url.substr(7);
-		// } else if (url.substr(0, 8) == "https://") {
-		// 	protocol = "https";
-		// 	url = url.substr(8);
-		// } else {
-		// 	this->throwError(raw_line, "unsupported protocol", key_length);
-		// }
-
-		// if (protocol == "https") {
-		// 	Logger::warning("parser info: unsupported protocol (https:), using http instead.");
-		// }
-		
-		// size_t pos = url.find('/');
-		// if (pos == std::string::npos) {
-		// 	host = url;
-		// 	path = "/";
-		// } else {
-		// 	host = url.substr(0, pos);
-		// 	path = url.substr(pos);
-		// }
-
-		// if (host.find(':') != std::string::npos) {
-		// 	std::vector<std::string> hostTokens = split(host, ':');
-		// 	host = hostTokens[0];
-		// 	port = hostTokens[1];
-		// } else {
-		// 	port = "80"; // Par défaut
-		// }
-
-		// if (host.length() < 2) {
-		// 	this->throwError(raw_line, "invalid host", key_length + protocol.length() + 3);
-		// }
-
-		// if (!isNumber(port))
-		// 	// Key + protocol + :// + host + :
-		// 	this->throwError(raw_line, "invalid port", key_length + protocol.length() + 3 + host.length() + 1);
-
-		// this->tmp_router->setProxy(host, std::atoi(port.c_str()), path);
 		return ;
 	}
 
@@ -679,6 +626,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "ssl_certificate") {
 		if (context != "server")
 			this->throwError(raw_line, "ssl_certificate directive must be inside server block");
+
 		this->new_server->setSSLCertFile(valtokens[0]);
 		return ;
 	}
@@ -691,7 +639,16 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "ssl_certificate_key") {
 		if (context != "server")
 			this->throwError(raw_line, "ssl_certificate_key directive must be inside server block");
+
 		this->new_server->setSSLKeyFile(valtokens[0]);
+		return ;
+	}
+
+	if (key == "ssl_ciphers") {
+		if (context != "server")
+			this->throwError(raw_line, "ssl_ciphers directive must be inside server block");
+
+		this->new_server->setSSLCiphers(valtokens[0]);
 		return ;
 	}
 

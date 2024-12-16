@@ -320,6 +320,7 @@ int main() {
 - [server_name](#server_name)
 - [ssl_certificate](#ssl_certificate)
 - [ssl_certificate_key](#ssl_certificate_key)
+- [ssl_ciphers](#ssl_ciphers)
 
 ## Documentation
 
@@ -660,3 +661,16 @@ Context: 	server
 ```
 
 Specifies a `file` with the secret key in the PEM format for the given virtual server. 
+
+### `ssl_ciphers`
+
+```
+Syntax: 	ssl_ciphers ciphers;
+Default: 	ssl_ciphers HIGH:!aNULL:!MD5;
+Context: 	server
+```
+
+Specifies the enabled ciphers. The ciphers are specified in the format understood by the OpenSSL library, for example:
+```
+ssl_ciphers ALL:!aNULL:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+```

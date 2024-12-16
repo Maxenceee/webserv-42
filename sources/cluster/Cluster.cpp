@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 15:18:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 18:05:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,6 +246,7 @@ int		Cluster::start(void)
 					}
 					client_addr.sin_addr.s_addr = ntohl(client_addr.sin_addr.s_addr); // Corrige l'ordre des octets de l'adresse IP (endianness)
 					client_addr.sin_port = ntohs(client_addr.sin_port); // Corrige l'ordre des octets du port (endianness)
+
 					/**
 					 * On encapsule le client dans un try/catch pour gérer les exceptions créées lors de la création du client.
 					 */
