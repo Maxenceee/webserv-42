@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:09:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 15:25:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,20 +57,32 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 		this->_ssl_session = SSL_new(ssl_ctx);
 		if (!this->_ssl_session)
 		{
+			SSL_CTX_free(ssl_ctx);
 			throw std::runtime_error("Failed to create SSL session");
 		}
 
 		SSL_set_fd(this->_ssl_session, client);
+
 		/**
 		 * Acceptation de la connexion SSL.
 		 */
 		if (SSL_accept(this->_ssl_session) <= 0)
 		{
-			throw std::runtime_error("Failed to accept SSL connection");
+			/**
+			 * Si l'erreur est due a une interruption de la connexion, on ignore l'erreur, car
+			 * cela signifie que le client a fermé la connexion, cas qui est géré par la suite.
+			 */
+			if (!(errno == EPIPE || errno == ECONNRESET))
+			{
+			
+				SSL_CTX_free(ssl_ctx);
+				SSL_free(this->_ssl_session);
+				Logger::perror("Failed to accept SSL connection");
+				throw std::runtime_error("Failed to accept SSL connection");
+			}
 		}
 		SSL_CTX_free(ssl_ctx);
 	}
-	Logger::debug("New client on fd: "+toString(client));
 }
 
 Client::~Client(void)
@@ -129,10 +141,13 @@ int	Client::process(void)
 	 * gestion de la lecture dans un contexte de travail en réseau.
 	 */
 	int valread = this->read(buffer, WBS_RECV_SIZE);
-	if (valread == -1) {
+	if (valread == -1)
+	{
 		Logger::error("server error: an error occurred while reading from client");
 		return (WBS_POLL_CLIENT_ERROR);
-	} else if (valread == 0) {
+	}
+	else if (valread == 0)
+	{
 		Logger::debug("Connection closed by the client");
 		return (WBS_POLL_CLIENT_DISCONNECT);
 	}
@@ -167,35 +182,6 @@ int	Client::process(void)
 	{
 		if (this->_current_router->isProxy())
 		{
-			// this->_proxy = new ProxyClient(this->_client, this->_current_router->getProxyConfig());
-			// if (this->_proxy->connect())
-			// {
-			// 	this->response->status(502).sendDefault().end();
-			// 	delete this->_proxy;
-			// 	this->_proxy = NULL;
-			// 	return (WBS_POLL_CLIENT_ERROR);
-			// }
-
-			// /**
-			//  * On ajoute le client du proxy au tableau des descripteurs à surveiller.
-			//  */
-			// this->_poll_fds.push_back((pollfd){this->_proxy->getSocketFD(), POLLIN, 0});
-
-			// this->_poll_clients[this->_proxy->getSocketFD()] = (wbs_pollclient){WBS_POLL_PROXY, this->_proxy};
-
-			// /**
-			//  * On indique que le client est un proxy.
-			//  */
-			// this->is_proxy = true;
-
-			// /**
-			//  * On envoie la requête au serveur distant.
-			//  */
-			// if (this->_proxy->send(this->request))
-			// {
-			// 	this->response->status(502).sendDefault().end();
-			// 	return (WBS_POLL_CLIENT_ERROR);
-			// }
 			return (WBS_POLL_CLIENT_CLOSED);
 		}
 		else
@@ -290,13 +276,6 @@ int	Client::processLines(void)
 			
 			if (this->request.hasHeader("Connection") && this->request.getHeader("Connection") == "Upgrade")
 			{
-				/**
-				 * INFO:
-				 * Le serveur ne supporte pas le protocole WebSocket, on envoie donc une réponse d'erreur 501.
-				 */
-				// this->response->status(501).sendDefault().end();
-				// return (WBS_ERR);
-
 				/**
 				 *
 				 * INFO:
@@ -418,14 +397,17 @@ int	Client::read(char *buffer, size_t buffer_size)
 {
 	int valread;
 
-	if (this->_ssl_session) {
+	if (this->_ssl_session)
+	{
 		/**
 		 * La fonction SSL_read() sert à lire le contenu d'un descripteur de fichier, ici
 		 * le descripteur du client. À la différence de recv(), la fonction SSL_read() est
 		 * spécifiquement conçue pour la lecture à partir de sockets sécurisés par SSL/TLS.
 		 */
 		valread = SSL_read(this->_ssl_session, buffer, buffer_size);
-	} else {
+	}
+	else 
+	{
 		/**
 		 * La fonction recv() sert à lire le contenu d'un descripteur de fichier, ici
 		 * le descripteur du client. À la différence de read(), la fonction recv() est
@@ -442,14 +424,17 @@ int	Client::send(const char *buffer, size_t buffer_size)
 {
 	int valread;
 
-	if (this->_ssl_session) {
+	if (this->_ssl_session)
+	{
 		/**
 		 * La fonction SSL_write() sert à écrire le contenu d'un descripteur de fichier, ici
 		 * le descripteur du client. À la différence de write, la fonction SSL_write est
 		 * spécifiquement conçue pour écrire dans un socket sécurisé par SSL/TLS.
 		 */
 		valread = SSL_write(this->_ssl_session, buffer, buffer_size);
-	} else {
+	}
+	else
+	{
 		/**
 		 * La fonction send() sert à écrire le contenu d'un descripteur de fichier, ici
 		 * le descripteur du client. À la différence de write, la fonction send est

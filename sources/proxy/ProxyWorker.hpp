@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:20 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:11:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 15:35:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,10 @@ enum wbs_proxy_code
 	WBS_PROXY_TIMEOUT		= 3
 };
 
+/**
+ * FIXME:
+ * Ce n'est pas très de definir toute la structure et ses fonctionnalités ici.
+ */
 struct wbs_proxyworker_client {
 	int			fd;
 	SSL			*session;
@@ -66,7 +70,6 @@ private:
 	SSL								*ssl_session;
 	const std::string				&_buffer;
 	Request							&_req;
-	// pthread_t				_tid;
 
 	int		sendrequest(void);
 	int		initSSL(void);

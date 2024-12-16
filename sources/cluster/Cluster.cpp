@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 13:39:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 15:18:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ int		Cluster::start(void)
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
 	signal(SIGTERM, interruptHandler);
-	// Handler pour SIGPIPE
+	// Ingore le signal SIGPIPE
 	signal(SIGPIPE, SIG_IGN);
 
 	/**
@@ -133,7 +133,7 @@ int		Cluster::start(void)
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		int serverSocket = (*it)->getSocketFD();
-		poll_fds.push_back((pollfd){serverSocket, POLLIN, 0});
+		poll_fds.push_back((pollfd){serverSocket, POLLIN | POLLHUP | POLLERR, 0});
 		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
 	}
 
@@ -190,7 +190,7 @@ int		Cluster::start(void)
 			// Si le signal d'interruption est reçu, on continue
 			if (errno == EINTR) {
 				// Logger::debug("Signal received: exiting the server");
-				continue;;
+				continue;
 			}
 			Logger::perror("server error: an error occurred while poll'ing");
 			return (WBS_SOCKET_ERR);
@@ -204,6 +204,11 @@ int		Cluster::start(void)
 			{
 				Logger::debug("Connection closed by the client (event POLLHUP)");
 				to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
+			}
+			else if (poll_fds[i].revents & POLLERR)
+			{
+				Logger::debug("Socket error (POLLERR detected)");
+				to_remove.push_back(i);
 			}
 			/**
 			 * On s'assure ensuite que l'événement détecté est bien celui attendu. On évite
