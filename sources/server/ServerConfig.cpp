@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:24:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 17:47:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,12 @@ ServerConfig::ServerConfig(Server *server): _server(server), used(false)
 		this->_port = 8000;
 	this->_address = INADDR_ANY;
 
+	/**
+	 * Inialisation de la configuration SSL par défaut.
+	 */
 	this->_ssl.enabled = false;
 	this->_ssl.ctx = NULL;
+	this->_ssl.ciphers = "HIGH:!aNULL:!MD5";
 }
 
 ServerConfig::~ServerConfig(void)
@@ -118,6 +122,11 @@ void	ServerConfig::setSSLKeyFile(const std::string &key_file)
 	this->_ssl.key_file = key_file;
 }
 
+void	ServerConfig::setSSLCiphers(const std::string &ciphers)
+{
+	this->_ssl.ciphers = ciphers;
+}
+
 bool	ServerConfig::setupSSL(void)
 {
 	if (this->_ssl.ctx != NULL)
@@ -146,15 +155,26 @@ bool	ServerConfig::setupSSL(void)
 		ERR_print_errors_fp(stderr);
 		return (false);
 	}
+
 	/**
 	 * Ajout des fichiers de certificat et de clé privée au contexte SSL.
 	 */
 	if (SSL_CTX_use_certificate_file(this->_ssl.ctx, this->_ssl.cert_file.c_str(), SSL_FILETYPE_PEM) <= 0 ||
-        SSL_CTX_use_PrivateKey_file(this->_ssl.ctx, this->_ssl.key_file.c_str(), SSL_FILETYPE_PEM) <= 0) {
-        Logger::error("server error: could not add certificate or key file");
+		SSL_CTX_use_PrivateKey_file(this->_ssl.ctx, this->_ssl.key_file.c_str(), SSL_FILETYPE_PEM) <= 0) {
+		Logger::error("server error: could not add certificate or key file");
 		ERR_print_errors_fp(stderr);
 		return (false);
-    }
+	}
+
+	/**
+	 * Ajour des ciphers à utiliser pour le chiffrement des données.
+	 */
+	if (SSL_CTX_set_cipher_list(this->_ssl.ctx, this->_ssl.ciphers.c_str()) == 0)
+	{
+		Logger::error("server error: could not set ciphers");
+		ERR_print_errors_fp(stderr);
+		return (false);
+	}
 	return (true);
 }
 

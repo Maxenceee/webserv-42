@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 15:33:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 18:00:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,6 +200,12 @@ int	ProxyWorker::initSSL(void)
 			return (WBS_PROXY_ERROR);
 		}
 
+		/**
+		 * Version minimale et maximale du protocole TLS à utiliser
+		 */
+		SSL_CTX_set_min_proto_version(this->ssl_ctx, TLS1_2_VERSION);
+		SSL_CTX_set_max_proto_version(this->ssl_ctx, TLS1_3_VERSION);
+
 		this->ssl_session = SSL_new(this->ssl_ctx);
 		if (!this->ssl_session)
 		{
@@ -210,6 +216,15 @@ int	ProxyWorker::initSSL(void)
 		if (SSL_set_fd(this->ssl_session, this->socket_fd) == 0)
 		{
 			Logger::perror("proxy worker error: SSL_set_fd");
+			return (WBS_PROXY_ERROR);
+		}
+
+		/**
+		 * Ajout du nom de domaine dans les extensions TLS pour le SNI (Server Name Indication)
+		 */
+		if (SSL_set_tlsext_host_name(this->ssl_session, this->_req.getHost().c_str()) != 1)
+		{
+			Logger::perror("proxy worker error: SSL_set_tlsext_host_name");
 			return (WBS_PROXY_ERROR);
 		}
 

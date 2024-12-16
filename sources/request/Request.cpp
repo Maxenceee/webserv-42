@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:13:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 18:06:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,10 @@ Request::Request(int socket, sockaddr_in clientAddr):
 	this->request_time.header = getTimestamp();
 	this->request_time.body = 0;
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
+	/**
+	 * TODO:
+	 * Fix invalid port, always 80
+	 */
 }
 
 Request::~Request(void)
