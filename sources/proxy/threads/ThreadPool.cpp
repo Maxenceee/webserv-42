@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 13:26:20 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 14:16:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,17 @@ void	ThreadPool::kill(bool force)
 		Logger::print("Waiting for workers to finish", B_GREEN);
 	}
 #else
+	(void)force;
 	Logger::print("Waiting for workers to finish", B_GREEN);
 # endif /* __APPLE__ */
 
 	for (size_t i = 0; i < workers.size(); ++i) {
 		pthread_join(workers[i], NULL);
+	}
+
+	for (size_t i = 0; i < tasks.size(); ++i) {
+		delete tasks.front();
+		tasks.pop();
 	}
 
 	pthread_mutex_destroy(&queueMutex);

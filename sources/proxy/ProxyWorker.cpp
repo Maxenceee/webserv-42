@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:42:45 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 15:33:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,9 @@ int	ProxyWorker::connect(void)
 {
 	int option = 1;
 
+	/**
+	 * Résolution DNS de l'adresse du proxy
+	 */
 	struct hostent *hostent = gethostbyname(this->_config.host.c_str());
 	if (hostent == NULL) {
 		if (h_errno == HOST_NOT_FOUND)
@@ -80,7 +83,15 @@ int	ProxyWorker::connect(void)
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->_config.port);
 
+	/**
+	 * La résolution DNS peut retourner plusieurs adresses IP pour un même nom de domaine,
+	 * on les teste toutes jusqu'à en trouver une qui fonctionne.
+	 */
 	for (char **addr = hostent->h_addr_list; *addr != NULL; ++addr) {
+		/**
+		 * Chaque socket ne peut être utilisé pour qu'un connexion à la fois, il est donc nécessaire
+		 * de créer un nouveau socket pour chaque tentative de connexion.
+		 */
 		this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (this->socket_fd < 0)
 		{
@@ -88,6 +99,9 @@ int	ProxyWorker::connect(void)
 			return (WBS_PROXY_UNAVAILABLE);
 		}
 
+		/**
+		 * On configure le socket pour qu'il puisse être réutilisé immédiatement après la fermeture
+		 */
 		if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
 			Logger::perror("proxy worker error: setsockopt");
 			return (WBS_PROXY_UNAVAILABLE);
@@ -101,11 +115,18 @@ int	ProxyWorker::connect(void)
 
 		memcpy(&this->socket_addr.sin_addr, &inAddr, sizeof(inAddr));
 
+		/**
+		 * Tentative de connexion au serveur distant, si la connexion est établie, on sort de la boucle
+		 * et on continue le traitement.
+		 */
 		if (::connect(this->socket_fd, (struct sockaddr *)&this->socket_addr, sizeof(this->socket_addr)) == 0) {
 			ss << "Connected to " << inet_ntoa(inAddr);
 			Logger::debug(ss.str());
 			ss.str("");
 			connected = true;
+			/**
+			 * Mise à jour de l'hôte dans la requête pour qu'elle corresponde à l'hôte du serveur distant
+			 */
 			this->_req.updateHost(this->_config.host);
 			break;
 		} else {
@@ -133,20 +154,15 @@ int	ProxyWorker::read(char *buffer, size_t buffer_size)
 {
 	int valread;
 
-	if (this->ssl_session) {
-		/**
-		 * La fonction SSL_send() sert à écrire le contenu d'un descripteur de fichier, ici
-		 * le descripteur du client. À la différence de write, la fonction SSL_send est
-		 * spécifiquement conçue pour écrire dans un socket sécurisé par SSL/TLS.
-		 */
+	/**
+	 * Si la connexion est sécurisée, on utilise la fonction appropriée pour lire les données
+	 */
+	if (this->ssl_session)
+	{
 		valread = SSL_read(this->ssl_session, buffer, buffer_size);
-	} else {
-		/**
-		 * La fonction send() sert à écrire le contenu d'un descripteur de fichier, ici
-		 * le descripteur du client. À la différence de write, la fonction send est
-		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
-		 * gestion de l'écriture dans un contexte de travail en réseau.
-		 */
+	}
+	else
+	{
 		valread = ::recv(this->socket_fd, buffer, buffer_size, 0);
 	}
 
@@ -157,20 +173,15 @@ int	ProxyWorker::send(const char *buffer, size_t buffer_size)
 {
 	int valread;
 
-	if (this->ssl_session) {
-		/**
-		 * La fonction SSL_write() sert à écrire le contenu d'un descripteur de fichier, ici
-		 * le descripteur du client. À la différence de write, la fonction SSL_write est
-		 * spécifiquement conçue pour écrire dans un socket sécurisé par SSL/TLS.
-		 */
+	/**
+	 * Si la connexion est sécurisée, on utilise la fonction appropriée pour envoyer les données
+	 */
+	if (this->ssl_session)
+	{
 		valread = SSL_write(this->ssl_session, buffer, buffer_size);
-	} else {
-		/**
-		 * La fonction send() sert à écrire le contenu d'un descripteur de fichier, ici
-		 * le descripteur du client. À la différence de write, la fonction send est
-		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
-		 * gestion de l'écriture dans un contexte de travail en réseau.
-		 */
+	}
+	else
+	{
 		valread = ::send(this->socket_fd, buffer, buffer_size, 0);
 	}
 
@@ -204,23 +215,7 @@ int	ProxyWorker::initSSL(void)
 
 		if (SSL_connect(this->ssl_session) <= 0)
 		{
-			int ssl_err = SSL_get_error(this->ssl_session, -1);
-			switch (ssl_err) {
-				case SSL_ERROR_WANT_READ:
-				case SSL_ERROR_WANT_WRITE:
-					Logger::debug("SSL_connect: Operation did not complete, retrying...");
-					break;  // Réessayer plus tard
-				case SSL_ERROR_SYSCALL:
-					Logger::perror("proxy worker error: SSL_connect (SSL_ERROR_SYSCALL)");
-					break;
-				case SSL_ERROR_SSL:
-					Logger::perror("proxy worker error: SSL_connect (SSL_ERROR_SSL)");
-					ERR_print_errors_fp(stderr);  // Affiche les erreurs internes d'OpenSSL
-					break;
-				default:
-					Logger::perror("proxy worker error: SSL_connect (Unknown error)");
-					break;
-			}
+			Logger::perror("proxy worker error: SSL_connect");
 			return (WBS_PROXY_ERROR);
 		}
 		Logger::debug("SSL session established");
@@ -244,12 +239,21 @@ int	ProxyWorker::sendrequest(void)
 		this->_req.setHeader((*it).first, (*it).second);
 	}
 
+	/**
+	 * Préparation des en-têtes de la requête pour le serveur distant
+	 */
 	std::string data = this->_req.prepareForProxying();
 	data.append(WBS_CRLF);
+	/**
+	 * On ajoute le corps de la requête, si des données ont déjà été envoyées par le client 
+	 */
 	if (this->_buffer.length() > 0) {
 		data.append(this->_buffer);
 	}
 
+	/**
+	 * Envoi de la requête au serveur distant
+	 */
 	if (this->send(data.c_str(), data.size()) < 0)
 	{
 		Logger::perror("proxy worker error: send");
@@ -263,7 +267,7 @@ int	ProxyWorker::sendrequest(void)
 void	ProxyWorker::work(void)
 {
 	fd_set read_fds;
-	char buffer[4096];
+	char buffer[WBS_RECV_SIZE];
 	ssize_t bytes_read, bytes_sent;;
 
 	int client_fd = this->_client.fd;
@@ -294,7 +298,7 @@ void	ProxyWorker::work(void)
 
 		// Vérifier les données provenant du client
 		if (FD_ISSET(client_fd, &read_fds)) {
-			bytes_read = this->_client.read(buffer, sizeof(buffer));
+			bytes_read = this->_client.read(buffer, WBS_RECV_SIZE);
 			if (bytes_read == 0)
 			{
 				Logger::debug("proxy worker: client closed the connection");
@@ -314,9 +318,9 @@ void	ProxyWorker::work(void)
 			}
 		}
 
-		// Check if there's data to read from the backend
+		// Verifier les données provenant du backend
 		if (FD_ISSET(backend_fd, &read_fds)) {
-			bytes_read = this->read(buffer, sizeof(buffer));
+			bytes_read = this->read(buffer, WBS_RECV_SIZE);
 			if (bytes_read == 0)
 			{
 				Logger::debug("proxy worker: backend closed the connection");

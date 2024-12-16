@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 22:13:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/16 14:43:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -371,7 +371,7 @@ Response	&Response::end(void)
 		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
 		 * gestion de l'écriture dans un contexte de travail en réseau.
 		 */
-		this->_client.send(res.c_str(), res.size());
+		(void)this->_client.send(res.c_str(), res.size());
 		this->_sent = true;
 		if (this->_upgrade_to_socket)
 			Logger::debug(B_YELLOW"------------------WebSocket handshake response sent-------------------");
@@ -444,7 +444,8 @@ bool	Response::canAddHeader(void) const
 	/**
 	 * Nginx offre la possibilité d'ajouter des en-têtes de réponse personnalisés
 	 * en fonction du code de statut de la réponse.
-	 * Cette fonction permet de vérifier si l'ajout d'en-tête est possible.
+	 * Cette fonction permet de vérifier si l'ajout d'en-tête est possible en fonction
+	 * du code de réponse.
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)
 	 */
