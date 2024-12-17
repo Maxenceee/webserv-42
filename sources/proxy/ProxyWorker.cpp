@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:48:27 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 17:12:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,12 +242,17 @@ int	ProxyWorker::sendrequest(void)
 {
 	/**
 	 * TODO:
-	 * Support forward headers
-	 * See: Router::wbs_router_proxy::forwared
+	 * Ajout du contrôle du contenu de la réponse
+	 * 
+	 * Pour le moment, le worker renvoie directement le contenu reçu du serveur distant,
+	 * sans le traiter.
+	 * Il serait judicieux de vérifier le contenu de la réponse, pour potentiellement laisser passer (proxy_pass_header)
+	 * ou bloquer (proxy_hide_header) certains en-têtes.
 	 */
-	for (size_t i = 0; i < this->_config.hidden.size(); i++)
+	std::cout << "method " << this->_config.method << std::endl;
+	if (this->_config.method.length())
 	{
-		this->_req.removeHeader(this->_config.hidden[i]);
+		this->_req.setMethod(this->_config.method);
 	}
 	for (wbs_mapss_t::const_iterator it = this->_config.headers.begin(); it != this->_config.headers.end(); it++)
 	{

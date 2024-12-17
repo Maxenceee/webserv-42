@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 10:24:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 17:11:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -469,6 +469,11 @@ bool	Request::bodyReceived(void) const
 bool	Request::hasContentLength(void) const
 {
 	return (this->_headers.count("Content-Length"));
+}
+
+void	Request::setMethod(const std::string &method)
+{
+	this->_method = method;
 }
 
 void	Request::updateHost(const std::string &host)

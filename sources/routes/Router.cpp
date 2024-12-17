@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:32:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 17:44:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,13 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 	}
 
 	/**
+	 * Par défaut le router hérite des pages d'index de son parent.
+	 */
+	if (parent) {
+		this->_index = parent->_index;
+	}
+
+	/**
 	 * Par défaut le router hérite des méthodes HTTP autorisées de son parent.
 	 */
 	this->_allowed_methods.enabled = false;
@@ -101,8 +108,13 @@ Router::Router(Router *parent, const struct wbs_router_location location, int le
 
 	this->_redirection.enabled = false;
 	this->_cgi.enabled = false;
-	this->_proxy.enabled = false;
-	this->_proxy.buffering = true;
+
+	/**
+	 * Par défaut le router hérite de la configuration du proxy de son parent.
+	 */
+	if (parent) {
+		this->_proxy = parent->getProxyConfig();
+	}
 }
 
 Router::~Router(void)
@@ -145,54 +157,6 @@ void	Router::allowMethod(const std::vector<std::string> &method)
 		this->allowMethod(*it);
 }
 
-void	Router::setRoot(const std::string &path)
-{
-	/**
-	 * Cette fonction indique au routeur son dossier racine, dossier à partir duquel il servira le contenu.
-	 * Par défaut, il l'hérite de son parent.
-	 * Pour simplifier, le chemin de la requête est ajouté à la fin du chemin de `root` pour former le
-	 * chemin vers la ressource.
-	 * (ex: routeur = /static, requête = /static/chemin/vers, root = ./public, chemin final => ./public/chemin/vers)
-	 * 
-	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `alias` est définie cette
-	 * directive sera écrasée.
-	 */
-	if (this->_root.isAlias && this->_root.set) {
-		Logger::info("router info: Aliasing is already enbaled for this router.");
-	} else if (this->_root.set) {
-		Logger::info("router info: Root is already set, abording.");
-	} else {
-		this->_root.set = true;
-		this->_root.path = path;
-		this->_root.nearest_root = this->_root.path;
-		this->_root.isAlias = false;
-		this->reloadChildren();
-	}
-}
-
-void	Router::setAlias(const std::string &path)
-{
-	/**
-	 * Permet de définir la directive `alias` pour ce routeur. Contrairement à `root`,
-	 * la directive `alias` remplace le segment de l'URL correspondant par le chemin spécifié.
-	 * (ex: routeur = /images, requête = /images/photo.jpg, alias = ./public/photos, chemin final => ./public/photos/photo.jpg)
-	 * (dans ce cas root aurait donné: routeur = /images, requête = /images/photo.jpg, root = ./public/photos, chemin final => ./public/photos/images/photo.jpg)
-	 * 
-	 * Attention, dans Nginx la directive `alias` a la priorité sur `root`, si `root` a été définie
-	 * précédemment cette dernière sera écrasée.
-	 */
-	if (!this->_root.isAlias && this->_root.set) {
-		Logger::info("router info: Root is already set, abording.");
-	} else {
-		if (this->_root.set)
-			Logger::info("router info: Overriding `root` directive.");
-		this->_root.set = true;
-		this->_root.path = path;
-		this->_root.isAlias = true;
-		this->reloadChildren();
-	}
-}
-
 const struct wbs_router_location	&Router::getLocation(void) const
 {
 	return (this->_location);
@@ -208,75 +172,14 @@ const struct wbs_router_root	&Router::getRootData(void) const
 	return (this->_root);
 }
 
-void	Router::setRedirection(const std::string &to, int status)
-{
-	/**
-	 * Définit le chemin de redirection du routeur, le statut par défaut est 302 (Found).
-	 * Si le chemin est vide alors le statut est retourné sans redirection.
-	 */
-	if (status % 300 < 100) {
-		this->_redirection.path = to;
-	} else {
-		this->_redirection.data = to;
-	}
-	this->_redirection.status = status;
-	this->_redirection.enabled = true;
-}
-
 const struct wbs_router_redirection	&Router::getRedirection(void) const
 {
 	return (this->_redirection);
 }
 
-void	Router::setAutoIndex(const bool autoindex)
-{
-	this->_autoindex = autoindex;
-}
-
-void	Router::setIndex(const std::vector<std::string> &index)
-{
-	this->_index = index;
-}
-
-void	Router::addIndex(const std::string &index)
-{
-	this->_index.push_back(index);
-}
-
-void	Router::setHeader(const std::string &key, const std::string &value, const bool always)
-{
-	/**
-	 * Cette méthode permet d'ajouter des en-têtes à la réponse du routeur.
-	 * Si `always` est vrai, l'en-tête sera ajouté quel que soit le code de réponse.
-	 * Les en-têtes sont héritées des niveaux de configuration précédents si et seulement si
-	 * aucun n'est défini au niveau de configuration actuel. 
-	 */
-	if (!this->_headers.enabled) {
-		this->_headers.enabled = true;
-		this->_headers.list.clear();
-	}
-	this->_headers.list.push_back((wbs_router_header_t){key, value, always});
-	this->reloadChildren();
-}
-
 const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
 {
 	return (this->_headers.list);
-}
-
-void	Router::setErrorPage(const int code, const std::string &path)
-{
-	if (code == 304) {
-		Logger::warning("router warning: Cannot set error page for "+toString(code));
-		return;
-	}
-
-	if (this->_error_page.count(code)) {
-		Logger::info("router info: overriding previous error page for " + toString(code));
-	}
-	this->_error_page[code] = path;
-	checkLeadingTrailingSlash(this->_error_page[code]);
-	this->reloadChildren();
 }
 
 const std::string	&Router::getErrorPage(const int status) const
@@ -289,17 +192,6 @@ bool	Router::hasErrorPage(const int code) const
 	return (this->_error_page.count(code) > 0);
 }
 
-void	Router::setClientMaxBodySize(const size_t size)
-{
-	if (this->_parent && this->_parent->hasClientMaxBodySize() && size >= this->_parent->getClientMaxBodySize()) {
-		Logger::warning("router warning: Client max body size cannot be greater than parent's");
-		return;
-	}
-	this->_client_body.size = size;
-	this->_client_body.set = true;
-	this->reloadChildren();
-}
-
 size_t	Router::getClientMaxBodySize(void) const
 {
 	return (this->_client_body.size);
@@ -310,55 +202,9 @@ bool	Router::hasClientMaxBodySize(void) const
 	return (this->_client_body.set);
 }
 
-void	Router::setCGI(const std::string &path)
-{
-	this->_cgi.path = path;
-	this->_cgi.enabled = true;
-}
-
-void	Router::enableCGI(void)
-{
-	this->_cgi.enabled = true;
-}
-
-void	Router::addCGIParam(const std::string &key, const std::string &value)
-{
-	this->_cgi.params[key] = value;
-}
-
 const std::string	&Router::getCGIPath(void) const
 {
 	return (this->_cgi.path);
-}
-
-void	Router::setProxy(wbs_url &proxy_url)
-{
-	if (this->_proxy.enabled)
-	{
-		Logger::warning("router warning: Proxy is already enabled");
-		return;
-	}
-
-	this->_proxy.enabled = true;
-	this->_proxy.protocol = proxy_url.protocol;
-	this->_proxy.host = proxy_url.host;
-	this->_proxy.port = proxy_url.port;
-	this->_proxy.path = proxy_url.path;
-}
-
-void	Router::addProxyHeader(const std::string &key, const std::string &value)
-{
-	this->_proxy.headers[key] = value;
-}
-
-void	Router::enableProxyHeader(const std::string &key)
-{
-	this->_proxy.forwared.push_back(key);
-}
-
-void	Router::hideProxyHeader(const std::string &key)
-{
-	this->_proxy.hidden.push_back(key);
 }
 
 bool	Router::isProxy(void) const
@@ -369,21 +215,6 @@ bool	Router::isProxy(void) const
 const struct wbs_router_proxy	&Router::getProxyConfig(void) const
 {
 	return (this->_proxy);
-}
-
-void	Router::setTimeout(const size_t time, const std::string &type)
-{
-	if (type == "header") {
-		this->_timeout.header_timeout = time;
-		this->_timeout.header_set = true;
-	}
-	else if (type == "body") {
-		this->_timeout.body_timeout = time;
-		this->_timeout.body_set = true;
-	}
-	else
-		throw std::invalid_argument("router error: Invalid usage of setTimeout()");
-	this->reloadChildren();
 }
 
 const struct wbs_router_timeout	&Router::getTimeout() const
@@ -864,6 +695,9 @@ void	Router::reloadChildren(void)
 
 void	Router::reload(void)
 {
+	if (!this->_parent)
+		return ;
+
 	/**
 	 * Cette fonction sert à mettre à jour les données héritées des niveaux de configuration précédents (des routeurs parents).
 	 */
@@ -884,6 +718,9 @@ void	Router::reload(void)
 			this->_error_page[it->first] = it->second;
 		}
 	}
+	if (!this->_index.size()) {
+		this->_index = this->_parent->_index;
+	}
 	if (this->_parent->hasClientMaxBodySize() && this->_client_body.size > this->_parent->getClientMaxBodySize()) {
 		this->_client_body = this->_parent->_client_body;
 	} else if (!this->_client_body.set) {
@@ -894,6 +731,38 @@ void	Router::reload(void)
 	}
 	if (!this->_timeout.body_set) {
 		this->_timeout.body_timeout = this->_parent->getTimeout().body_timeout;
+	}
+	if (this->_proxy.enabled) {
+		if (this->_proxy.protocol.empty()) {
+			this->_proxy.protocol = this->_parent->getProxyConfig().protocol;
+		}
+		if (this->_proxy.host.empty()) {
+			this->_proxy.host = this->_parent->getProxyConfig().host;
+		}
+		if (this->_proxy.port == 0) {
+			this->_proxy.port = this->_parent->getProxyConfig().port;
+		}
+		if (this->_proxy.path.empty()) {
+			this->_proxy.path = this->_parent->getProxyConfig().path;
+		}
+		if (this->_proxy.method.empty()) {
+			this->_proxy.method = this->_parent->getProxyConfig().method;
+		}
+		for (wbs_mapss_t::const_iterator it = this->_parent->getProxyConfig().headers.begin(); it != this->_parent->getProxyConfig().headers.end(); it++) {
+			if (!this->_proxy.headers.count(it->first)) {
+				this->_proxy.headers[it->first] = it->second;
+			}
+		}
+		for (std::vector<std::string>::const_iterator it = this->_parent->getProxyConfig().forwared.begin(); it != this->_parent->getProxyConfig().forwared.end(); it++) {
+			if (!contains(this->_proxy.forwared, *it)) {
+				this->_proxy.forwared.push_back(*it);
+			}
+		}
+		for (std::vector<std::string>::const_iterator it = this->_parent->getProxyConfig().hidden.begin(); it != this->_parent->getProxyConfig().hidden.end(); it++) {
+			if (!contains(this->_proxy.hidden, *it)) {
+				this->_proxy.hidden.push_back(*it);
+			}
+		}
 	}
 	this->reloadChildren();
 }
@@ -966,6 +835,8 @@ void	Router::print(std::ostream &os) const
 		os << space << B_CYAN"Proxy protocol: " << RESET << this->_proxy.protocol << "\n";
 		os << space << B_CYAN"Proxy host: " << RESET << this->_proxy.host << "\n";
 		os << space << B_CYAN"Proxy port: " << RESET << this->_proxy.port << "\n";
+		os << space << B_CYAN"Proxy method: " << RESET << (this->_proxy.method.length() > 0 ? this->_proxy.method : "-")<< "\n";
+		os << space << B_CYAN"Proxy uri: " << RESET << this->_proxy.path << "\n";
 		os << space << B_CYAN"Proxy set headers: " << RESET << "\n";
 		for (wbs_mapss_t::const_iterator it = this->_proxy.headers.begin(); it != this->_proxy.headers.end(); it++)
 			os << space << it->first << ": " << it->second << "\n";
