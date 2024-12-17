@@ -6,13 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 18:06:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 10:24:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request(int socket, sockaddr_in clientAddr):
+Request::Request(int socket, sockaddr_in clientAddr, bool sslEnabled):
 	_request_line_received(false),
 	_headers_received(false),
 	_body_received(false),
@@ -29,9 +29,10 @@ Request::Request(int socket, sockaddr_in clientAddr):
 	this->request_time.body = 0;
 	this->_ip = getIPAddress(this->_clientAddr.sin_addr.s_addr);
 	/**
-	 * TODO:
-	 * Fix invalid port, always 80
+	 * Ajout du port par defaut dans le cas où le client ne l'indique pas
+	 * dans l'en-tête `Host`.
 	 */
+	this->_port = sslEnabled ? 443 : 80;
 }
 
 Request::~Request(void)

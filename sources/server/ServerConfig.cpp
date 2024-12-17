@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 17:47:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 10:40:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,14 +193,10 @@ void	ServerConfig::addNames(const std::vector<std::string> &name)
 
 void	ServerConfig::addName(const std::string &name)
 {
-	size_t pos = name.find(':');
-	if (pos != std::string::npos && pos != name.rfind(':'))
+	if (name.find(':') != std::string::npos)
 		Logger::error("server error: invalid server name: " + name);
 	else {
-		int port = -1;
-		if (pos != std::string::npos)
-			port = std::atoi(name.substr(pos + 1).c_str());
-		this->_server_name.push_back((struct wbs_server_name){.name = name.substr(0, pos), .port = port});
+		this->_server_name.push_back((struct wbs_server_name){.name = name});
 	}
 }
 
@@ -211,10 +207,6 @@ const wbs_server_names	&ServerConfig::getNames(void) const
 
 bool	ServerConfig::evalName(const std::string &name) const
 {
-	/**
-	 * Si le port n'est pas spécifié dans le nom du serveur, ceci sous-entend que le serveur
-	 * accepte les requêtes sur tous les ports.
-	 */
 	for (size_t i = 0; i < this->_server_name.size(); ++i) {
 		if (this->_server_name[i].name == name) {
 			return (true);
@@ -235,8 +227,6 @@ void	ServerConfig::print(std::ostream &os) const
 	for (wbs_server_names::const_iterator it = this->_server_name.begin(); it != this->_server_name.end(); it++)
 	{
 		os << it->name;
-		if (it->port > 0)
-			os << ":" << it->port;
 		os << " ";
 	}
 	os << "\n";
