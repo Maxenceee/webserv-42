@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 18:00:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:48:27 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,7 +283,8 @@ void	ProxyWorker::work(void)
 {
 	fd_set read_fds;
 	char buffer[WBS_RECV_SIZE];
-	ssize_t bytes_read, bytes_sent;;
+	ssize_t bytes_read, bytes_sent;
+	size_t total_response_size = 0;
 
 	int client_fd = this->_client.fd;
 	int backend_fd = this->socket_fd;
@@ -353,9 +354,11 @@ void	ProxyWorker::work(void)
 				Logger::perror("proxy worker error: send to client");
 				break;
 			}
+
+			total_response_size += bytes_sent;
 		}
 	}
 
-	Server::printProxyResponse(this->_client.method, this->_client.path, getTimestamp() - this->_client.request_time);
+	Server::printProxyResponse(this->_client.method, this->_client.path, getTimestamp() - this->_client.request_time, total_response_size);
 	Logger::debug("------------------Proxy task ended-------------------", B_YELLOW);
 }

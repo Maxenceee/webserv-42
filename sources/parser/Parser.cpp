@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 10:49:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:39:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -385,7 +385,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		return ;
 	}
 	else if (key == "alias") {
-		if (context != "server")
+		if (context == "server")
 			this->throwError(raw_line, "alias directive cannot be used in server block");
 
 		if (!isDirectory(valtokens[0])) {

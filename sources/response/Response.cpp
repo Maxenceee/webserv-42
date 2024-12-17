@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 14:43:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:32:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,7 +157,7 @@ Response	&Response::send(const std::string &data)
 	 * 
 	 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
 	 */
-	this->setHeader("Content-Length", toString<int>(this->_body.size()));
+	this->setHeader("Content-Length", toString(this->_body.size()));
 	return (*this);
 }
 
@@ -193,7 +193,7 @@ Response	&Response::sendFile(const std::string &filepath)
 		 * 
 		 * (https://www.rfc-editor.org/rfc/rfc7230.html#section-3.3.2)
 		 */
-		this->setHeader("Content-Length", toString<int>(this->_body.size()));
+		this->setHeader("Content-Length", toString(this->_body.size()));
 	}
 	else
 	{
@@ -216,7 +216,7 @@ Response	&Response::sendDefault(const int code)
 	if (code != -1)
 		this->status(code);
 	this->setHeader("Content-Type", "text/html; charset=utf-8");
-	std::string st(toString<int>(this->_status)+" "+this->getSatusName());
+	std::string st(toString(this->_status)+" "+this->getSatusName());
 	this->send("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>"+st+"</title></head><body><center><h1>"+st+"</h1></center><hr><center>"+WBS_SERVER_NAME+"</center></body></html>");
 	return (*this);
 }
@@ -340,7 +340,7 @@ Response	&Response::end(void)
 		 * de la ressource.
 		 */
 		if (!this->_headers.count("Content-Length") && !this->_body.empty())
-			this->setHeader("Content-Length", toString<int>(this->_body.size()));
+			this->setHeader("Content-Length", toString(this->_body.size()));
 
 		/**
 		 * TODO:

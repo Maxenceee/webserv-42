@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:19:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:32:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,12 +267,12 @@ const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
 void	Router::setErrorPage(const int code, const std::string &path)
 {
 	if (code == 304) {
-		Logger::warning("router warning: Cannot set error page for "+toString<int>(code));
+		Logger::warning("router warning: Cannot set error page for "+toString(code));
 		return;
 	}
 
 	if (this->_error_page.count(code)) {
-		Logger::info("router info: overriding previous error page for " + toString<int>(code));
+		Logger::info("router info: overriding previous error page for " + toString(code));
 	}
 	this->_error_page[code] = path;
 	checkLeadingTrailingSlash(this->_error_page[code]);

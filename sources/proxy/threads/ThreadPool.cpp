@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 12:05:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:59:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,111 +16,122 @@
 ThreadPool::ThreadPool(size_t numThreads): _stop(false), _available(true)
 {
 	if (numThreads == 0) {
-		_available = false;
+		this->_available = false;
 		return;
 	}
-	pthread_mutex_init(&queueMutex, NULL);
-	pthread_cond_init(&condition, NULL);
+	pthread_mutex_init(&this->_queueMutex, NULL);
+	pthread_cond_init(&this->_condition, NULL);
 
 	for (size_t i = 0; i < numThreads; ++i) {
 		pthread_t worker;
 		pthread_create(&worker, NULL, workerThread, this);
-		workers.push_back(worker);
+		this->_workers.push_back(worker);
 	}
-	Logger::debug("ThreadPool started with " + toString<int>(numThreads) + " threads");
+	/**
+	 * Initialisation du vecteur de threads joints, on doit lui réserver la taille
+	 * nécessaire à l'avance, car une fois un signal reçu, on ne pouura plus modifier
+	 * sa taille, car cela necessite une allocation mémoire.
+	 * C'est un mesure préventive pour éviter les problèmes.
+	 */
+	this->_joined.resize(this->_workers.size(), false);
+	Logger::debug("ThreadPool started with " + toString(numThreads) + " threads");
 }
 
 ThreadPool::~ThreadPool()
 {
-	if (_available && !_stop) {
+	if (this->_available && !this->_stop) {
 		this->stop();
 	}
 }
 
 void	ThreadPool::kill(void)
 {
-	if (!_stop) return;
-
-	for (size_t i = 0; i < workers.size(); ++i) {
-		pthread_cancel(workers[i]);
-	}
-}
-
-void	ThreadPool::stop()
-{
-	if (_available == false || _stop == true) {
+	if (!this->_stop) {
+		Logger::error("ThreadPool is not stopped, please stop pool before.");
 		return;
 	}
 
-	pthread_mutex_lock(&queueMutex);
-	_stop = true;
-	pthread_cond_broadcast(&condition);
-	pthread_mutex_unlock(&queueMutex);
+	Logger::print("Forcing remaining workers to stop", B_GREEN);
+	for (size_t i = 0; i < this->_workers.size(); ++i) {
+		if (!this->_joined[i]){
+			pthread_cancel(this->_workers[i]);
+		}
+	}
+}
+
+void	ThreadPool::stop(void)
+{
+	if (this->_available == false || this->_stop == true) {
+		return;
+	}
+
+	pthread_mutex_lock(&this->_queueMutex);
+	this->_stop = true;
+	pthread_cond_broadcast(&this->_condition);
+	pthread_mutex_unlock(&this->_queueMutex);
 
 	struct timespec timeout;
 	clock_gettime(CLOCK_REALTIME, &timeout);
 	timeout.tv_sec += 10; 
 
 	bool needForce = false;
-	std::vector<bool> joined(workers.size(), false);
 
 	/**
-	 * Dans un premier temps, on essaie de joindre les threads qui ont terminé leur travail.
-	 * On leur laisse 10s pour terminer.
+	 * Dans un premier temps, on essaie de joindre les threads.On leur laisse 10s pour terminer.
 	 */
-	for (size_t i = 0; i < workers.size(); ++i) {
-		int ret = pthread_timedjoin_np(workers[i], NULL, &timeout);
+	for (size_t i = 0; i < this->_workers.size(); ++i) {
+		int ret = pthread_timedjoin_np(this->_workers[i], NULL, &timeout);
 		if (ret == 0) {
-			Logger::debug("Thread joined successfully: " + toString<int>(i));
-			joined[i] = true;
+			Logger::debug("Thread joined successfully: " + toString(i));
+			this->_joined[i] = true;
 		} else if (ret == ETIMEDOUT) {
-			Logger::debug("Thread timed out: " + toString<int>(i));
+			Logger::debug("Thread timed out: " + toString(i));
 			needForce = true;
 		}
 	}
 
 	/**
-	 * Si certains threads n'ont pas pu être joints, on les annule.
+	 * Si certains threads n'ont pas pu être joints, on les annule pour forcer
+	 * leur arrêt.
 	 */
 	if (needForce) {
-		Logger::print("Forcing remaining workers to stop", B_GREEN);
-        for (size_t i = 0; i < workers.size(); ++i) {
-            if (!joined[i]){
-                pthread_cancel(workers[i]);
-            }
-        }
+		Logger::print("Webserve did not stop within 10s", B_GREEN);
+		this->kill();
 	}
 
 	/**
 	 * Si certains threads n'ont pas pu être joints, une fois annulés, on les joint.
 	 */
-	for (size_t i = 0; i < workers.size(); ++i) {
-		if (!joined[i]) {
-			pthread_join(workers[i], NULL);
+	for (size_t i = 0; i < this->_workers.size(); ++i) {
+		if (!this->_joined[i]) {
+			pthread_join(this->_workers[i], NULL);
 		}
 	}
 
-	for (size_t i = 0; i < tasks.size(); ++i) {
-		delete tasks.front();
-		tasks.pop();
+	for (size_t i = 0; i < this->_tasks.size(); ++i) {
+		delete this->_tasks.front();
+		this->_tasks.pop();
 	}
 
-	pthread_mutex_destroy(&queueMutex);
-	pthread_cond_destroy(&condition);
-	Logger::debug("ThreadPool stopped");
+	pthread_mutex_destroy(&this->_queueMutex);
+	pthread_cond_destroy(&this->_condition);
 	_available = false;
+	Logger::debug("ThreadPool stopped");
 }
 
 void	ThreadPool::enqueueWorker(ProxyWorker *worker)
 {
-	pthread_mutex_lock(&queueMutex);
-	tasks.push(worker);
-	pthread_cond_signal(&condition);
-	pthread_mutex_unlock(&queueMutex);
+	pthread_mutex_lock(&this->_queueMutex);
+	this->_tasks.push(worker);
+	pthread_cond_signal(&this->_condition);
+	pthread_mutex_unlock(&this->_queueMutex);
 }
 
-void	*ThreadPool::workerThread(void* arg)
+void	*ThreadPool::workerThread(void *arg)
 {
+	/**
+	 * Configuration du thread pour qu'il puisse être annulé.
+	 */
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
@@ -131,33 +142,43 @@ void	*ThreadPool::workerThread(void* arg)
 
 static void cleanup(void* arg)
 {
+	/**
+	 * Fonction de nettoyage pour les ressources du worker, appelée lors de l'annulation du thread.
+	 */
 	delete static_cast<ProxyWorker*>(arg);
 }
 
 void	ThreadPool::run()
 {
 	while (true) {
-		pthread_mutex_lock(&queueMutex);
+		pthread_mutex_lock(&this->_queueMutex);
 
-		while (!_stop && tasks.empty()) {
-			pthread_cond_wait(&condition, &queueMutex);
+		while (!this->_stop && this->_tasks.empty()) {
+			/**
+			 * Pour éviter les problèmes de concurrence, on utilise une this->_condition pour
+			 * bloquer les threads tant qu'aucune tâche n'est disponible.
+			 */
+			pthread_cond_wait(&this->_condition, &this->_queueMutex);
 		}
 
-		if (_stop) {
-			pthread_mutex_unlock(&queueMutex);
+		if (this->_stop) {
+			pthread_mutex_unlock(&this->_queueMutex);
 			return;
 		}
 
-		ProxyWorker *worker = tasks.front();
-		tasks.pop();
+		ProxyWorker *worker = this->_tasks.front();
+		this->_tasks.pop();
 
-		pthread_mutex_unlock(&queueMutex);
+		pthread_mutex_unlock(&this->_queueMutex);
 
 		/**
 		 * Ajout d'un callback pour nettoyer les ressources du worker en cas d'annulation du thread.
 		 */
 		pthread_cleanup_push(cleanup, worker);
 
+		/**
+		 * Exécution de la routine de travail du worker.
+		 */
 		worker->work();
 
 		/**

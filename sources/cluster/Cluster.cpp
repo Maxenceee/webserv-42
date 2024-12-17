@@ -6,19 +6,27 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 12:29:55 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:32:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
 
 bool Cluster::exit = true;
+bool Cluster::kill = false;
 ThreadPool Cluster::pool(0);
 
 static void interruptHandler(int sig_int) {
 	(void)sig_int;
 	std::cout << "\b\b";
 	Logger::print("Signal received: " + std::string(strsignal(sig_int)), B_GREEN);
+	/**
+	 * Si un signal d'arrêt a déjà été reçu, on force l'arrêt du serveur.
+	 */
+	if (Cluster::exit == true && Cluster::kill == false) {
+		Cluster::kill = true;
+		Cluster::pool.kill();
+	}
 	Cluster::exit = true;
 }
 
@@ -98,24 +106,10 @@ int		Cluster::start(void)
 	}
 
 	/**
-	 * Gestion des signaux pour fermer proprement le serveur.
-	 */
-	signal(SIGINT, interruptHandler);
-	signal(SIGQUIT, interruptHandler);
-	signal(SIGTERM, interruptHandler);
-	/**
-	 * Ignorer le signal SIGPIPE pour éviter que le serveur ne s'arrête lorsqu'un client
-	 * ferme brutalement la connexion.
-	 * Le signal SIGPIPE est envoyé lorsqu'on tente d'écrire sur un socket fermé, ce cas est géré
-	 * explicitement dans la gestion des clients.
-	 */
-	signal(SIGPIPE, SIG_IGN);
-
-	/**
 	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
 	 */
 	const int availableThreads = sysconf(_SC_NPROCESSORS_ONLN);
-	Logger::debug("Available threads on device: " + toString<int>(availableThreads));
+	Logger::debug("Available threads on device: " + toString(availableThreads));
 	Cluster::initializePool(availableThreads);
 
 	// Initialise le tableau des descripteurs à surveiller
@@ -129,7 +123,7 @@ int		Cluster::start(void)
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		Server *server = *it;
-		Logger::print("Listening on port " + toString<int>(server->getPort()), B_GREEN);
+		Logger::print("Listening on port " + toString(server->getPort()), B_GREEN);
 
 		/**
 		 * La fonction listen() permet de marquer un socket comme étant en
@@ -151,6 +145,20 @@ int		Cluster::start(void)
 
 	int newClient;
 	Client *client;
+
+	/**
+	 * Gestion des signaux pour fermer proprement le serveur.
+	 */
+	signal(SIGINT, interruptHandler);
+	signal(SIGQUIT, interruptHandler);
+	signal(SIGTERM, interruptHandler);
+	/**
+	 * Ignorer le signal SIGPIPE pour éviter que le serveur ne s'arrête lorsqu'un client
+	 * ferme brutalement la connexion.
+	 * Le signal SIGPIPE est envoyé lorsqu'on tente d'écrire sur un socket fermé, ce cas est géré
+	 * explicitement dans la gestion des clients.
+	 */
+	signal(SIGPIPE, SIG_IGN);
 
 	do
 	{

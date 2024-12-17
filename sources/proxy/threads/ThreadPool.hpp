@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:50 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 11:53:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:50:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,21 +26,22 @@ public:
 
 	void	enqueueWorker(ProxyWorker *worker);
 
-	void	stop();
+	void	stop(void);
+	void	kill(void);
 
 private:
-	std::vector<pthread_t> workers;
-	std::queue<ProxyWorker *> tasks;
+	std::vector<bool> 			_joined;
+	std::vector<pthread_t>		_workers;
+	std::queue<ProxyWorker *>	_tasks;
 
-	pthread_mutex_t	queueMutex;
-	pthread_cond_t	condition;
+	pthread_mutex_t	_queueMutex;
+	pthread_cond_t	_condition;
 	bool			_stop;
 	bool 			_available;
 
 	static void* workerThread(void* arg);
 	void run();
 
-	void	kill(void);
 };
 
 #endif /* THREADPOOL_HPP */
