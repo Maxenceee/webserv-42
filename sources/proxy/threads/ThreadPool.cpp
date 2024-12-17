@@ -6,17 +6,17 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 14:16:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 12:05:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ThreadPool.hpp"
 #include "cluster/Cluster.hpp"
 
-ThreadPool::ThreadPool(size_t numThreads): stop(false), available(true)
+ThreadPool::ThreadPool(size_t numThreads): _stop(false), _available(true)
 {
 	if (numThreads == 0) {
-		available = false;
+		_available = false;
 		return;
 	}
 	pthread_mutex_init(&queueMutex, NULL);
@@ -32,38 +32,72 @@ ThreadPool::ThreadPool(size_t numThreads): stop(false), available(true)
 
 ThreadPool::~ThreadPool()
 {
-	if (available && !stop) {
-		this->kill();
+	if (_available && !_stop) {
+		this->stop();
 	}
 }
 
-void	ThreadPool::kill(bool force)
+void	ThreadPool::kill(void)
 {
-	if (available == false || stop == true) {
+	if (!_stop) return;
+
+	for (size_t i = 0; i < workers.size(); ++i) {
+		pthread_cancel(workers[i]);
+	}
+}
+
+void	ThreadPool::stop()
+{
+	if (_available == false || _stop == true) {
 		return;
 	}
 
 	pthread_mutex_lock(&queueMutex);
-	stop = true;
+	_stop = true;
 	pthread_cond_broadcast(&condition);
 	pthread_mutex_unlock(&queueMutex);
 
-#ifdef __APPLE__
-	if (force) {
-		Logger::print("Forcing workers to finish", B_GREEN);
-		for (size_t i = 0; i < workers.size(); ++i) {
-			pthread_cancel(workers[i]);
-		}
-	} else {
-		Logger::print("Waiting for workers to finish", B_GREEN);
-	}
-#else
-	(void)force;
-	Logger::print("Waiting for workers to finish", B_GREEN);
-# endif /* __APPLE__ */
+	struct timespec timeout;
+	clock_gettime(CLOCK_REALTIME, &timeout);
+	timeout.tv_sec += 10; 
 
+	bool needForce = false;
+	std::vector<bool> joined(workers.size(), false);
+
+	/**
+	 * Dans un premier temps, on essaie de joindre les threads qui ont terminé leur travail.
+	 * On leur laisse 10s pour terminer.
+	 */
 	for (size_t i = 0; i < workers.size(); ++i) {
-		pthread_join(workers[i], NULL);
+		int ret = pthread_timedjoin_np(workers[i], NULL, &timeout);
+		if (ret == 0) {
+			Logger::debug("Thread joined successfully: " + toString<int>(i));
+			joined[i] = true;
+		} else if (ret == ETIMEDOUT) {
+			Logger::debug("Thread timed out: " + toString<int>(i));
+			needForce = true;
+		}
+	}
+
+	/**
+	 * Si certains threads n'ont pas pu être joints, on les annule.
+	 */
+	if (needForce) {
+		Logger::print("Forcing remaining workers to stop", B_GREEN);
+        for (size_t i = 0; i < workers.size(); ++i) {
+            if (!joined[i]){
+                pthread_cancel(workers[i]);
+            }
+        }
+	}
+
+	/**
+	 * Si certains threads n'ont pas pu être joints, une fois annulés, on les joint.
+	 */
+	for (size_t i = 0; i < workers.size(); ++i) {
+		if (!joined[i]) {
+			pthread_join(workers[i], NULL);
+		}
 	}
 
 	for (size_t i = 0; i < tasks.size(); ++i) {
@@ -74,7 +108,7 @@ void	ThreadPool::kill(bool force)
 	pthread_mutex_destroy(&queueMutex);
 	pthread_cond_destroy(&condition);
 	Logger::debug("ThreadPool stopped");
-	available = false;
+	_available = false;
 }
 
 void	ThreadPool::enqueueWorker(ProxyWorker *worker)
@@ -90,9 +124,14 @@ void	*ThreadPool::workerThread(void* arg)
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
-	ThreadPool* pool = (ThreadPool*)arg;
+	ThreadPool* pool = static_cast<ThreadPool*>(arg);
 	pool->run();
 	return NULL;
+}
+
+static void cleanup(void* arg)
+{
+	delete static_cast<ProxyWorker*>(arg);
 }
 
 void	ThreadPool::run()
@@ -100,11 +139,11 @@ void	ThreadPool::run()
 	while (true) {
 		pthread_mutex_lock(&queueMutex);
 
-		while (!stop && tasks.empty()) {
+		while (!_stop && tasks.empty()) {
 			pthread_cond_wait(&condition, &queueMutex);
 		}
 
-		if (stop) {
+		if (_stop) {
 			pthread_mutex_unlock(&queueMutex);
 			return;
 		}
@@ -114,7 +153,16 @@ void	ThreadPool::run()
 
 		pthread_mutex_unlock(&queueMutex);
 
+		/**
+		 * Ajout d'un callback pour nettoyer les ressources du worker en cas d'annulation du thread.
+		 */
+		pthread_cleanup_push(cleanup, worker);
+
 		worker->work();
-		delete worker;
+
+		/**
+		 * Nettoyage des ressources du worker.
+		 */
+		pthread_cleanup_pop(1);
 	}
 }

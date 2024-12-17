@@ -6,14 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 18:05:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 12:02:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cluster.hpp"
 
 bool Cluster::exit = true;
-bool Cluster::kill = false;
 ThreadPool Cluster::pool(0);
 
 static void interruptHandler(int sig_int) {
@@ -35,7 +34,6 @@ static void interruptHandler(int sig_int) {
 	// {
 	// 	Logger::print("Forcing shutdown", B_GREEN);
 	// }
-	Cluster::kill = true;
 	Cluster::exit = true;
 }
 
@@ -47,7 +45,6 @@ Cluster::Cluster(void)
 
 Cluster::~Cluster()
 {
-	Logger::print("Shutting down webserv", B_GREEN);
 	if (this->parser)
 		delete this->parser;
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
@@ -303,6 +300,8 @@ int		Cluster::start(void)
 		}
 	} while (false == this->exit);
 
+	Logger::print("Shutting down webserv", B_GREEN);
+
 	// On ferme les sockets des clients et libère la mémoire
 	for (std::map<int, wbs_pollclient>::iterator it = poll_clients.begin(); it != poll_clients.end(); it++)
 	{
@@ -315,7 +314,7 @@ int		Cluster::start(void)
 		(*it)->kill();
 
 	// On ferme la pool de threads
-	Cluster::pool.kill(Cluster::kill);
+	Cluster::pool.stop();
 
 	return (WBS_NOERR);
 }

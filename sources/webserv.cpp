@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:49:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 12:03:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,13 +67,7 @@ int	main(int argc, char const **argv)
 	try
 	{
 		cluster.parse(fpath);
-		// Logger::info("Attempting to become daemon");
-		// if (become_daemon(WBS_NO_CLOSE_FILES) < 0)
-		// {
-		// 	Logger::error("Failed to become daemon");
-		// 	return (1);
-		// }
-		// Logger::info("Daemon created successfully");
+
 		cluster.start();
 	}
 	catch(const std::exception& e)
@@ -81,5 +75,6 @@ int	main(int argc, char const **argv)
 		Logger::error(e.what());
 		return (1);
 	}
+	Logger::print("Webserv successfully stopped", B_GREEN);
 	return (0);
 }
