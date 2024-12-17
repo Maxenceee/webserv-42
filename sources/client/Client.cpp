@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 10:22:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 12:32:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,9 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 			throw std::runtime_error("Failed to create SSL session");
 		}
 
+		/**
+		 * Assignation du descripteur de fichier du client à la session SSL.
+		 */
 		SSL_set_fd(this->_ssl_session, client);
 
 		/**

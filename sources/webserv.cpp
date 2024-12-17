@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 12:03:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 12:30:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,8 @@ int	main(int argc, char const **argv)
 		return (EXIT_FAILURE);
 	}
 	std::string fpath = argv[1];
-	// Not the best way to do options parsing :/
-	// But it works...
+	// Pas la meilleur façon de faire :/
+	// Mais ça marche...
 	if (std::string(argv[1]) == "--daemon")
 	{
 		fpath = "/etc/webserv/webserv.conf";
@@ -61,6 +61,14 @@ int	main(int argc, char const **argv)
 			fpath = argv[1];
 		}
 	}
+
+	/**
+	 * Les signaux d'arrêt sont ignorés tant que le parsing et le démarrage du serveur
+	 * n'ont pas été effectués.
+	 */
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGTERM, SIG_IGN);
 
 	Logger::init();
 	Cluster	cluster;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 12:02:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 12:29:55 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,21 +19,6 @@ static void interruptHandler(int sig_int) {
 	(void)sig_int;
 	std::cout << "\b\b";
 	Logger::print("Signal received: " + std::string(strsignal(sig_int)), B_GREEN);
-	/**
-	 * Si le signal reçu est SIGQUIT ou SIGTERM, on met la variable kill à true,
-	 * pour forcer l'arrêt du serveur (notamment des workers).
-	 */
-	// if (sig_int == SIGQUIT || sig_int == SIGTERM)
-	// {
-	// 	Cluster::kill = true;
-	// }
-	/**
-	 * Ou si l'utilisateur a déjà demandé l'arrêt du serveur, on force l'arrêt.
-	 */
-	// else if (Cluster::exit == true)
-	// {
-	// 	Logger::print("Forcing shutdown", B_GREEN);
-	// }
 	Cluster::exit = true;
 }
 
@@ -112,11 +97,18 @@ int		Cluster::start(void)
 		}
 	}
 
-	// Gestion des signaux pour fermer proprement le serveur
+	/**
+	 * Gestion des signaux pour fermer proprement le serveur.
+	 */
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
 	signal(SIGTERM, interruptHandler);
-	// Ingore le signal SIGPIPE
+	/**
+	 * Ignorer le signal SIGPIPE pour éviter que le serveur ne s'arrête lorsqu'un client
+	 * ferme brutalement la connexion.
+	 * Le signal SIGPIPE est envoyé lorsqu'on tente d'écrire sur un socket fermé, ce cas est géré
+	 * explicitement dans la gestion des clients.
+	 */
 	signal(SIGPIPE, SIG_IGN);
 
 	/**
@@ -159,7 +151,6 @@ int		Cluster::start(void)
 
 	int newClient;
 	Client *client;
-	// ProxyClient *proxy;
 
 	do
 	{
@@ -271,12 +262,6 @@ int		Cluster::start(void)
 						to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
 					}
 					break;
-
-				// case WBS_POLL_PROXY:
-				// 	if ((proxy = reinterpret_cast<ProxyClient *>(poll_clients[poll_fds[i].fd].data))->process() != WBS_POLL_CLIENT_OK) {
-				// 		to_remove.push_back(i); // Ajoute l'indice de l'élément à supprimer
-				// 	}
-				// 	break;
 				}
 			}
 			// Si le descripteur n'est pas prêt pour la lecture et que c'est un client, on
