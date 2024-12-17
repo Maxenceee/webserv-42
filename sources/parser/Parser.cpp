@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:39:11 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 17:23:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,6 +200,21 @@ void	Parser::throwError(const std::string &raw_line, const std::string &message,
 	throw std::invalid_argument(tmp.c_str());
 }
 
+void	Parser::minmaxArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens, const size_t min, const size_t max)
+{
+	size_t pos = 0;
+
+	if (valtokens.size() < min) {
+		pos = key_length + val.length();
+
+		this->throwError(raw_line, "too few arguments", pos);
+	} else if (max != 0 && valtokens.size() > max) {
+		pos = key_length + val.length() - valtokens.back().length();
+
+		this->throwError(raw_line, "too many arguments", pos);
+	}
+}
+
 void	Parser::switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
 {
 	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
@@ -378,6 +393,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#alias)
 	 */
 	if (key == "root") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
 		if (!isDirectory(valtokens[0])) {
 			this->throwError(raw_line, "not a directory", key_length);
 		}
@@ -387,6 +404,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	else if (key == "alias") {
 		if (context == "server")
 			this->throwError(raw_line, "alias directive cannot be used in server block");
+
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
 		if (!isDirectory(valtokens[0])) {
 			this->throwError(raw_line, "not a directory", key_length);
@@ -411,6 +430,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_autoindex_module.html#autoindex)
 	 */
 	if (key == "autoindex") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
 		if (valtokens[0] == "on")
 			this->tmp_router->setAutoIndex(true);
 		else if (valtokens[0] != "off")
@@ -427,6 +448,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		int status = 302;
 		std::string loc = valtokens[0];
 
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 2);
+
 		if (valtokens.size() == 1 && isDigit(loc))
 		{
 			status = std::atoi(loc.c_str());
@@ -439,8 +462,6 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 			status = std::atoi(valtokens[0].c_str());
 			loc = valtokens[1];
 		}
-		else if (valtokens.size() > 2)
-			this->throwError(raw_line, "too many entries", key_length + val.length() - valtokens.back().length());
 		else
 			this->throwError(raw_line, "invalid status code", key_length);
 
@@ -472,8 +493,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
 	 */
 	if (key == "error_page") {
-		if (valtokens.size() < 2)
-			this->throwError(raw_line, "too few arguments", key_length + val.length());
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 0);
 
 		size_t l = 0;
 		for (size_t i = 0; i < valtokens.size() - 1; i++) {
@@ -496,6 +516,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
 	 */
 	if (key == "client_max_body_size") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
 		size_t ts = parseSize(valtokens[0]);
 		if (ts == (size_t)-1) {
 			this->throwError(raw_line, "invalid size", key_length);
@@ -510,6 +532,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass)
 	 */
 	if (key == "fastcgi_pass") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
 		if (!isDirectory(valtokens[0])) {
 			this->throwError(raw_line, "not a directory", key_length);
 		}
@@ -523,10 +547,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
-		if (valtokens.size() < 2)
-			this->throwError(raw_line, "too few arguments", key_length + val.length());
-		else if (valtokens.size() > 2)
-			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens.back().length());
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 2);		
+
 		this->tmp_router->addCGIParam(valtokens[0], valtokens[1]);
 		return ;
 	}
@@ -538,10 +560,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 */
 	if (key == "add_header") {
 		bool always = false;
-		if (valtokens.size() < 2)
-			this->throwError(raw_line, "too few arguments", key_length + val.length());
-		else if (valtokens.size() > 3)
-			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens.back().length());
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 3);
+
 		if (valtokens.size() == 3) {
 			if (valtokens[2] != "always")
 				this->throwError(raw_line, "unknown option", key_length + val.length() - valtokens[2].length());
@@ -557,6 +577,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_timeout)
 	 */
 	if (key == "client_header_timeout") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
 		time_t	t = parseTime(valtokens[0]);
 		if (t < 0) {
 			this->throwError(raw_line, "invalid time", key_length);
@@ -571,6 +593,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout)
 	 */
 	if (key == "client_body_timeout") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
 		time_t	t = parseTime(valtokens[0]);
 		if (t < 0) {
 			this->throwError(raw_line, "invalid time", key_length);
@@ -580,11 +604,27 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	}
 
 	/**
+	 * Directive proxy_method
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_method)
+	 */
+	if (key == "proxy_method") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		if (!Server::isValidMethod(valtokens[0]))
+			this->throwError(raw_line, "unknown method", key_length);
+		this->tmp_router->setProxyMethod(valtokens[0]);
+		return ;
+	}
+
+	/**
 	 * Directive proxy_pass
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass)
 	 */
 	if (key == "proxy_pass") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
 		std::string url = valtokens[0];
 
 		wbs_url tu;
@@ -610,10 +650,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header)
 	 */
 	if (key == "proxy_set_header") {
-		if (valtokens.size() < 2)
-			this->throwError(raw_line, "too few arguments", key_length + val.length());
-		else if (valtokens.size() > 2)
-			this->throwError(raw_line, "too many arguments", key_length + val.length() - valtokens[valtokens.size() -1].length());
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 2);
+
 		this->tmp_router->addProxyHeader(valtokens[0], valtokens[1]);
 		return ;
 	}
@@ -624,7 +662,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_header)
 	 */
 	if (key == "proxy_pass_header") {
-		this->tmp_router->enableProxyHeader(valtokens[0]);
+		// this->tmp_router->enableProxyHeader(valtokens[0]);
+		Logger::warning("parser warning: proxy_pass_header directive is not supported :/");
 		return ;
 	}
 
@@ -634,7 +673,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_hide_header)
 	 */
 	if (key == "proxy_hide_header") {
-		this->tmp_router->hideProxyHeader(valtokens[0]);
+		// this->tmp_router->hideProxyHeader(valtokens[0]);
+		Logger::warning("parser warning: proxy_hide_header directive is not supported :/");
 		return ;
 	}
 
@@ -646,6 +686,11 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "ssl_certificate") {
 		if (context != "server")
 			this->throwError(raw_line, "ssl_certificate directive must be inside server block");
+
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		if (!isFile(valtokens[0]))
+			this->throwError(raw_line, "no such file", key_length);
 
 		this->new_server->setSSLCertFile(valtokens[0]);
 		return ;
@@ -660,13 +705,25 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		if (context != "server")
 			this->throwError(raw_line, "ssl_certificate_key directive must be inside server block");
 
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		if (!isFile(valtokens[0]))
+			this->throwError(raw_line, "no such file", key_length);
+
 		this->new_server->setSSLKeyFile(valtokens[0]);
 		return ;
 	}
 
+	/**
+	 * Directive ssl_ciphers
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_ciphers)
+	 */
 	if (key == "ssl_ciphers") {
 		if (context != "server")
 			this->throwError(raw_line, "ssl_ciphers directive must be inside server block");
+
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
 		this->new_server->setSSLCiphers(valtokens[0]);
 		return ;

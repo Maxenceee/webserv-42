@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:13:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 17:20:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,13 +79,14 @@ struct wbs_router_proxy {
 	std::string		host;
 	int				port;
 	std::string		path;
+	std::string		method;
 	bool			buffering;
 
 	wbs_mapss_t		headers;
 	std::vector<std::string>		forwared;
 	std::vector<std::string>		hidden;
 
-	wbs_router_proxy() : enabled(false), host(""), port(0), buffering(false) {}
+	wbs_router_proxy() : enabled(false), protocol(""), host(""), port(0), path(""), method(""), buffering(false) {}
 };
 
 struct wbs_router_timeout {
@@ -201,6 +202,7 @@ public:
 	void							addProxyHeader(const std::string &key, const std::string &value);
 	void							enableProxyHeader(const std::string &key);
 	void							hideProxyHeader(const std::string &key);
+	void							setProxyMethod(const std::string &method);
 	bool							isProxy(void) const;
 	const struct wbs_router_proxy	&getProxyConfig(void) const;
 
