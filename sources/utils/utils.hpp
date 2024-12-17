@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 16:13:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:31:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 #include <cstddef>
 #include <map>
 #include <ctime>
+#include <numeric>
+#include <iterator>
 
 #include "logger/Logger.hpp"
 
@@ -119,6 +121,7 @@ wbs_url newURL(const std::string &url);
 
 double	getTimestamp();
 
+#include "string.tpp"
 #include "list.tpp"
 
 #endif /* UTILS_HPP */

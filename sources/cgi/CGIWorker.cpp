@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 15:35:51 by mgama             #+#    #+#             */
-/*   Updated: 2024/04/18 13:16:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:32:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,14 +44,14 @@ wbs_mapss_t	CGIWorker::init(const Request &req, const std::string &scriptpath, w
 	env["PATH_TRANSLATED"] = req.getPath();
 	env["PATH_INFO"] = req.getPath();
 	env["QUERY_STRING"] = req.getQueryString();
-	env["CONTENT_LENGTH"] = toString<int>(body.length());
+	env["CONTENT_LENGTH"] = toString(body.length());
 	if (headers.count("Content-Type") && headers["Content-Type"].size() > 0)
 		env["CONTENT_TYPE"] = headers["Content-Type"];
 	if (headers.count("Cookie"))
 		env["COOKIE"] = req.getHeader("Cookie");
-	env["SERVER_PORT"] = toString<int>(req.getPort());
+	env["SERVER_PORT"] = toString(req.getPort());
 	env["REMOTE_ADDR"] = req.getIP();
-	env["REMOTE_PORT"] = toString<int>(req.getPort());
+	env["REMOTE_PORT"] = toString(req.getPort());
 	if (headers.count("Hostname"))
 		env["SERVER_NAME"] = headers["Hostname"];
 	else

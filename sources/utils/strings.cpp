@@ -6,22 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 16:59:02 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:30:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "utils.hpp"
-#include <numeric>
-#include <iterator>
-
-template <typename T>
-std::string	toString(T val)
-{
-	std::stringstream stream;
-	stream << val;
-	return stream.str();
-}
 
 std::string	toString(bool val)
 {

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 13:57:59 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 15:32:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ int	Server::init(void)
 		return (WBS_ERR);
 	}
 
-	Logger::print("Initiating server " + toString<int>(this->_id), B_GREEN);
+	Logger::print("Initiating server " + toString(this->_id), B_GREEN);
 	/**
 	 * La fonction socket() permet de créer un point de terminaison (end-point) pour
 	 * la communication réseau. 
@@ -263,7 +263,7 @@ ServerConfig	*Server::getConfig(const std::string &name) const
 
 Router	*Server::eval(Request &request, Response &response) const
 {	
-	Logger::debug("Evaluating server config for name " + request.getHost() + ":" + toString<int>(request.getPort()));
+	Logger::debug("Evaluating server config for name " + request.getHost() + ":" + toString(request.getPort()));
 
 	/**
 	 * On cherche la configuration du serveur correspondant à l'hôte de la requête.
@@ -303,7 +303,7 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 		response += RED;
 		break;
 	}
-	response += toString<int>(status);
+	response += toString(status);
 	response += RESET;
 
 	// double response_duration = getTimestamp() - req.getRequestTime();
@@ -313,13 +313,13 @@ void	Server::printResponse(const Request &req, const Response &res, const double
 	response += " " + duration_str + " ms - ";
 
 	if (res.hasBody())
-		response += toString<int>(res.getBody().size());
+		response += toString(res.getBody().size());
 	else
 		response += "-";
 	Logger::print(response);
 }
 
-void	Server::printProxyResponse(const std::string &method, const std::string &path, const double response_duration)
+void	Server::printProxyResponse(const std::string &method, const std::string &path, const double response_duration, size_t bytes)
 {
 	std::string response = method + " " + path;
 
@@ -327,6 +327,7 @@ void	Server::printProxyResponse(const std::string &method, const std::string &pa
 	ss << std::fixed << std::setprecision(3) << response_duration;
 	std::string duration_str = ss.str();
 	response += " " + duration_str + " ms - ";
+	response += bytes == 0 ? "-" : toString(bytes);
 	Logger::print(response);
 }
 
