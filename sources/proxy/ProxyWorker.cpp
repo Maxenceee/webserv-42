@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 17:12:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 18:33:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,7 +249,6 @@ int	ProxyWorker::sendrequest(void)
 	 * Il serait judicieux de vérifier le contenu de la réponse, pour potentiellement laisser passer (proxy_pass_header)
 	 * ou bloquer (proxy_hide_header) certains en-têtes.
 	 */
-	std::cout << "method " << this->_config.method << std::endl;
 	if (this->_config.method.length())
 	{
 		this->_req.setMethod(this->_config.method);
