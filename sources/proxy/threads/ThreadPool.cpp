@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:59:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 19:58:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,11 +70,21 @@ void	ThreadPool::stop(void)
 	pthread_cond_broadcast(&this->_condition);
 	pthread_mutex_unlock(&this->_queueMutex);
 
+	bool needForce = false;
+
+#ifdef __APPLE__
+
+	/**
+	 * Sur MacOS, pthread_timedjoin_np n'est pas disponible, en attendant une solution, on force l'arrêt
+	 * des threads.
+	 */
+	this->kill();
+
+#else
+
 	struct timespec timeout;
 	clock_gettime(CLOCK_REALTIME, &timeout);
 	timeout.tv_sec += 10; 
-
-	bool needForce = false;
 
 	/**
 	 * Dans un premier temps, on essaie de joindre les threads.On leur laisse 10s pour terminer.
@@ -89,6 +99,8 @@ void	ThreadPool::stop(void)
 			needForce = true;
 		}
 	}
+
+#endif /* __APPLE__ */
 
 	/**
 	 * Si certains threads n'ont pas pu être joints, on les annule pour forcer
