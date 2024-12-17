@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 15:25:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 10:22:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_current_router(NULL),
 	upgraded_to_proxy(false),
 	request_time(getTimestamp()),
-	request(client, clientAddr),
+	request(client, clientAddr, server->hasSSL()),
 	response(NULL)
 {
 	if (server->hasSSL())

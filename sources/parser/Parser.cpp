@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 16:17:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 10:49:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,6 +217,7 @@ void	Parser::switchConfigDirectives(const std::string &key, const std::string &v
 			this->throwError(raw_line, "server block cannot be nested");
 		if (!val.empty())
 			this->throwError(raw_line, key.length() + 1);
+
 		this->new_server = new ServerConfig();
 		this->configs.push_back(this->new_server);
 		this->tmp_router = this->new_server->getDefaultHandler();
@@ -231,6 +232,9 @@ void	Parser::switchConfigDirectives(const std::string &key, const std::string &v
 	}
 	else
 	{
+		/**
+		 * Si on se trouve dans le contexte `server`, on utilise le router par défaut du serveur.
+		 */
 		if (context == "server")
 			this->tmp_router = this->new_server->getDefaultHandler();
 		if (val.empty())
@@ -266,6 +270,10 @@ void	Parser::createNewRouter(const std::string &key, const std::string &val, con
 	Router *tmp = this->tmp_router;
 	this->tmp_router = new Router(tmp, location, tmp->level + 1);
 
+	/**
+	 * Si le context est `server`, on utilise le routeur par défaut du serveur.
+	 * Sinon, on imbrique le routeur enfant dans le routeur parent.
+	 */
 	if (context == "server")
 		this->new_server->use(this->tmp_router);
 	else
@@ -301,9 +309,10 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
 	 */
-	if (key == "listen" && context != "server")
-		this->throwError(raw_line, "listen directive must be inside server block");
-	else if (key == "listen") {
+	if (key == "listen") {
+		if (context != "server")
+			this->throwError(raw_line, "listen directive must be inside server block");
+
 		if (valtokens.size() > 1) {
 			if (valtokens[1] == "ssl")
 				this->new_server->setSSL(true);
@@ -344,9 +353,20 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * 
 	 * (https://nginx.org/en/docs/http/server_names.html)
 	 */
-	if (key == "server_name" && context != "server")
-		this->throwError(raw_line, "server_name directive must be inside server block");
-	else if (key == "server_name") {
+	if (key == "server_name") {
+		if (context != "server")
+			this->throwError(raw_line, "server_name directive must be inside server block");
+
+		size_t l = 0;
+		for (size_t i = 0; i < valtokens.size(); i++)
+		{
+			size_t pos = valtokens[i].find(':');
+			if (pos != std::string::npos)
+				this->throwError(raw_line, "invalid server name", key_length + l + pos);
+
+			l += valtokens[i].length() + 1;
+		}
+		
 		this->new_server->addNames(valtokens);
 		return ;
 	}
@@ -364,14 +384,14 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		this->tmp_router->setRoot(valtokens[0]);
 		return ;
 	}
-	else if (key == "alias" && context != "server") {
+	else if (key == "alias") {
+		if (context != "server")
+			this->throwError(raw_line, "alias directive cannot be used in server block");
+
 		if (!isDirectory(valtokens[0])) {
 			this->throwError(raw_line, "not a directory", key_length);
 		}
 		this->tmp_router->setAlias(valtokens[0]);
-		return ;
-	} else if (key == "alias") {
-		this->throwError(raw_line, "alias directive cannot be used in server block");
 		return ;
 	}
 

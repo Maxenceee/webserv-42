@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/15 19:13:00 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 10:22:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ private:
 	ChunkProcessResult	processChunk(const std::string &chunks);
 
 public:
-	Request(int socket, sockaddr_in clientAddr);
+	Request(int socket, sockaddr_in clientAddr, bool sslEnabled);
 	~Request(void);
 
 	int						processLine(const std::string &line);

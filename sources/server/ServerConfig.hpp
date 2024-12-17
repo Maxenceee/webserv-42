@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 16:17:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/17 10:32:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Router;
 
 struct wbs_server_name {
 	std::string		name;
-	int				port;	
+	// int				port;
 };
 
 struct wbs_server_ssl {
