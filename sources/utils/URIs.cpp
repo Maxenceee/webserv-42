@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 19:11:27 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/21 17:18:39 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:50:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,11 +85,11 @@ wbs_url newURL(const std::string &url) {
 	std::string::size_type colon_pos = authority.find(':');
 	if (colon_pos != std::string::npos) {
 		result.host = authority.substr(0, colon_pos);
-		std::string port_str = authority.substr(colon_pos + 1);
-		if (port_str.length() > 0 && isNumber(port_str)) {
-			result.port = static_cast<uint16_t>(std::atoi(port_str.c_str()));
+		result.port_s = authority.substr(colon_pos + 1);
+		if (result.port_s.length() > 0 && isNumber(result.port_s)) {
+			result.port = static_cast<uint16_t>(std::atoi(result.port_s.c_str()));
 		} else {
-			throw std::invalid_argument("Invalid port in URL: " + port_str);
+			throw std::invalid_argument("Invalid port in URL: " + result.port_s);
 		}
 	} else {
 		if (result.protocol == "http") {

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:31:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:51:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,11 +107,33 @@ std::string		resolve(std::string root, std::string path);
 std::string	decodeURIComponent(std::string encoded);
 
 struct wbs_url {
+	/**
+	 * Protocol part of the URL.
+	 */
 	std::string	protocol;
+	/**
+	 * Host part of the URL.
+	 */
 	std::string	host;
+	/**
+	 * Port part of the URL if specified in thr URL.
+	 */
+	std::string	port_s;
+	/**
+	 * Port part of the URL.
+	 */
 	uint16_t	port;
+	/**
+	 * Path part of the URL.
+	 */
 	std::string	path;
+	/**
+	 * Query part of the URL.
+	 */
 	std::string	query;
+	/**
+	 * Fragment part of the URL.
+	 */
 	std::string	fragment;
 };
 
