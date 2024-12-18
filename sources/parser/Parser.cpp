@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 17:23:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:55:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -625,6 +625,9 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "proxy_pass") {
 		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
+		if (context != "location")
+			this->throwError(raw_line, "proxy_pass directive must be inside location block");
+
 		std::string url = valtokens[0];
 
 		wbs_url tu;
@@ -639,6 +642,9 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 
 		if (tu.protocol != "http" && tu.protocol != "https")
 			this->throwError(raw_line, "unsupported protocol (only http: and https: are supported)", key_length);
+
+		if (tu.path != "/")
+			this->throwError(raw_line, "using path in proxy_pass directive in not supported", key_length + tu.protocol.length() + 3 + tu.host.length() + tu.port_s.length() + (tu.port_s.length() > 0));
 
 		this->tmp_router->setProxy(tu);
 		return ;

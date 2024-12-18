@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 19:58:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:11:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ void	ThreadPool::stop(void)
 	 * leur arrêt.
 	 */
 	if (needForce) {
-		Logger::print("Webserve did not stop within 10s", B_GREEN);
+		Logger::print("Webserv did not stop within 10s", B_GREEN);
 		this->kill();
 	}
 

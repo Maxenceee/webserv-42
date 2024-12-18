@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 17:44:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:37:51 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ std::map<std::string, void (Router::*)(Request &, Response &)>	Router::initMetho
 	return (map);
 }
 
-Router::Router(Router *parent, const struct wbs_router_location location, int level):
+Router::Router(Router *parent, const struct wbs_router_location &location, int level):
 	_parent(parent),
 	_location(location),
 	_autoindex(false),
@@ -122,104 +122,6 @@ Router::~Router(void)
 	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++)
 		delete *it;
 	Logger::debug("Router destroyed");
-}
-
-bool	Router::isDefault(void) const
-{
-	return (this->_parent == NULL);
-}
-
-Router		*Router::getParent(void) const
-{
-	return (this->_parent);
-}
-
-void	Router::allowMethod(const std::string &method)
-{
-	/**
-	 * Router::allowMethod() indique au routeur quelle méthode HTTP il doit servir. Si aucune méthode
-	 * n'est spécifiée, le routeur les accepte toutes.
-	 */
-	if (Server::isValidMethod(method)) {
-		if (!this->_allowed_methods.enabled) {
-			this->_allowed_methods.enabled = true;
-			this->_allowed_methods.methods.clear();
-		}
-		this->_allowed_methods.methods.push_back(method);
-		this->reloadChildren();
-	} else
-		Logger::error("router error: Invalid method found. No such `" + method + "`");
-}
-
-void	Router::allowMethod(const std::vector<std::string> &method)
-{
-	for (std::vector<std::string>::const_iterator it = method.begin(); it != method.end(); it++)
-		this->allowMethod(*it);
-}
-
-const struct wbs_router_location	&Router::getLocation(void) const
-{
-	return (this->_location);
-}
-
-const std::string	&Router::getRoot(void) const
-{
-	return (this->_root.path);
-}
-
-const struct wbs_router_root	&Router::getRootData(void) const
-{
-	return (this->_root);
-}
-
-const struct wbs_router_redirection	&Router::getRedirection(void) const
-{
-	return (this->_redirection);
-}
-
-const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
-{
-	return (this->_headers.list);
-}
-
-const std::string	&Router::getErrorPage(const int status) const
-{
-	return (this->_error_page.at(status));
-}
-
-bool	Router::hasErrorPage(const int code) const
-{
-	return (this->_error_page.count(code) > 0);
-}
-
-size_t	Router::getClientMaxBodySize(void) const
-{
-	return (this->_client_body.size);
-}
-
-bool	Router::hasClientMaxBodySize(void) const
-{
-	return (this->_client_body.set);
-}
-
-const std::string	&Router::getCGIPath(void) const
-{
-	return (this->_cgi.path);
-}
-
-bool	Router::isProxy(void) const
-{
-	return (this->_proxy.enabled);
-}
-
-const struct wbs_router_proxy	&Router::getProxyConfig(void) const
-{
-	return (this->_proxy);
-}
-
-const struct wbs_router_timeout	&Router::getTimeout() const
-{
-	return (this->_timeout);
 }
 
 void	Router::use(Router *router)
@@ -686,6 +588,81 @@ std::string	&Router::checkLeadingTrailingSlash(std::string &str)
 	return (str);
 }
 
+bool	Router::isDefault(void) const
+{
+	return (this->_parent == NULL);
+}
+
+Router		*Router::getParent(void) const
+{
+	return (this->_parent);
+}
+
+const struct wbs_router_location	&Router::getLocation(void) const
+{
+	return (this->_location);
+}
+
+const std::string	&Router::getRoot(void) const
+{
+	return (this->_root.path);
+}
+
+const struct wbs_router_root	&Router::getRootData(void) const
+{
+	return (this->_root);
+}
+
+const struct wbs_router_redirection	&Router::getRedirection(void) const
+{
+	return (this->_redirection);
+}
+
+const std::vector<wbs_router_header_t>	&Router::getHeaders(void) const
+{
+	return (this->_headers.list);
+}
+
+const std::string	&Router::getErrorPage(const int status) const
+{
+	return (this->_error_page.at(status));
+}
+
+bool	Router::hasErrorPage(const int code) const
+{
+	return (this->_error_page.count(code) > 0);
+}
+
+size_t	Router::getClientMaxBodySize(void) const
+{
+	return (this->_client_body.size);
+}
+
+bool	Router::hasClientMaxBodySize(void) const
+{
+	return (this->_client_body.set);
+}
+
+const std::string	&Router::getCGIPath(void) const
+{
+	return (this->_cgi.path);
+}
+
+bool	Router::isProxy(void) const
+{
+	return (this->_proxy.enabled);
+}
+
+const struct wbs_router_proxy	&Router::getProxyConfig(void) const
+{
+	return (this->_proxy);
+}
+
+const struct wbs_router_timeout	&Router::getTimeout() const
+{
+	return (this->_timeout);
+}
+
 void	Router::reloadChildren(void)
 {
 	for (std::vector<Router *>::iterator it = this->_routes.begin(); it != this->_routes.end(); it++) {
@@ -767,7 +744,7 @@ void	Router::reload(void)
 	this->reloadChildren();
 }
 
-const std::string	Router::getDirList(const std::string dirpath, std::string reqPath)
+const std::string	Router::getDirList(const std::string &dirpath, std::string reqPath)
 {
 	wbs_mapss_t	content;
 	std::string	res;

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 17:40:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:37:26 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,29 @@ void	Router::setRedirection(const std::string &to, int status)
 	}
 	this->_redirection.status = status;
 	this->_redirection.enabled = true;
+}
+
+void	Router::allowMethod(const std::string &method)
+{
+	/**
+	 * Router::allowMethod() indique au routeur quelle méthode HTTP il doit servir. Si aucune méthode
+	 * n'est spécifiée, le routeur les accepte toutes.
+	 */
+	if (Server::isValidMethod(method)) {
+		if (!this->_allowed_methods.enabled) {
+			this->_allowed_methods.enabled = true;
+			this->_allowed_methods.methods.clear();
+		}
+		this->_allowed_methods.methods.push_back(method);
+		this->reloadChildren();
+	} else
+		Logger::error("router error: Invalid method found. No such `" + method + "`");
+}
+
+void	Router::allowMethod(const std::vector<std::string> &method)
+{
+	for (std::vector<std::string>::const_iterator it = method.begin(); it != method.end(); it++)
+		this->allowMethod(*it);
 }
 
 void	Router::setAutoIndex(const bool autoindex)

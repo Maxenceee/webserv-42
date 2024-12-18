@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 18:33:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:22:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,6 +285,13 @@ int	ProxyWorker::sendrequest(void)
 
 void	ProxyWorker::work(void)
 {
+	/**
+	 * TODO:
+	 * 
+	 * Gérer le proxy buffering;
+	 * Consiste à stocker le contenu reçu depuis le serveur distant puis d'envoyer les données
+	 * au client une fois le tampon rempli.
+	 */
 	fd_set read_fds;
 	char buffer[WBS_RECV_SIZE];
 	ssize_t bytes_read, bytes_sent;

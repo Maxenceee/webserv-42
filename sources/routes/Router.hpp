@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 17:20:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:36:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ private:
 
 	std::string	&checkLeadingTrailingSlash(std::string &str);
 	
-	const std::string		getDirList(const std::string dirpath, std::string reqPath);
+	const std::string		getDirList(const std::string &dirpath, std::string reqPath);
 
 	static std::map<std::string, void (Router::*)(Request &, Response &)>	_method_handlers;
 	static std::map<std::string, void (Router::*)(Request &, Response &)>	initMethodHandlers();
@@ -143,7 +143,7 @@ private:
 	bool	matchRoute(const std::string &route, Response &response) const;
 
 public:
-	Router(Router *parent, const struct wbs_router_location location, int level = 0);
+	Router(Router *parent, const struct wbs_router_location &location, int level = 0);
 	~Router(void);
 
 	const int	level;

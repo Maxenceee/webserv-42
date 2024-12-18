@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 12:32:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/18 10:11:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,14 +324,6 @@ int	Client::processLines(void)
 				return (WBS_NOERR);
 			}
 
-			/**
-			 * TODO:
-			 * 
-			 * Gérer le proxy buffering;
-			 * consiste à stocker le contenu reçu depuis le client jusqu'à ce que la taille du buffer soit atteinte 
-			 * puis d'envoyer tout le buffer au serveur distant.
-			 * Note: pas sûr de le faire.
-			 */
 			if (this->_current_router->isProxy())
 			{
 				/**
