@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:11:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:45:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,7 @@ int	Client::processLines(void)
 	 */
 	if (this->response && this->response->isUpgraded())
 	{
-		return (WBS_NOERR);
+		return (WBS_SUCCESS);
 	}
 
 	size_t pos;
@@ -321,7 +321,7 @@ int	Client::processLines(void)
 				 * peut pas traiter les requêtes WebSocket.
 				 */
 				this->response->status(101).upgrade().end();
-				return (WBS_NOERR);
+				return (WBS_SUCCESS);
 			}
 
 			if (this->_current_router->isProxy())
@@ -383,9 +383,9 @@ int	Client::processLines(void)
 			return (WBS_ERR);
 		}
 		this->_buffer.clear();
-		return (WBS_NOERR);
+		return (WBS_SUCCESS);
 	}
-	return (WBS_NOERR);
+	return (WBS_SUCCESS);
 }
 
 int	Client::read(char *buffer, size_t buffer_size)
@@ -496,7 +496,7 @@ bool	Client::timeout(void)
 	 * une réponse d'erreur 408 (Request Timeout) est envoyée et la connexion est fermée.
 	 */
 	time_t now = getTimestamp();
-	time_t max = WBS_REQUEST_TIMEOUT;
+	time_t max = WBS_REQUEST_DEFAULT_TIMEOUT;
 	Router *handler = this->_current_router;
 
 	/**

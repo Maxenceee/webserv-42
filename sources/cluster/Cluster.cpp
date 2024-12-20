@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:32:17 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:59:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ int		Cluster::start(void)
 	{
 		if (!(*it)->isInit()) {
 			Logger::error("could not start server: the server has not been properly initialized");
-			return (WBS_SOCKET_ERR);
+			return (WBS_ERR);
 		}
 	}
 
@@ -136,7 +136,7 @@ int		Cluster::start(void)
 		if (error == -1)
 		{
 			Logger::perror("server error: an error occurred while listening");
-			return (WBS_SOCKET_ERR);
+			return (WBS_ERR);
 		}
 	}
 
@@ -185,11 +185,10 @@ int		Cluster::start(void)
 		{
 			// Si le signal d'interruption est reçu, on continue
 			if (errno == EINTR) {
-				// Logger::debug("Signal received: exiting the server");
 				continue;
 			}
 			Logger::perror("server error: an error occurred while poll'ing");
-			return (WBS_SOCKET_ERR);
+			return (WBS_ERR);
 		}
 
 		// Vérifier chaque connexion pour voir si elle est prête pour la lecture
@@ -309,5 +308,5 @@ int		Cluster::start(void)
 	// On ferme la pool de threads
 	Cluster::pool.stop();
 
-	return (WBS_NOERR);
+	return (WBS_SUCCESS);
 }

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 19:22:57 by mgama             #+#    #+#             */
-/*   Updated: 2024/11/07 20:07:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:45:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ int	createFile(const std::string &path, const std::string &content)
 	}
 	file << content;
 	file.close();
-	return (WBS_NOERR);
+	return (WBS_SUCCESS);
 }
 
 int	appendFile(const std::string &path, const std::string &content)
@@ -137,7 +137,7 @@ int	appendFile(const std::string &path, const std::string &content)
 	}
 	file << content;
 	file.close();
-	return (WBS_NOERR);
+	return (WBS_SUCCESS);
 }
 
 int	deleteFile(const std::string &path)
@@ -147,7 +147,7 @@ int	deleteFile(const std::string &path)
 		Logger::error("Error: could not delete file " + path);
 		return (WBS_ERR);
 	}
-	return (WBS_NOERR);
+	return (WBS_SUCCESS);
 }
 
 std::string resolve(std::string root, std::string path)

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:04:59 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:36:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:41:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ struct wbs_router_timeout {
 	time_t			body_timeout;
 	bool			body_set;
 
-	wbs_router_timeout() : header_timeout(WBS_REQUEST_TIMEOUT), header_set(false), body_timeout(WBS_REQUEST_TIMEOUT), body_set(false) {}
+	wbs_router_timeout() : header_timeout(WBS_REQUEST_DEFAULT_TIMEOUT), header_set(false), body_timeout(WBS_REQUEST_DEFAULT_TIMEOUT), body_set(false) {}
 };
 
 typedef struct wbs_router_headers::wbs_router_header	wbs_router_header_t;
