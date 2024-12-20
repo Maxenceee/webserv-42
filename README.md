@@ -311,6 +311,7 @@ int main() {
 - [listen](#listen)
 - [location](#location)
 - [proxy_hide_header](#proxy_hide_header)
+- [proxy_method](#proxy_method)
 - [proxy_pass](#proxy_pass)
 - [proxy_pass_header](#proxy_pass_header)
 - [proxy_set_header](#proxy_set_header)
@@ -533,6 +534,16 @@ Context:    server, location
 
 By default, the server does not pass the header fields “Date”, “Server”, “X-Pad”, and “X-Accel-...” from the response of a proxied server to a client. The **proxy_hide_header** directive sets additional fields that will not be passed. If, on the contrary, the passing of fields needs to be permitted, the [proxy_pass_header](#proxy_pass_header) directive can be used.
 
+### `proxy_method`
+
+```
+Syntax:     proxy_method method;
+Default:    —
+Context:    server, location
+```
+
+Specifies the HTTP `method` to use in requests forwarded to the proxied server instead of the method from the client request.
+
 ### `proxy_pass`
 
 ```
@@ -645,9 +656,9 @@ If an underscore (_) is used as the server name for a server with an address:por
 ### `ssl_certificate`
 
 ```
-Syntax: 	ssl_certificate file;
-Default: 	—
-Context: 	server
+Syntax:     ssl_certificate file;
+Default:    —
+Context:    server
 ```
 
 Specifies a `file` with the certificate in the PEM format for the given virtual server. If intermediate certificates should be specified in addition to a primary certificate, they should be specified in the same file in the following order: the primary certificate comes first, then the intermediate certificates. A secret key in the PEM format may be placed in the same file.
@@ -655,9 +666,9 @@ Specifies a `file` with the certificate in the PEM format for the given virtual 
 ### `ssl_certificate_key`
 
 ```
-Syntax: 	ssl_certificate_key file;
-Default: 	—
-Context: 	server
+Syntax:     ssl_certificate_key file;
+Default:    —
+Context:    server
 ```
 
 Specifies a `file` with the secret key in the PEM format for the given virtual server. 
@@ -665,9 +676,9 @@ Specifies a `file` with the secret key in the PEM format for the given virtual s
 ### `ssl_ciphers`
 
 ```
-Syntax: 	ssl_ciphers ciphers;
-Default: 	ssl_ciphers HIGH:!aNULL:!MD5;
-Context: 	server
+Syntax:     ssl_ciphers ciphers;
+Default:    ssl_ciphers HIGH:!aNULL:!MD5;
+Context:    server
 ```
 
 Specifies the enabled ciphers. The ciphers are specified in the format understood by the OpenSSL library, for example:
