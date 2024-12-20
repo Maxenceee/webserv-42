@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 15:45:47 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 15:50:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,10 +55,7 @@ bool	Logger::aquireMutex(void)
 {
 	if (!Logger::_initiated)
 	{
-		/**
-		 * Si le logger n'est pas initialisé, nous devons l'initialiser
-		 */
-		Logger::init();
+		throw std::runtime_error("Logger should be initiated before use (Logger::init)");
 	}
 	return (pthread_mutex_lock(&Logger::_loggerMutex) == 0);
 }
