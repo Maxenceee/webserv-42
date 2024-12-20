@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 15:29:54 by mgama             #+#    #+#             */
-/*   Updated: 2024/06/22 15:40:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:45:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,5 +86,5 @@ int	init_unix_socket()
 	unlink(WBS_SOCKET_PATH); // Supprime le socket Unix
 	close(sockfd); // N'oublie pas de fermer la socket lorsque tu n'en as plus besoin
 
-	return (WBS_NOERR);
+	return (WBS_SUCCESS);
 }

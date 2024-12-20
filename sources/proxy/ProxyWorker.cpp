@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:22:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:43:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -303,7 +303,7 @@ void	ProxyWorker::work(void)
 	int max_fd = (client_fd > backend_fd ? client_fd : backend_fd) + 1;
 
 	struct timeval timeout;
-	timeout.tv_sec = 60;
+	timeout.tv_sec = WBD_PROXY_SELECT_TIMEOUT;
 	timeout.tv_usec = 0;
 
 	while (true) {

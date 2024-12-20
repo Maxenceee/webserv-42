@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 12:30:40 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:54:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,13 +70,14 @@ int	main(int argc, char const **argv)
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTERM, SIG_IGN);
 
+	int status = 0;
 	Logger::init();
 	Cluster	cluster;
 	try
 	{
 		cluster.parse(fpath);
 
-		cluster.start();
+		status = cluster.start();
 	}
 	catch(const std::exception& e)
 	{
@@ -84,5 +85,5 @@ int	main(int argc, char const **argv)
 		return (1);
 	}
 	Logger::print("Webserv successfully stopped", B_GREEN);
-	return (0);
+	return (status);
 }

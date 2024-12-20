@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/01 16:33:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:46:29 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,29 +70,25 @@
 #include "pcolors.hpp"
 #include "utils/utils.hpp"
 
-#define WBS_SERVER_NAME "webserv/2.0"
-
-/* text */
+#define WBS_VERSION "2.0"
+#define WBS_SERVER_NAME "webserv/" WBS_VERSION
 
 #define WBS_PREFIX "webserv: "
 
 /* error codes */
 
-#define WBS_NOERR		0
+#define WBS_SUCCESS		0
 #define WBS_ERR			1
-#define WBS_SOCKET_ERR	2
 
 /* config */
-
-#define WBS_DEFAULT_PORT	3000
 
 #define WBS_RECV_SIZE	2 << 12
 
 #ifdef REQUEST_TIMEOUT
-#define WBS_REQUEST_TIMEOUT	REQUEST_TIMEOUT
+#define WBS_REQUEST_DEFAULT_TIMEOUT	REQUEST_TIMEOUT
 #else
 // default timeout duration, 1 minute in milliseconds
-#define WBS_REQUEST_TIMEOUT	60000
+#define WBS_REQUEST_DEFAULT_TIMEOUT	60000
 #endif /* REQUEST_TIMEOUT */
 
 #ifdef POLL_TIMEOUT
@@ -100,6 +96,8 @@
 #else
 #define WBS_POLL_TIMEOUT	100
 #endif /* POLL_TIMEOUT */
+
+#define WBD_PROXY_SELECT_TIMEOUT	60
 
 #define WBS_DEFAULT_MAX_WORKERS	1024
 
@@ -109,9 +107,7 @@
 
 /* typedef */
 
-// std::map<std::string, std::string>
 typedef std::map<std::string, std::string>	wbs_mapss_t;
-// std::map<int, std::string>
 typedef std::map<int, std::string>			wbs_mapis_t;
 
 #endif /* WEBSERV_HPP */

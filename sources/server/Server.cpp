@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:32:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 14:52:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,11 +118,11 @@ int	Server::init(void)
 	if (this->socket_fd == -1)
 	{
 		Logger::perror("server error: Could not create socket");
-		return (WBS_SOCKET_ERR);
+		return (WBS_ERR);
 	}
 
 	/**
-	 * Option vaux 1 pour activer l'option SO_REUSEADDR.
+	 * Option vaux 1 pour activer (boolean).
 	 */
 	int	option = 1;
 	/**
@@ -138,7 +138,7 @@ int	Server::init(void)
 	 */
 	if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
 		Logger::perror("server error: Could not set socket options");
-		return (WBS_SOCKET_ERR);
+		return (WBS_ERR);
 	}
 
 	bzero(&this->socket_addr, sizeof(this->socket_addr));
@@ -194,7 +194,7 @@ int	Server::init(void)
 		}
 	}
 	this->_init = true;
-	return (WBS_NOERR);
+	return (WBS_SUCCESS);
 }
 
 void	Server::kill(void)
