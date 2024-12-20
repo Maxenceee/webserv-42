@@ -258,7 +258,7 @@ int main() {
                         exit(EXIT_FAILURE);
                     }
 
-                    printf("New connection accepted\n");
+					std::cout << "New connection accepted" << std::endl;
 
                     // Add new client to poll set
                     poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
@@ -271,13 +271,13 @@ int main() {
                     if (valread == 0)
                     {
                         // Client disconnected
-                        printf("Client disconnected\n");
+						std::cout << "Client disconnected" << std::endl;
                         close(poll_fds[i].fd);
                         to_remove.push_back(i);
                     }
                     else
                     {
-                        printf("Received: %s\n", buffer);
+						std::cout << "Received: " << buffer << std::endl;
                     }
                 }
             }
