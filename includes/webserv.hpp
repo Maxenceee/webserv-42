@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 14:46:29 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 15:16:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,7 @@
 #define WBS_POLL_TIMEOUT	100
 #endif /* POLL_TIMEOUT */
 
+// default timeout duration, 1 minute in seconds
 #define WBD_PROXY_SELECT_TIMEOUT	60
 
 #define WBS_DEFAULT_MAX_WORKERS	1024

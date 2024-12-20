@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 10:32:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 15:23:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ public:
 	uint16_t	getPort(void) const;
 
 	void		setSSL(bool ssl);
-	bool		hasSSL(void) const;
+	bool		shouldUseSSL(void) const;
 	bool		setupSSL(void);
 	void		setSSLCertFile(const std::string &cert_file);
 	void		setSSLKeyFile(const std::string &key_file);

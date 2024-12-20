@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 14:52:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 15:23:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,7 +184,7 @@ int	Server::init(void)
 	
 	Logger::debug("Setting up SSL context");
 	for (std::vector<ServerConfig *>::iterator it = this->_configs.begin(); it != this->_configs.end(); it++) {
-		if ((*it)->hasSSL()) {
+		if ((*it)->shouldUseSSL()) {
 			/**
 			 * Si une erreur survient lors de la configuration du SSL, on retourne une erreur.
 			 */
@@ -241,7 +241,7 @@ uint16_t	Server::getPort(void) const
 	return (this->_port);
 }
 
-bool	Server::hasSSL(void) const
+bool	Server::shouldUseSSL(void) const
 {
 	return (this->_ssl_enabled);
 }

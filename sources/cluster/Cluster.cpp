@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 14:59:03 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 15:23:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,13 +77,13 @@ Server	*Cluster::addConfig(ServerConfig *config)
 	wsb_v_servers_t::iterator it;
 	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
-		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress() && (*it)->hasSSL() == config->hasSSL())
+		if ((*it)->getPort() == config->getPort() && (*it)->getAddress() == config->getAddress() && (*it)->shouldUseSSL() == config->shouldUseSSL())
 		{
 			(*it)->addConfig(config);
 			return (*it);
 		}
 	}
-	Server *server = new Server(this->_servers.size() + 1, config->getPort(), config->getAddress(), config->hasSSL());
+	Server *server = new Server(this->_servers.size() + 1, config->getPort(), config->getAddress(), config->shouldUseSSL());
 	server->addConfig(config);
 	this->_servers.push_back(server);
 	return (server);
@@ -106,7 +106,7 @@ int		Cluster::start(void)
 	}
 
 	/**
-	 * Initialise la pool de threads pour la gestion des requêtes proxy (8 threads).
+	 * Initialise la pool de threads pour la gestion des requêtes proxy.
 	 */
 	const int availableThreads = sysconf(_SC_NPROCESSORS_ONLN);
 	Logger::debug("Available threads on device: " + toString(availableThreads));
@@ -183,7 +183,7 @@ int		Cluster::start(void)
 		 */
 		if (poll(poll_fds.data(), poll_fds.size(), timeout) == -1)
 		{
-			// Si le signal d'interruption est reçu, on continue
+			// Si un signal d'interruption est reçu, on continue
 			if (errno == EINTR) {
 				continue;
 			}

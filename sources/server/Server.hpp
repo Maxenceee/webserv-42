@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:34:49 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:22:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 15:22:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ public:
 	uint16_t		getPort(void) const;
 	uint32_t		getAddress(void) const;
 
-	bool			hasSSL(void) const;
+	bool			shouldUseSSL(void) const;
 	
 	static std::vector<std::string>		methods;
 	

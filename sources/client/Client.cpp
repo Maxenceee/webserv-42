@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 14:45:25 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/20 15:25:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,10 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 	_current_router(NULL),
 	upgraded_to_proxy(false),
 	request_time(getTimestamp()),
-	request(client, clientAddr, server->hasSSL()),
+	request(client, clientAddr, server->shouldUseSSL()),
 	response(NULL)
 {
-	if (server->hasSSL())
+	if (server->shouldUseSSL())
 	{
 		/**
 		 * Création d'un contexte SSL générique pour le serveur.
@@ -137,12 +137,6 @@ int	Client::process(void)
 {
 	char buffer[WBS_RECV_SIZE] = {0};
 
-	/**
-	 * La fonction recv() sert à lire le contenu d'un descripteur de fichier, ici
-	 * le descripteur du client. À la différence de read(), la fonction recv() est
-	 * spécifiquement conçue pour la lecture à partir de sockets. Elle offre une meilleure
-	 * gestion de la lecture dans un contexte de travail en réseau.
-	 */
 	int valread = this->read(buffer, WBS_RECV_SIZE);
 	if (valread == -1)
 	{
