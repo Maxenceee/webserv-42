@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/21 14:16:42 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/21 19:24:50 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ Client::Client(Server *server, const int client, sockaddr_in clientAddr):
 		if (SSL_accept(this->_ssl_session) <= 0)
 		{
 			/**
-			 * Si l'erreur est due a une interruption de la connexion, on ignore l'erreur, car
+			 * Si l'erreur est due à une interruption de la connexion, on ignore l'erreur, car
 			 * cela signifie que le client a fermé la connexion, cas qui est géré par la suite.
 			 */
 			if (!(errno == EPIPE || errno == ECONNRESET))
@@ -126,6 +126,9 @@ Client::~Client(void)
 	}
 	if (this->_ssl_session)
 	{
+		/**
+		 * Fermeture de la session SSL et libération de la mémoire.
+		 */
 		SSL_shutdown(this->_ssl_session);
 		SSL_free(this->_ssl_session);
 	}
