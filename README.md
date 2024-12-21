@@ -225,7 +225,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("Server listening on port %d...\n", PORT);
+	std::cout << "Server listening on port " << PORT << "..." << std::endl;
 
     std::vector<pollfd> poll_fds;
 
