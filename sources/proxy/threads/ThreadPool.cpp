@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 13:31:28 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:11:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/21 13:02:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,17 @@ void	ThreadPool::stop(void)
 	 * des threads.
 	 */
 	this->kill();
+	/**
+	 * INFO:
+	 * 1:
+	 * Une solution possible serait d'utiliser la fonction `pthread_cond_timedwait` sur chaque thread et joindre les
+	 * threads aillant terminé à temps ou de les ajouter à la liste de threads à forcer à s'arrêter.
+	 * Cette approche offre une bonne alternative mais nécessite la création d'une structure de données comprenant
+	 * une condition, un mutex pour chaque thread.
+	 * 2:
+	 * Une autre solution serait d'utiliser une alarme, qui lors de son déclenchement vérifie les threads non joints et
+	 * une fois l'alarme déclanchée, sait quels threads non pas été joint.
+	 */
 
 #else
 
