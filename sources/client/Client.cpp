@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/21 14:09:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/21 14:16:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -358,7 +358,7 @@ int	Client::processLines(void)
 		}
 	}
 
-	if (!this->_buffer.empty() && this->request.headersReceived())
+	if (this->request.headersReceived() && !this->_buffer.empty())
 	{
 		/**
 		 * Si le client envoie un corps de requête alors que la requête n'en attend pas,
