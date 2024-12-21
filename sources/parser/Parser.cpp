@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:55:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/21 13:06:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -475,6 +475,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 
 	/**
 	 * Directive allow_methods
+	 * 
 	 */
 	if (key == "allow_methods") {
 		size_t l = 0;

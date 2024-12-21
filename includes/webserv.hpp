@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 15:16:46 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/21 13:52:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@
 #include <list>
 #include <utility>
 #include <queue>
+#include <deque>
 
 // C Includes
 #include <stdint.h>

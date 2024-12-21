@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 17:10:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/21 13:56:24 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ private:
 	std::string			_body;
 	size_t				_body_size;
 	std::string			_ip;
-	std::string			_chunkBuffer;
+	std::deque<std::string>	_chunkBuffer;
 
 	struct wbs_request_time		request_time;
 

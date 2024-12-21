@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 15:25:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/21 14:09:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -370,13 +370,19 @@ int	Client::processLines(void)
 			return (WBS_ERR);
 		}
 
-		if (request.processLine(this->_buffer))
+		while (!this->request.bodyReceived() && (pos = this->_buffer.find(WBS_CRLF)) != std::string::npos)
 		{
-			// En cas d'erreur de parsing, on envoie une réponse d'erreur
-			this->response->status(400).end();
-			return (WBS_ERR);
+			std::string line = this->_buffer.substr(0, pos); // Extraire une ligne complète du buffer
+			this->_buffer.erase(0, pos + 2); // Supprimer la ligne traitée du buffer (incluant \r\n)
+
+			if (request.processLine(line))
+			{
+				// En cas d'erreur de parsing, on envoie une réponse d'erreur
+				this->response->status(400).end();
+				return (WBS_ERR);
+			}
 		}
-		this->_buffer.clear();
+
 		return (WBS_SUCCESS);
 	}
 	return (WBS_SUCCESS);
@@ -477,14 +483,6 @@ int	serverNameCallback(SSL *ssl, int *ad, void *arg)
 
 bool	Client::timeout(void)
 {
-	/**
-	 * TODO:
-	 * Conformément à la documentation de Nginx, contrairement aux en-têtes, le *timeout* du corps de la requête doit
-	 * s'appliquer entre chaque opération de lecture plutôt que sur l'ensemble de la requête. Actuellement, le calcul
-	 * du *timeout* se base sur `this->request.getRequestTime()`, qui correspond à l'heure à laquelle la requête a été 
-	 * acceptée. Il serait préférable de recalculer le *timeout* en utilisant le temps de la dernière lecture pour
-	 * s'assurer que la durée est réinitialisée après chaque lecture.
-	 */
 	/**
 	 * Si le client n'a pas envoyé les en-têtes de la requête dans le délai imparti,
 	 * une réponse d'erreur 408 (Request Timeout) est envoyée et la connexion est fermée.
