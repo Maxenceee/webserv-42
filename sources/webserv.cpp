@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 14:54:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/22 13:21:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ int	main(int argc, char const **argv)
 
 		status = cluster.start();
 	}
-	catch(const std::exception& e)
+	catch(const std::exception &e)
 	{
 		Logger::error(e.what());
 		return (1);
