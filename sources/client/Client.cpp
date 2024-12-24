@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/21 19:24:50 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 17:59:42 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,18 +373,14 @@ int	Client::processLines(void)
 			return (WBS_ERR);
 		}
 
-		while (!this->request.bodyReceived() && (pos = this->_buffer.find(WBS_CRLF)) != std::string::npos)
+		if (request.processLine(this->_buffer))
 		{
-			std::string line = this->_buffer.substr(0, pos); // Extraire une ligne complète du buffer
-			this->_buffer.erase(0, pos + 2); // Supprimer la ligne traitée du buffer (incluant \r\n)
-
-			if (request.processLine(line))
-			{
-				// En cas d'erreur de parsing, on envoie une réponse d'erreur
-				this->response->status(400).end();
-				return (WBS_ERR);
-			}
+			// En cas d'erreur de parsing, on envoie une réponse d'erreur
+			this->response->status(400).end();
+			return (WBS_ERR);
 		}
+
+		this->_buffer.clear();
 
 		return (WBS_SUCCESS);
 	}

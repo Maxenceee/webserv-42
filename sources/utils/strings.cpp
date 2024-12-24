@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:30:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 18:27:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ std::vector<std::string>	parseQuotedAndSplit(const std::string &input)
 		char c = input[i];
 
 		if (c == '"') {
-			inQuotes = !inQuotes; // Toggle the state
+			inQuotes = !inQuotes;
 		} else if (c == ' ' && !inQuotes) {
 			if (!current.empty()) {
 				result.push_back(current);
@@ -64,9 +64,7 @@ std::vector<std::string>	parseQuotedAndSplit(const std::string &input)
 		}
 	}
 
-	if (!current.empty()) {
-		result.push_back(current);
-	}
+	result.push_back(current);
 
 	return result;
 }

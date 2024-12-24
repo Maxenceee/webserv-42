@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/21 13:56:24 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 18:04:14 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ private:
 	std::string			_body;
 	size_t				_body_size;
 	std::string			_ip;
-	std::deque<std::string>	_chunkBuffer;
+	std::string			_chunkBuffer;
 
 	struct wbs_request_time		request_time;
 
@@ -82,6 +82,7 @@ public:
 	void					updateHost(const std::string &host);
 	void					setHeader(const std::string &header, const std::string &value);
 	void					removeHeader(const std::string &header);
+	void					clearHeaders(void);
 
 	const std::string		&getMethod(void) const;
 	const std::string		&getVersion(void) const;

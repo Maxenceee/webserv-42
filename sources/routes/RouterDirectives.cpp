@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:37:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 11:56:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,6 +209,16 @@ void	Router::setProxyMethod(const std::string &method)
 {
 	this->_proxy.method = method;
 	this->reloadChildren();
+}
+
+void	Router::setForwardRequestBody(bool enable)
+{
+	this->_proxy.forward_body = enable;
+}
+
+void	Router::setForwardRequestHeaders(bool enable)
+{
+	this->_proxy.forward_headers = enable;
 }
 
 void	Router::setTimeout(const size_t time, const std::string &type)

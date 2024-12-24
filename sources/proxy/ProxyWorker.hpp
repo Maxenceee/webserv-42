@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:20 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/16 15:35:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 11:42:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,26 @@ enum wbs_proxy_code
 	WBS_PROXY_ERROR			= 2,
 	WBS_PROXY_TIMEOUT		= 3
 };
+
+static const char* default_hidden_headers_array[] = {
+	"Server",
+	"X-Powered-By",
+	"Connection",
+	"Keep-Alive",
+	"Via",
+	"X-Forwarded-For",
+	"X-Forwarded-Host",
+	"X-Forwarded-Proto",
+	"Cache-Control",
+	"Expires",
+	"ETag",
+	"Last-Modified"
+};
+
+static const std::vector<std::string> default_hidden_headers(
+    std::begin(default_hidden_headers_array), 
+    std::end(default_hidden_headers_array)
+);
 
 /**
  * FIXME:
@@ -57,6 +77,13 @@ struct wbs_proxyworker_client {
 			return (SSL_write(this->session, buffer, size));
 		return (::send(this->fd, buffer, size, 0));
 	}
+
+	int send(const char *buffer, size_t size)
+	{
+		if (this->session)
+			return (SSL_write(this->session, buffer, size));
+		return (::send(this->fd, buffer, size, 0));
+	}
 };
 
 class ProxyWorker
@@ -68,7 +95,7 @@ private:
 	struct sockaddr_in				socket_addr;
 	SSL_CTX							*ssl_ctx;
 	SSL								*ssl_session;
-	const std::string				&_buffer;
+	const std::string				&_client_buffer;
 	Request							&_req;
 
 	int		sendrequest(void);
