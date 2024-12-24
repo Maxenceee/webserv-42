@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 14:43:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 18:25:15 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ ProxyWorker::ProxyWorker(Client *client, const struct wbs_router_proxy &config, 
 	socket_fd(-1),
 	ssl_ctx(NULL),
 	ssl_session(NULL),
-	_buffer(buffer),
+	_client_buffer(buffer),
 	_req(req)
 {
 	Logger::debug("New ProxyWorker handling task");
@@ -124,10 +124,6 @@ int	ProxyWorker::connect(void)
 			Logger::debug(ss.str());
 			ss.str("");
 			connected = true;
-			/**
-			 * Mise à jour de l'hôte dans la requête pour qu'elle corresponde à l'hôte du serveur distant
-			 */
-			this->_req.updateHost(this->_config.host);
 			break;
 		} else {
 			Logger::perror("proxy worker error: connect");
@@ -240,23 +236,33 @@ int	ProxyWorker::initSSL(void)
 
 int	ProxyWorker::sendrequest(void)
 {
-	/**
-	 * TODO:
-	 * Ajout du contrôle du contenu de la réponse
-	 * 
-	 * Pour le moment, le worker renvoie directement le contenu reçu du serveur distant,
-	 * sans le traiter.
-	 * Il serait judicieux de vérifier le contenu de la réponse, pour potentiellement laisser passer (proxy_pass_header)
-	 * ou bloquer (proxy_hide_header) certains en-têtes.
-	 */
 	if (this->_config.method.length())
 	{
 		this->_req.setMethod(this->_config.method);
 	}
+	if (this->_config.forward_headers == false)
+	{
+		this->_req.clearHeaders();
+	}
+	/**
+	 * Par defaut, on ferme la connexion après chaque requête
+	 */
+	this->_req.setHeader("Connection", "close");
+	/**
+	 * Ajout des en-têtes de la configuration du proxy dans la requête
+	 */
 	for (wbs_mapss_t::const_iterator it = this->_config.headers.begin(); it != this->_config.headers.end(); it++)
 	{
-		this->_req.setHeader((*it).first, (*it).second);
+		if ((*it).second.empty())
+			this->_req.removeHeader((*it).first);
+		else
+			this->_req.setHeader((*it).first, (*it).second);
 	}
+
+	/**
+	 * Mise à jour de l'hôte dans la requête pour qu'elle corresponde à l'hôte du serveur distant
+	 */
+	this->_req.updateHost(this->_config.host);
 
 	/**
 	 * Préparation des en-têtes de la requête pour le serveur distant
@@ -266,8 +272,8 @@ int	ProxyWorker::sendrequest(void)
 	/**
 	 * On ajoute le corps de la requête, si des données ont déjà été envoyées par le client 
 	 */
-	if (this->_buffer.length() > 0) {
-		data.append(this->_buffer);
+	if (this->_client_buffer.length() > 0 && this->_config.forward_body == true) {
+		data.append(this->_client_buffer);
 	}
 
 	/**
@@ -302,9 +308,15 @@ void	ProxyWorker::work(void)
 
 	int max_fd = (client_fd > backend_fd ? client_fd : backend_fd) + 1;
 
+	std::string	response_buffer;
+	std::vector<std::string> response_headers;
+	bool headers_received = false;
+
 	struct timeval timeout;
 	timeout.tv_sec = WBD_PROXY_SELECT_TIMEOUT;
 	timeout.tv_usec = 0;
+
+	size_t pos;
 
 	while (true) {
 		FD_ZERO(&read_fds);
@@ -359,12 +371,85 @@ void	ProxyWorker::work(void)
 				break;
 			}
 
-			bytes_sent = this->_client.send(buffer, bytes_read);
+			response_buffer.append(buffer, bytes_read);
+
+			if (!headers_received)
+			{
+				while (!headers_received && (pos = response_buffer.find(WBS_CRLF)) != std::string::npos)
+				{
+					std::string line = response_buffer.substr(0, pos);
+					response_buffer.erase(0, pos + 2);
+
+					if (line.empty())
+					{
+						headers_received = true;
+
+						std::string response = join(response_headers, WBS_CRLF);
+						/**
+						 * La fonction `join` n'ajoute pas le separateur à la fin il faut donc l'ajouter
+						 * manuellement après le dernier en-tête
+						 */
+						response.append(WBS_CRLF);
+						/**
+						 * Ajout de line de séparation entre les en-têtes et le corps de la réponse
+						 */
+						response.append(WBS_CRLF);
+
+						bytes_sent = this->_client.send(response.c_str(), response.length());
+						if (bytes_sent == -1)
+						{
+							Logger::perror("proxy worker error: send to client");
+							break;
+						}
+						response_headers.clear();
+
+						break;
+					}
+
+					std::vector<std::string> part = split(line, ':');
+					bool shoud_pass = true;
+					for (std::vector<std::string>::const_iterator it = default_hidden_headers.begin(); it != default_hidden_headers.end(); it++)
+					{
+						if (part[0] == *it)
+						{
+							shoud_pass = false;
+							break;
+						}
+					}
+					for (std::vector<std::string>::const_iterator it = this->_config.hidden.begin(); it != this->_config.hidden.end(); it++)
+					{
+						if (part[0] == *it)
+						{
+							shoud_pass = false;
+							break;
+						}
+					}
+					if (!shoud_pass)
+					{
+						for (std::vector<std::string>::const_iterator it = this->_config.forwared.begin(); it != this->_config.forwared.end(); it++)
+						{
+							if (part[0] == *it)
+							{
+								shoud_pass = true;
+								break;
+							}
+						}
+
+						if (!shoud_pass)
+							continue;
+					}
+
+					response_headers.push_back(line);
+				}
+			}
+
+			bytes_sent = this->_client.send(response_buffer.c_str(), response_buffer.length());
 			if (bytes_sent == -1)
 			{
 				Logger::perror("proxy worker error: send to client");
 				break;
 			}
+			response_buffer.clear();
 
 			total_response_size += bytes_sent;
 		}

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/21 13:06:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 18:20:30 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -669,8 +669,39 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_header)
 	 */
 	if (key == "proxy_pass_header") {
-		// this->tmp_router->enableProxyHeader(valtokens[0]);
-		Logger::warning("parser warning: proxy_pass_header directive is not supported :/");
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		this->tmp_router->enableProxyHeader(valtokens[0]);
+		return ;
+	}
+
+	/**
+	 * Directive proxy_pass_request_body
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_request_body)
+	 */
+	if (key == "proxy_pass_request_body") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		if (valtokens[0] == "off")
+			this->tmp_router->setForwardRequestBody(false);
+		else if (valtokens[0] == "on")
+			this->throwError(raw_line, "unknown option", key_length);
+		return ;
+	}
+
+	/**
+	 * Directive proxy_pass_request_headers
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_request_headers)
+	 */
+	if (key == "proxy_pass_request_headers") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		if (valtokens[0] == "off")
+			this->tmp_router->setForwardRequestHeaders(false);
+		else if (valtokens[0] == "on")
+			this->throwError(raw_line, "unknown option", key_length);
 		return ;
 	}
 
@@ -680,8 +711,9 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_hide_header)
 	 */
 	if (key == "proxy_hide_header") {
-		// this->tmp_router->hideProxyHeader(valtokens[0]);
-		Logger::warning("parser warning: proxy_hide_header directive is not supported :/");
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		this->tmp_router->hideProxyHeader(valtokens[0]);
 		return ;
 	}
 

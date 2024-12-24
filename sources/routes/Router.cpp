@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:37:51 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/24 18:24:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -740,6 +740,10 @@ void	Router::reload(void)
 				this->_proxy.hidden.push_back(*it);
 			}
 		}
+		/**
+		 * FIXME:
+		 * Fix inheritance of proxy forward headers/body
+		 */
 	}
 	this->reloadChildren();
 }
@@ -814,9 +818,15 @@ void	Router::print(std::ostream &os) const
 		os << space << B_CYAN"Proxy port: " << RESET << this->_proxy.port << "\n";
 		os << space << B_CYAN"Proxy method: " << RESET << (this->_proxy.method.length() > 0 ? this->_proxy.method : "-")<< "\n";
 		os << space << B_CYAN"Proxy uri: " << RESET << this->_proxy.path << "\n";
+		os << space << B_CYAN"Proxy forward body: " << RESET << (this->_proxy.forward_body ? "enabled" : "disabled") << "\n";
+		os << space << B_CYAN"Proxy forward headers: " << RESET << (this->_proxy.forward_headers ? "enabled" : "disabled") << "\n";
 		os << space << B_CYAN"Proxy set headers: " << RESET << "\n";
 		for (wbs_mapss_t::const_iterator it = this->_proxy.headers.begin(); it != this->_proxy.headers.end(); it++)
 			os << space << it->first << ": " << it->second << "\n";
+		os << space << B_CYAN"Proxy forwarded headers: " << RESET;
+		for (std::vector<std::string>::const_iterator it = this->_proxy.forwared.begin(); it != this->_proxy.forwared.end(); it++)
+			os << *it << " ";
+		os << "\n";
 		os << space << B_CYAN"Proxy hidden headers: " << RESET;
 		for (std::vector<std::string>::const_iterator it = this->_proxy.hidden.begin(); it != this->_proxy.hidden.end(); it++)
 			os << *it << " ";

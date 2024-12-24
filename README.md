@@ -314,6 +314,8 @@ int main() {
 - [proxy_method](#proxy_method)
 - [proxy_pass](#proxy_pass)
 - [proxy_pass_header](#proxy_pass_header)
+- [proxy_pass_request_body](#proxy_pass_request_body)
+- [proxy_pass_request_headers](#proxy_pass_request_headers)
 - [proxy_set_header](#proxy_set_header)
 - [return](#return)
 - [root](#root)
@@ -586,6 +588,50 @@ Context:    server, location
 
 Permits passing [otherwise disabled](#proxy_hide_header) header fields from a proxied server to a client.
 
+### `proxy_pass_request_body`
+
+```
+Syntax:     proxy_pass_request_body on | off;
+Default:    proxy_pass_request_body on;
+Context:    server, location
+```
+
+Indicates whether the original request body is passed to the proxied server.
+
+```
+location /x-accel-redirect-here/ {
+    proxy_method GET;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+
+    proxy_pass ...
+}
+```
+
+See also the [proxy_set_header](#proxy_set_header) and [proxy_pass_request_headers](#proxy_pass_request_headers) directives. 
+
+### `proxy_pass_request_headers`
+
+```
+Syntax:     proxy_pass_request_headers on | off;
+Default:    proxy_pass_request_headers on;
+Context:    server, location
+```
+
+Indicates whether the header fields of the original request are passed to the proxied server. 
+
+```
+location /x-accel-redirect-here/ {
+    proxy_method GET;
+    proxy_pass_request_headers off;
+    proxy_pass_request_body off;
+
+    proxy_pass ...
+}
+```
+
+See also the [proxy_set_header](#proxy_set_header) and [proxy_pass_request_body](#proxy_pass_request_body) directives. 
+
 ### `proxy_set_header`
 
 ```
@@ -595,7 +641,16 @@ Default:    proxy_set_header Host proxy_host;
 Context:    server, location
 ```
 
-Allows redefining or appending fields to the request header passed to the proxied server. These directives are inherited from the previous configuration level if and only if there are no **proxy_set_header** directives defined on the current level.
+Allows redefining or appending fields to the request header [passed](#proxy_pass_request_headers) to the proxied server. These directives are inherited from the previous configuration level if and only if there are no **proxy_set_header** directives defined on the current level. By default, only two fields are redefined: 
+```
+proxy_set_header Host       $proxy_host;
+proxy_set_header Connection close;
+```
+
+If the value of a header field is an empty string then this field will not be passed to a proxied server: 
+```
+proxy_set_header Accept-Encoding "";
+```
 
 ### `return`
 
