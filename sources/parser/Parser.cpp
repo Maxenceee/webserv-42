@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/24 18:20:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/25 18:23:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -652,6 +652,18 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	}
 
 	/**
+	 * Directive proxy_set_body
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_body)
+	 */
+	if (key == "proxy_set_body") {
+		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+
+		this->tmp_router->setProxyBody(valtokens[0]);
+		return ;
+	}
+
+	/**
 	 * Directive proxy_set_header
 	 * 
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header)
@@ -684,7 +696,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
 		if (valtokens[0] == "off")
-			this->tmp_router->setForwardRequestBody(false);
+			this->tmp_router->setProxyForwardBody(false);
 		else if (valtokens[0] == "on")
 			this->throwError(raw_line, "unknown option", key_length);
 		return ;
@@ -699,7 +711,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
 		if (valtokens[0] == "off")
-			this->tmp_router->setForwardRequestHeaders(false);
+			this->tmp_router->setProxyForwardHeaders(false);
 		else if (valtokens[0] == "on")
 			this->throwError(raw_line, "unknown option", key_length);
 		return ;

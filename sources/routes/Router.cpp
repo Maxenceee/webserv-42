@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/24 18:24:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/25 18:47:01 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -831,6 +831,7 @@ void	Router::print(std::ostream &os) const
 		for (std::vector<std::string>::const_iterator it = this->_proxy.hidden.begin(); it != this->_proxy.hidden.end(); it++)
 			os << *it << " ";
 		os << "\n";
+		os << space << B_CYAN"Proxy custom body: " << RESET << (this->_proxy.body.empty() ? "no" : "yes") << "\n";
 	}
 	os << space << B_CYAN"Client max body size: " << RESET << getSize(this->_client_body.size) << "\n";
 	os << space << B_CYAN"Header timeout: " << RESET << getTime(this->_timeout.header_timeout) << "\n";

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:15 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/24 18:04:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/25 18:49:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ public:
 	bool					hasContentLength(void) const;
 	void					setMethod(const std::string &method);
 	void					updateHost(const std::string &host);
+	void					setBody(const std::string &body);
 	void					setHeader(const std::string &header, const std::string &value);
 	void					removeHeader(const std::string &header);
 	void					clearHeaders(void);

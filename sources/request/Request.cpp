@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 01:17:29 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/24 18:03:44 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/25 19:03:45 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,9 +189,13 @@ int	Request::processLine(const std::string &line)
 			}
 
 			this->_body += line;
-			if (this->_body.size() >= this->_body_size)
+			if (this->_body.size() == this->_body_size)
 			{
 				this->_body_received = true;
+			}
+			else if (this->_body.size() > this->_body_size)
+			{
+				return (WBS_REQ_ERROR);
 			}
 		}
 	}
@@ -494,6 +498,13 @@ void	Request::setMethod(const std::string &method)
 void	Request::updateHost(const std::string &host)
 {
 	this->_headers["Host"] = host;
+}
+
+void	Request::setBody(const std::string &body)
+{
+	this->_body_received = true;
+	this->_body_size = body.length();
+	this->_body = body;
 }
 
 void	Request::setHeader(const std::string &header, const std::string &value)
