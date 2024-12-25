@@ -316,6 +316,7 @@ int main() {
 - [proxy_pass_header](#proxy_pass_header)
 - [proxy_pass_request_body](#proxy_pass_request_body)
 - [proxy_pass_request_headers](#proxy_pass_request_headers)
+- [proxy_set_body](#proxy_set_body)
 - [proxy_set_header](#proxy_set_header)
 - [return](#return)
 - [root](#root)
@@ -631,6 +632,16 @@ location /x-accel-redirect-here/ {
 ```
 
 See also the [proxy_set_header](#proxy_set_header) and [proxy_pass_request_body](#proxy_pass_request_body) directives. 
+
+### `proxy_set_body`
+
+```
+Syntax:     proxy_set_body value;
+Default:    —
+Context:    server, location
+```
+
+Allows redefining the request body passed to the proxied server.
 
 ### `proxy_set_header`
 

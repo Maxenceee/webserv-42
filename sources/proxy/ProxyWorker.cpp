@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/24 18:25:15 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/25 18:53:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,6 +240,9 @@ int	ProxyWorker::sendrequest(void)
 	{
 		this->_req.setMethod(this->_config.method);
 	}
+	/**
+	 * On supprime les en-têtes de la requête si la configuration du proxy l'indique.
+	 */
 	if (this->_config.forward_headers == false)
 	{
 		this->_req.clearHeaders();
@@ -248,15 +251,14 @@ int	ProxyWorker::sendrequest(void)
 	 * Par defaut, on ferme la connexion après chaque requête
 	 */
 	this->_req.setHeader("Connection", "close");
+
 	/**
-	 * Ajout des en-têtes de la configuration du proxy dans la requête
+	 * Si la configuration du proxy indique un corps personnalisé, calcul de la taille du corps
+	 * et ajout de l'en-tête `Content-Length` dans la requête.
 	 */
-	for (wbs_mapss_t::const_iterator it = this->_config.headers.begin(); it != this->_config.headers.end(); it++)
+	if (!this->_config.body.empty())
 	{
-		if ((*it).second.empty())
-			this->_req.removeHeader((*it).first);
-		else
-			this->_req.setHeader((*it).first, (*it).second);
+		this->_req.setHeader("Content-Length", toString(this->_config.body.length()));
 	}
 
 	/**
@@ -265,16 +267,34 @@ int	ProxyWorker::sendrequest(void)
 	this->_req.updateHost(this->_config.host);
 
 	/**
-	 * Préparation des en-têtes de la requête pour le serveur distant
+	 * Ajout des en-têtes de la configuration du proxy dans la requête
 	 */
-	std::string data = this->_req.prepareForProxying();
-	data.append(WBS_CRLF);
+	for (wbs_mapss_t::const_iterator it = this->_config.headers.begin(); it != this->_config.headers.end(); it++)
+	{
+		/**
+		 * Si la valeur de l'en-tête est vide, cela signifie qu'on doit supprimer l'en-tête de la requête
+		 */
+		if ((*it).second.empty())
+			this->_req.removeHeader((*it).first);
+		else
+			this->_req.setHeader((*it).first, (*it).second);
+	}
+
 	/**
 	 * On ajoute le corps de la requête, si des données ont déjà été envoyées par le client 
 	 */
-	if (this->_client_buffer.length() > 0 && this->_config.forward_body == true) {
-		data.append(this->_client_buffer);
+	if (this->_client_buffer.length() > 0 && this->_config.forward_body == true && this->_config.body.empty()) {
+		this->_req.setBody(this->_client_buffer);
 	}
+	else if (!this->_config.body.empty())
+	{
+		this->_req.setBody(this->_config.body);
+	}
+
+	/**
+	 * Préparation de la requête pour l'envoie au serveur distant
+	 */
+	std::string data = this->_req.prepareForProxying();
 
 	/**
 	 * Envoi de la requête au serveur distant
