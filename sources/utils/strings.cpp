@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/24 18:27:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/31 19:57:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,7 +234,7 @@ std::string		getIPAddress(int addr)
 	return (res);
 }
 
-uint32_t	setIPAddress(std::string addr)
+uint32_t	setIPAddress(const std::string &addr)
 {
 	// Similaire à inet_addr, mais prend une std::string et non un char *, accepte localhost.
 	if (addr == "localhost")
@@ -251,7 +251,7 @@ uint32_t	setIPAddress(std::string addr)
 	return (res);
 }
 
-bool	isIPAddress(std::string addr)
+bool	isIPAddressFormat(const std::string &addr)
 {
 	if (addr == "localhost")
 		return (true);
@@ -267,7 +267,23 @@ bool	isIPAddress(std::string addr)
 	return (true);
 }
 
-std::string		&replace(std::string &buffer, std::string searchValue, std::string replaceValue)
+bool	isIPAddress(const std::string &addr)
+{
+	if (addr == "localhost")
+		return (true);
+
+	std::vector<std::string> tokens = split(addr, '.');
+	if (tokens.size() != 4)
+		return (false);
+	for (size_t i = 0; i < tokens.size(); i++)
+	{
+		if (!isDigit(tokens[i]) || std::atoi(tokens[i].c_str()) < 0 || std::atoi(tokens[i].c_str()) > 255)
+			return (false);
+	}
+	return (true);
+}
+
+std::string		&replace(std::string &buffer, const std::string &searchValue, const std::string &replaceValue)
 {
 	std::string	sv(searchValue);
 	std::string	rv(replaceValue);

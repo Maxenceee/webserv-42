@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/18 10:51:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/31 19:57:40 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ std::string					&to_upper(std::string &str);
 std::string					&to_lower(std::string &str);
 std::string					&capitalize(std::string &str);
 std::string					getExtension(const std::string &filename);
-std::string					&replace(std::string &buffer, std::string searchValue, std::string replaceValue);
+std::string					&replace(std::string &buffer, const std::string &searchValue, const std::string &replaceValue);
 std::string					&replaceAll(std::string &buffer, char searchValue, char replaceValue);
 
 bool						isNumber(const std::string &str);
@@ -59,8 +59,9 @@ std::ostream&				operator<<(std::ostream& os, struct cropoutput value);
 std::string					cropoutputs(const std::string &input);
 
 std::string					getIPAddress(int addr);
-uint32_t					setIPAddress(std::string addr);
-bool						isIPAddress(std::string addr);
+uint32_t					setIPAddress(const std::string &addr);
+bool						isIPAddressFormat(const std::string &addr);
+bool						isIPAddress(const std::string &addr);
 
 size_t						parseSize(const std::string &size);
 std::string					getSize(int size);
