@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 16:46:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/31 19:33:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ private:
 	void	throwError(const std::string &raw_line, const std::string &message, const int pos = 0);
 
 	void	minmaxArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens, const size_t min, const size_t max = 0);
+	bool	onoffArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens);
 
 public:
 	Parser(Cluster &c);

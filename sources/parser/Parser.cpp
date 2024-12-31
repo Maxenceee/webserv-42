@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/25 18:23:01 by mgama            ###   ########.fr       */
+/*   Updated: 2024/12/31 20:24:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,6 +215,18 @@ void	Parser::minmaxArgs(const std::string &raw_line, const size_t key_length, co
 	}
 }
 
+bool	Parser::onoffArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens)
+{
+	(void)val;
+
+	if (valtokens[0] == "on")
+		return (true);
+	else if (valtokens[0] != "off")
+		this->throwError(raw_line, "unknown option", key_length);
+
+	return (false);
+}
+
 void	Parser::switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
 {
 	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
@@ -328,37 +340,45 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		if (context != "server")
 			this->throwError(raw_line, "listen directive must be inside server block");
 
-		if (valtokens.size() > 1) {
-			if (valtokens[1] == "ssl")
-				this->new_server->setSSL(true);
-			else
-				this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
-		}
 		// Si la directive listen contient `:` on s'assure que le port est correct
 		std::string line = valtokens[0];
 		if (line.find(':') == std::string::npos) {
-			if (isIPAddress(line)) {
+			if (isIPAddressFormat(line)) {
 				// Adresse IP seule, utiliser le port par défaut (80)
-				this->new_server->setAddress(line);
-			} else if (isDigit(line)) {
-				// Numéro de port seul, utiliser l'adresse par défaut (0.0.0.0)
-				this->new_server->setPort(std::atoi(line.c_str()));
+				if (isIPAddress(line))
+					this->new_server->setAddress(line);
+				else
+					this->throwError(raw_line, "invalid address", key_length);
 			} else {
-				this->throwError(raw_line, "invalid port", key_length);
+				// Numéro de port seul, utiliser l'adresse par défaut (0.0.0.0)
+				if (isDigit(line))
+					this->new_server->setPort(std::atoi(line.c_str()));
+				else
+					this->throwError(raw_line, "invalid port", key_length);
 			}
 		} else {
 			std::vector<std::string> tokens = split(line, ':');
 			if (tokens.size() == 2) {
-				if ((!isIPAddress(tokens[0]) && tokens[0] != "*")) {
+				if ((!isIPAddressFormat(tokens[0]) && tokens[0] != "*")) {
 					this->throwError(raw_line, "invalid address", key_length);
 				} else if (!isDigit(tokens[1])) {
 					this->throwError(raw_line, "invalid port", key_length + tokens[0].length() + 1);
 				}
+				if (!isIPAddress(tokens[0]))
+					this->throwError(raw_line, "invalid address", key_length);
+
 				this->new_server->setAddress(tokens[0]);
 				this->new_server->setPort(std::atoi(tokens[1].c_str()));
 			} else {
 				this->throwError(raw_line, "invalid port", key_length + line.length());
 			}
+		}
+
+		if (valtokens.size() > 1) {
+			if (valtokens[1] == "ssl")
+				this->new_server->setSSL(true);
+			else
+				this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
 		}
 		return ;
 	}
@@ -432,10 +452,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "autoindex") {
 		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
-		if (valtokens[0] == "on")
-			this->tmp_router->setAutoIndex(true);
-		else if (valtokens[0] != "off")
-			this->throwError(raw_line, "unknown option", key_length);
+		bool onf = this->onoffArgs(raw_line, key_length, val, valtokens);
+		this->tmp_router->setAutoIndex(onf);
 		return ;
 	}
 
@@ -695,10 +713,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "proxy_pass_request_body") {
 		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
-		if (valtokens[0] == "off")
-			this->tmp_router->setProxyForwardBody(false);
-		else if (valtokens[0] == "on")
-			this->throwError(raw_line, "unknown option", key_length);
+		bool onf = this->onoffArgs(raw_line, key_length, val, valtokens);
+		this->tmp_router->setProxyForwardBody(onf);
 		return ;
 	}
 
@@ -710,10 +726,8 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	if (key == "proxy_pass_request_headers") {
 		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
 
-		if (valtokens[0] == "off")
-			this->tmp_router->setProxyForwardHeaders(false);
-		else if (valtokens[0] == "on")
-			this->throwError(raw_line, "unknown option", key_length);
+		bool onf = this->onoffArgs(raw_line, key_length, val, valtokens);
+		this->tmp_router->setProxyForwardHeaders(onf);
 		return ;
 	}
 
