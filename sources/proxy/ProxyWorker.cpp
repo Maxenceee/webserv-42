@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/25 18:53:28 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 16:34:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,10 +64,7 @@ int	ProxyWorker::connect(void)
 	 */
 	struct hostent *hostent = gethostbyname(this->_config.host.c_str());
 	if (hostent == NULL) {
-		if (h_errno == HOST_NOT_FOUND)
-			Logger::perror("proxy worker error: host not found");
-		else
-			Logger::perror("proxy worker error: gethostbyname");
+		Logger::pherror("proxy worker error: gethostbyname");
 		return (WBS_PROXY_UNAVAILABLE);
 	}
 

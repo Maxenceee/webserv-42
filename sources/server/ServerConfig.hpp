@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:52:36 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 15:23:24 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 16:49:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ private:
 	uint16_t				_port;
 	struct wbs_server_ssl	_ssl;
 	wbs_server_names		_server_name;
+	bool					_shoud_be_default;
 
 	// les comportements par default du serveur sont stockés dans un router spécifique
 	Router				*_default;
@@ -68,6 +69,9 @@ public:
 
 	void		setPort(const uint16_t port);
 	uint16_t	getPort(void) const;
+
+	void		setDefault(void);
+	bool		shouldBeDefault(void) const;
 
 	void		setSSL(bool ssl);
 	bool		shouldUseSSL(void) const;

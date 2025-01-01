@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 15:23:24 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 17:01:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,9 +216,9 @@ void	Server::addConfig(ServerConfig *config)
 {
 	if (!this->_default) {
 		this->_default = config;
-	} else if (config->evalName("_") && !this->_default->evalName("_")) {
+	} else if (config->shouldBeDefault() && !this->_default->shouldBeDefault()) {
 		this->_default = config;
-	} else if (config->evalName("_") && this->_default->evalName("_")) {
+	} else if (config->shouldBeDefault()) {
 		Logger::warning("server warning: multiple default configurations, only the first one will be used.");
 	}
 	config->setServer(this);

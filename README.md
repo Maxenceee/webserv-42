@@ -460,8 +460,8 @@ Defines files that will be used as an index. Files are checked in the specified 
 ### `listen`
 
 ```
-Syntax:     listen address[:port] [ssl];
-            listen port [ssl];
+Syntax:     listen address[:port] [default_server] [ssl];
+            listen port [default_server] [ssl];
 Default:    listen *:80 | *:8000;
 Context:    server
 ```
@@ -479,9 +479,9 @@ If only address is given, the port 80 is used.
 
 If the directive is not present then either **\*:80** is used if nginx runs with the superuser privileges, or **\*:8000** otherwise.
 
-If none of the directives have the server_name set to **_** then the first server with the address:port pair will be the default server for this pair.
+The `default_server` parameter, if present, will cause the server to become the default server for the specified `address`:`port` pair. If none of the directives have the `default_server` parameter then the first server with the `address`:`port` pair will be the default server for this pair.
 
-The ssl parameter allows specifying that all connections accepted on this port should work in SSL mode.
+The `ssl` parameter allows specifying that all connections accepted on this port should work in SSL mode.
 
 Note that for the moment, only on address and port can be specified for each virtual server.
 

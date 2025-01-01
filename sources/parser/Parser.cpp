@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/31 20:24:12 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 16:52:33 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,12 +180,7 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 	}
 }
 
-void	Parser::throwError(const std::string &raw_line, const int pos)
-{
-	this->throwError(raw_line, "invalid directive found", pos);
-}
-
-void	Parser::throwError(const std::string &raw_line, const std::string &message, const int pos)
+void	Parser::throwError(const std::string &raw_line, const char *message, const int pos)
 {
 	std::string	tmp("parser error: ");
 	tmp += message;
@@ -198,6 +193,16 @@ void	Parser::throwError(const std::string &raw_line, const std::string &message,
 	tmp += "1 error generated.";
 	tmp += RESET;
 	throw std::invalid_argument(tmp.c_str());
+}
+
+void	Parser::throwError(const std::string &raw_line, const int pos)
+{
+	this->throwError(raw_line, "invalid directive found", pos);
+}
+
+void	Parser::throwError(const std::string &raw_line, const std::string &message, const int pos)
+{
+	this->throwError(raw_line, message.c_str(), pos);
 }
 
 void	Parser::minmaxArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens, const size_t min, const size_t max)
@@ -340,46 +345,60 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 		if (context != "server")
 			this->throwError(raw_line, "listen directive must be inside server block");
 
-		// Si la directive listen contient `:` on s'assure que le port est correct
-		std::string line = valtokens[0];
-		if (line.find(':') == std::string::npos) {
-			if (isIPAddressFormat(line)) {
-				// Adresse IP seule, utiliser le port par défaut (80)
-				if (isIPAddress(line))
-					this->new_server->setAddress(line);
-				else
-					this->throwError(raw_line, "invalid address", key_length);
-			} else {
-				// Numéro de port seul, utiliser l'adresse par défaut (0.0.0.0)
-				if (isDigit(line))
-					this->new_server->setPort(std::atoi(line.c_str()));
-				else
-					this->throwError(raw_line, "invalid port", key_length);
-			}
-		} else {
-			std::vector<std::string> tokens = split(line, ':');
-			if (tokens.size() == 2) {
-				if ((!isIPAddressFormat(tokens[0]) && tokens[0] != "*")) {
-					this->throwError(raw_line, "invalid address", key_length);
-				} else if (!isDigit(tokens[1])) {
-					this->throwError(raw_line, "invalid port", key_length + tokens[0].length() + 1);
-				}
-				if (!isIPAddress(tokens[0]))
-					this->throwError(raw_line, "invalid address", key_length);
+		std::vector<std::string> tokens = split(valtokens[0], ':');
 
-				this->new_server->setAddress(tokens[0]);
-				this->new_server->setPort(std::atoi(tokens[1].c_str()));
-			} else {
-				this->throwError(raw_line, "invalid port", key_length + line.length());
+		bool canUsePort = false;
+		if (isDigit(tokens[0]))
+		{
+			this->new_server->setPort(std::atoi(tokens[0].c_str()));
+		}
+		else if (isIPAddress(tokens[0]))
+		{
+			this->new_server->setAddress(tokens[0]);
+			canUsePort = true;
+		}
+		else if (tokens[0] == "*")
+		{
+			if (tokens.size() == 2)
+				this->new_server->setAddress(INADDR_ANY);
+			else
+				this->throwError(raw_line, "invalid address", key_length);
+			canUsePort = true;
+		}
+		else
+		{
+			struct hostent *hostent = gethostbyname(tokens[0].c_str());
+			if (hostent == NULL) {
+				this->throwError(raw_line, hstrerror(h_errno), key_length);
 			}
+			if (hostent->h_addrtype != AF_INET)
+				this->throwError(raw_line, "address family not suported", key_length);
+
+			uint32_t ip_address = *(uint32_t *)hostent->h_addr;
+			// L'adresse retournée par gethostbyname est en network byte order, on la convertit en host byte order
+			this->new_server->setAddress(ntohl(ip_address));
+			canUsePort = true;
 		}
 
-		if (valtokens.size() > 1) {
+		if (tokens.size() == 2)
+		{
+			if (!canUsePort)
+				this->throwError(raw_line, "port not allowed here", key_length + tokens[0].length() + 1);
+			if (!isDigit(tokens[1]))
+				this->throwError(raw_line, "invalid port", key_length + tokens[0].length() + 1);
+			this->new_server->setPort(std::atoi(tokens[1].c_str()));
+		}
+
+		if (valtokens.size() > 1)
+		{
 			if (valtokens[1] == "ssl")
 				this->new_server->setSSL(true);
+			else if (valtokens[1] == "default_server")
+				this->new_server->setDefault();
 			else
 				this->throwError(raw_line, "unsupported behaviour: each server block can only listen on a single address:port pair at a time. Please consider using one server block per address:port pair.", key_length + valtokens[0].length() + 1);
 		}
+
 		return ;
 	}
 
