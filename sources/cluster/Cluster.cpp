@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 15:23:11 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 16:25:21 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,7 @@ int		Cluster::start(void)
 	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		Server *server = *it;
-		Logger::print("Listening on port " + toString(server->getPort()), B_GREEN);
+		Logger::print("Listening on " + getIPAddress(server->getAddress()) + ":" + toString(server->getPort()), B_GREEN);
 
 		/**
 		 * La fonction listen() permet de marquer un socket comme étant en

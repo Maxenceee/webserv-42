@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:56 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 15:50:36 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 16:30:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,15 @@ void	Logger::perror(const std::string &msg, const std::string &color)
 	Logger::aquireMutex();
 	displayDate(std::cerr);
 	std::cerr << color << WBS_PREFIX << msg << ": " << strerror(errno) << RESET;
+	std::cerr << std::endl;
+	Logger::releaseMutex();
+}
+
+void	Logger::pherror(const std::string &msg, const std::string &color)
+{
+	Logger::aquireMutex();
+	displayDate(std::cerr);
+	std::cerr << color << WBS_PREFIX << msg << ": " << hstrerror(h_errno) << RESET;
 	std::cerr << std::endl;
 	Logger::releaseMutex();
 }

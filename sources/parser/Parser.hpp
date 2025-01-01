@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/31 19:33:08 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 16:35:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ private:
 	bool	isValidModifier(const std::string &modifier) const;
 
 	void	throwError(const std::string &raw_line, const int pos = 0);
+	void	throwError(const std::string &raw_line, const char *message, const int pos = 0);
 	void	throwError(const std::string &raw_line, const std::string &message, const int pos = 0);
 
 	void	minmaxArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens, const size_t min, const size_t max = 0);

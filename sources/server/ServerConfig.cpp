@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 13:53:09 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/31 19:52:55 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 16:49:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,16 @@ void	ServerConfig::setPort(const uint16_t port)
 uint16_t	ServerConfig::getPort(void) const
 {
 	return (this->_port);
+}
+
+void	ServerConfig::setDefault(void)
+{
+	this->_shoud_be_default = true;
+}
+
+bool	ServerConfig::shouldBeDefault(void) const
+{
+	return (this->_shoud_be_default);
 }
 
 void	ServerConfig::setSSL(bool ssl)

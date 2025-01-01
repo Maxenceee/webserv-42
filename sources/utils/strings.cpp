@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/31 19:57:09 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/01 15:39:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,10 +236,6 @@ std::string		getIPAddress(int addr)
 
 uint32_t	setIPAddress(const std::string &addr)
 {
-	// Similaire à inet_addr, mais prend une std::string et non un char *, accepte localhost.
-	if (addr == "localhost")
-		return (INADDR_LOOPBACK);
-
 	std::vector<std::string>	tokens = split(addr, '.');
 	uint32_t					res = 0;
 	if (tokens.size() != 4)
@@ -253,9 +249,6 @@ uint32_t	setIPAddress(const std::string &addr)
 
 bool	isIPAddressFormat(const std::string &addr)
 {
-	if (addr == "localhost")
-		return (true);
-
 	std::vector<std::string> tokens = split(addr, '.');
 	if (tokens.size() != 4)
 		return (false);
@@ -269,9 +262,6 @@ bool	isIPAddressFormat(const std::string &addr)
 
 bool	isIPAddress(const std::string &addr)
 {
-	if (addr == "localhost")
-		return (true);
-
 	std::vector<std::string> tokens = split(addr, '.');
 	if (tokens.size() != 4)
 		return (false);
