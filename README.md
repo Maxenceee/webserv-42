@@ -483,7 +483,7 @@ The `default_server` parameter, if present, will cause the server to become the 
 
 The `ssl` parameter allows specifying that all connections accepted on this port should work in SSL mode.
 
-Note that for the moment, only on address and port can be specified for each virtual server.
+Note that for the moment, only one address and port can be specified for each virtual server.
 
 ### `location`
 
