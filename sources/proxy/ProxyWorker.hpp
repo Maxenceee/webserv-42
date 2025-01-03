@@ -41,8 +41,8 @@ static const char* default_hidden_headers_array[] = {
 };
 
 static const std::vector<std::string> default_hidden_headers(
-    std::begin(default_hidden_headers_array), 
-    std::end(default_hidden_headers_array)
+    default_hidden_headers_array,
+    default_hidden_headers_array + sizeof(default_hidden_headers_array) / sizeof(default_hidden_headers_array[0])
 );
 
 /**
