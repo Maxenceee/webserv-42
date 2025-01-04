@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/01 15:39:02 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 12:29:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -279,7 +279,7 @@ std::string		&replace(std::string &buffer, const std::string &searchValue, const
 	std::string	rv(replaceValue);
 	std::size_t found_place = buffer.find(sv);
 
-	while (found_place < UINT64_MAX)
+	while (found_place < std::string::npos)
 	{
 		buffer.erase(found_place, sv.length());
 		buffer.insert(found_place, replaceValue);
