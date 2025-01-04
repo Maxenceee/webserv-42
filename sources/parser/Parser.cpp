@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/01 16:52:33 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 12:54:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,23 +137,26 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 		if (token == "{") {
 			std::string key = chunkedLine;
 			trim(key);
-
-			if (!key.empty()) {
-				std::vector<std::string> keyTokens = split(key, ' ');
-				std::string key = keyTokens[0];
-				shift(keyTokens);
-				std::string val = join(keyTokens, " ");
-				this->switchConfigDirectives(key, val, last(context), chunkedLine);
-				context.push_back(key);
+			if (key.empty()) {
+				this->throwError(join(tokens, " "), "invalid context found");
 			}
+
+			std::vector<std::string> keyTokens = split(key, ' ');
+			std::string dirkey = keyTokens[0];
+			shift(keyTokens);
+			std::string val = join(keyTokens, " ");
+			this->switchConfigDirectives(dirkey, val, last(context), chunkedLine);
+			context.push_back(dirkey);
+
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
 		// Fermeture de bloc
 		else if (token == "}") {
 			pop(context);
-			this->tmp_router = this->tmp_router->getParent();
+			if (this->tmp_router)
+				this->tmp_router = this->tmp_router->getParent();
 			if (!chunkedLine.empty()) {
-				this->throwError(chunkedLine, chunkedLine.length());
+				this->throwError(join(tokens, " "), chunkedLine.length());
 			}
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
