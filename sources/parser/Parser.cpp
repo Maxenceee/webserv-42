@@ -6,24 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 17:34:54 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 20:41:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
-
-/**
- * TODO:
- * 
- * Possibilité d'amélioration:
- * 
- * Séparer la gestion des directive contextuelles et des directives de configuration. Pour le
- * moment on appelle this->switchConfigDirectives dans les deux cas et this->switchConfigDirectives
- * verifie si c'est une directive contextuelle ou non.
- * Cela complexifie la gestion des erreurs de syntaxe, il serait plus simple de séparer en deux fonctions
- * et deux appels distincts.
- */
 
 Parser::Parser(Cluster &c): cluster(c)
 {
@@ -166,7 +154,7 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 			std::string dirkey = keyTokens[0];
 			shift(keyTokens);
 			std::string val = join(keyTokens, " ");
-			this->switchConfigDirectives(dirkey, val, last(context), token, lineLength + i - 1, joined);
+			this->addContextualRule(dirkey, val, last(context), lineLength + i - 1, joined);
 			context.push_back(dirkey);
 
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
@@ -190,7 +178,7 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 				std::string val = join(keyValTokens, " ");
 				trim(key);
 				trim(val);
-				this->switchConfigDirectives(key, val, last(context), token, lineLength + i - 1, joined);
+				this->addNonContextualRule(key, val, last(context), lineLength + i - 1, joined);
 			}
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
@@ -217,11 +205,6 @@ void	Parser::throwError(const std::string &raw_line, const char *message, const 
 	tmp += "1 error generated.";
 	tmp += RESET;
 	throw std::invalid_argument(tmp.c_str());
-}
-
-void	Parser::throwError(const std::string &raw_line, const int pos)
-{
-	this->throwError(raw_line, "invalid directive found", pos);
 }
 
 void	Parser::throwError(const std::string &raw_line, const std::string &message, const int pos)
@@ -254,53 +237,6 @@ bool	Parser::onoffArgs(const std::string &raw_line, const size_t key_length, con
 		this->throwError(raw_line, "unknown option", key_length);
 
 	return (false);
-}
-
-void	Parser::switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &terminator, const size_t processed, const std::string &raw_line)
-{
-	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
-	/**
-	 * Directive server
-	 * 
-	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#server)
-	 */
-	if (!this->new_server && key != "server")
-		this->throwError(raw_line, "directive out of server block");
-	else if (key == "server") {
-		// On empeche l'imbrication de blocs server
-		// S'il le context est vide c'est qu'on est dans le bloc principal
-		if (!context.empty())
-			this->throwError(raw_line, "server block cannot be nested", processed - key.length() - 1 - val.length() - 1);
-		if (terminator != "{")
-			this->throwError(raw_line, "server block must be opened with '{', found '" + terminator + "'", processed);
-		if (!val.empty())
-			this->throwError(raw_line, "server directive cannot have value", processed - val.length() - 1);
-
-		this->new_server = new ServerConfig();
-		this->configs.push_back(this->new_server);
-		this->tmp_router = this->new_server->getDefaultHandler();
-	}
-	/**
-	 * Directive location
-	 * 
-	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
-	 */
-	else if (key == "location") {
-		this->createNewRouter(key, val, context, processed - val.length() - 1, raw_line);
-	}
-	else
-	{
-		/**
-		 * Si on se trouve dans le contexte `server`, on utilise le router par défaut du serveur.
-		 */
-		if (context == "server")
-			this->tmp_router = this->new_server->getDefaultHandler();
-		if (val.empty())
-			this->throwError(raw_line, "missing directive value", raw_line.length());
-		if (terminator != ";")
-			this->throwError(raw_line, "directive must end with ';' not '" + terminator + "'", processed);
-		this->addRule(key, val, context, processed, raw_line);
-	}
 }
 
 void	Parser::createNewRouter(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
@@ -354,15 +290,70 @@ void	Parser::createNewRouter(const std::string &key, const std::string &val, con
 	}
 }
 
-void	Parser::addRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
+void	Parser::addContextualRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
 {
-	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
-	// Taille du nom de la directive (+1 pour l'espace après la clé)
-	const size_t key_length = processed - val.length() - 1;
+	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
 
-	// On vérifie que la directive est bien dans un contexte
+	const size_t key_length = processed - val.length() - 1;
+	const size_t key_pos = key_length - key.length() - 1;
+
+	if (!this->new_server && key != "server")
+		this->throwError(raw_line, "directive out of server block", key_pos);
+
+	/**
+	 * Directive server
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#server)
+	 */
+	if (key == "server") {
+		// On empeche l'imbrication de blocs server
+		// S'il le context est vide c'est qu'on est dans le bloc principal
+		if (!context.empty())
+			this->throwError(raw_line, "server block cannot be nested", key_pos);
+		if (!val.empty())
+			this->throwError(raw_line, "server directive cannot have value", key_length);
+
+		this->new_server = new ServerConfig();
+		this->configs.push_back(this->new_server);
+		this->tmp_router = this->new_server->getDefaultHandler();
+		return;
+	}
+
+	/**
+	 * Directive location
+	 * 
+	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
+	 */
+	if (key == "location") {
+		this->createNewRouter(key, val, context, key_length, raw_line);
+
+		return;
+	}
+
+	/**
+	 * Default
+	 */
+	this->throwError(raw_line, "unknown directive", key_pos);
+}
+
+void	Parser::addNonContextualRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
+{
+	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
+
+	// Taille du nom de la directive (+1 pour l'espace après la clé)
+	const size_t key_length = processed - val.length() - (val.length() > 0);
+	const size_t key_pos = key_length - key.length() - 1;
+
 	if (context.empty())
-		this->throwError(raw_line, "directive outside of context");
+		this->throwError(raw_line, "directive outside of context", key_pos);
+
+	if (context == "server")
+		this->tmp_router = this->new_server->getDefaultHandler();
+
+	if (val.empty())
+		this->throwError(raw_line, "missing directive value", processed - 1);
+
+	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
 
 	/**
 	 * Directive Listen
@@ -844,7 +835,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	/**
 	 * Default
 	 */
-	this->throwError(raw_line, "unknown directive", key_length);
+	this->throwError(raw_line, "unknown directive", key_pos);
 }
 
 bool	Parser::isValidModifier(const std::string &modifier) const
