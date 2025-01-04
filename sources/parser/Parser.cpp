@@ -6,12 +6,23 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 12:54:54 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 17:19:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Parser.hpp"
+
+/**
+ * TODO:
+ * 
+ * Possibilité d'amélioration:
+ * Séparer la gestion des directive contextuelles et des directives de configuration. Pour le
+ * moment on appelle this->switchConfigDirectives dans les deux cas et this->switchConfigDirectives
+ * verifie si c'est une directive contextuelle ou non.
+ * Cela complexifie la gestion des erreurs de syntaxe, il serait plus simple de séparer en deux fonctions
+ * et deux appels distincts.
+ */
 
 Parser::Parser(Cluster &c): cluster(c)
 {
@@ -129,23 +140,26 @@ void	Parser::extract(void)
 void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std::string> &context)
 {
 	std::string chunkedLine;
+	size_t lineLength = 0;
+	std::string joined = join(tokens, " ");
 
 	for (size_t i = 0; i < tokens.size(); ++i) {
 		std::string token = tokens[i];
+		lineLength += token.length();
 
 		// Ouverture de bloc
 		if (token == "{") {
 			std::string key = chunkedLine;
 			trim(key);
 			if (key.empty()) {
-				this->throwError(join(tokens, " "), "invalid context found");
+				this->throwError(joined, "invalid context found", lineLength + i - 1);
 			}
 
 			std::vector<std::string> keyTokens = split(key, ' ');
 			std::string dirkey = keyTokens[0];
 			shift(keyTokens);
 			std::string val = join(keyTokens, " ");
-			this->switchConfigDirectives(dirkey, val, last(context), chunkedLine);
+			this->switchConfigDirectives(dirkey, val, last(context), token, lineLength + i - 1, joined);
 			context.push_back(dirkey);
 
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
@@ -156,7 +170,7 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 			if (this->tmp_router)
 				this->tmp_router = this->tmp_router->getParent();
 			if (!chunkedLine.empty()) {
-				this->throwError(join(tokens, " "), chunkedLine.length());
+				this->throwError(joined, "unterminated directive, missing ';'", lineLength + i - 1);
 			}
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
@@ -169,7 +183,7 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 				std::string val = join(keyValTokens, " ");
 				trim(key);
 				trim(val);
-				this->switchConfigDirectives(key, val, last(context), chunkedLine);
+				this->switchConfigDirectives(key, val, last(context), token, lineLength + i - 1, joined);
 			}
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
@@ -235,7 +249,7 @@ bool	Parser::onoffArgs(const std::string &raw_line, const size_t key_length, con
 	return (false);
 }
 
-void	Parser::switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
+void	Parser::switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &terminator, const size_t processed, const std::string &raw_line)
 {
 	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
 	/**
@@ -249,9 +263,11 @@ void	Parser::switchConfigDirectives(const std::string &key, const std::string &v
 		// On empeche l'imbrication de blocs server
 		// S'il le context est vide c'est qu'on est dans le bloc principal
 		if (!context.empty())
-			this->throwError(raw_line, "server block cannot be nested");
+			this->throwError(raw_line, "server block cannot be nested", processed - key.length() - 1 - val.length() - 1);
+		if (terminator != "{")
+			this->throwError(raw_line, "server block must be opened with '{', found '" + terminator + "'", processed);
 		if (!val.empty())
-			this->throwError(raw_line, key.length() + 1);
+			this->throwError(raw_line, "server directive cannot have value", processed - val.length() - 1);
 
 		this->new_server = new ServerConfig();
 		this->configs.push_back(this->new_server);
@@ -263,7 +279,7 @@ void	Parser::switchConfigDirectives(const std::string &key, const std::string &v
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
 	 */
 	else if (key == "location") {
-		this->createNewRouter(key, val, context, raw_line);
+		this->createNewRouter(key, val, context, processed - val.length() - 1, raw_line);
 	}
 	else
 	{
@@ -274,22 +290,24 @@ void	Parser::switchConfigDirectives(const std::string &key, const std::string &v
 			this->tmp_router = this->new_server->getDefaultHandler();
 		if (val.empty())
 			this->throwError(raw_line, "missing directive value", raw_line.length());
-		this->addRule(key, val, context, raw_line);
+		if (terminator != ";")
+			this->throwError(raw_line, "directive must end with ';' not '" + terminator + "'", processed);
+		this->addRule(key, val, context, processed, raw_line);
 	}
 }
 
-void	Parser::createNewRouter(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
+void	Parser::createNewRouter(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
 {
 	struct wbs_router_location	location;
 
 	if (context != "server" && context != "location")
-		this->throwError(raw_line, "location directive must be inside server or location block");
+		this->throwError(raw_line, "location directive must be inside server or location block", processed - key.length() - 1);
 
 	std::vector<std::string> tokens = split(val, ' ');
 	if (tokens.size() < 1)
-		this->throwError(raw_line, "missing location path", key.length() + 1);
+		this->throwError(raw_line, "missing location path", processed);
 	else if (tokens.size() > 2)
-		this->throwError(raw_line, "too many entries", key.length() + 1 + val.length() - tokens.back().length());
+		this->throwError(raw_line, "too many entries", processed + val.length() - tokens.back().length());
 
 	trim(tokens[0]);
 	if (tokens.size() == 2 && this->isValidModifier(tokens[0])) {
@@ -298,7 +316,7 @@ void	Parser::createNewRouter(const std::string &key, const std::string &val, con
 			location.strict = true;
 	}
 	else if (tokens.size() == 2) {
-		this->throwError(raw_line, "invalid modifier", key.length() + 1);
+		this->throwError(raw_line, "invalid modifier", processed);
 	}
 	location.path = trim(tokens.back());
 
@@ -325,15 +343,15 @@ void	Parser::createNewRouter(const std::string &key, const std::string &val, con
 	if ((!parent_l.modifier.empty() && parent_l.modifier != "^~" && (child_l.modifier.empty() || child_l.modifier == "^~"))
 		|| (((parent_l.modifier.empty() || parent_l.modifier == "^~") && (child_l.modifier.empty() || child_l.modifier == "^~"))
 			&& (child_l.path.size() < parent_l.path.size() || child_l.path.substr(0, parent_l.path.size()) != parent_l.path))) {
-		this->throwError(raw_line, "location \""+child_l.path+"\" is outside location \""+parent_l.path+"\"", key.length() + 1);
+		this->throwError(raw_line, "location \""+child_l.path+"\" is outside location \""+parent_l.path+"\"", processed);
 	}
 }
 
-void	Parser::addRule(const std::string &key, const std::string &val, const std::string &context, const std::string &raw_line)
+void	Parser::addRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
 {
 	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
 	// Taille du nom de la directive (+1 pour l'espace après la clé)
-	const size_t key_length = key.length() + 1;
+	const size_t key_length = processed - val.length() - 1;
 
 	// On vérifie que la directive est bien dans un contexte
 	if (context.empty())
@@ -819,7 +837,7 @@ void	Parser::addRule(const std::string &key, const std::string &val, const std::
 	/**
 	 * Default
 	 */
-	this->throwError(raw_line, "unknown directive");
+	this->throwError(raw_line, "unknown directive", key_length);
 }
 
 bool	Parser::isValidModifier(const std::string &modifier) const
