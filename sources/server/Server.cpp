@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/01 17:01:19 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 17:46:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,6 +141,10 @@ int	Server::init(void)
 		return (WBS_ERR);
 	}
 
+	/**
+	 * TODO:
+	 * Support de l'IPv6
+	 */
 	bzero(&this->socket_addr, sizeof(this->socket_addr));
 	this->socket_addr.sin_family = AF_INET;
 	this->socket_addr.sin_port = htons(this->_port);

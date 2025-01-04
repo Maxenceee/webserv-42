@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/01 16:25:21 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 17:52:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,7 +261,7 @@ int		Cluster::start(void)
 					/**
 					 * On ajoute le nouveau client à la liste des descripteurs à surveiller.
 					 */
-					poll_fds.push_back((pollfd){newClient, POLLIN, 0});
+					poll_fds.push_back((pollfd){newClient, POLLIN | POLLHUP | POLLERR, 0});
 					break;
 
 				case WBS_POLL_CLIENT:
