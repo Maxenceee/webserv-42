@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 17:34:34 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 17:34:54 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
  * TODO:
  * 
  * Possibilité d'amélioration:
+ * 
  * Séparer la gestion des directive contextuelles et des directives de configuration. Pour le
  * moment on appelle this->switchConfigDirectives dans les deux cas et this->switchConfigDirectives
  * verifie si c'est une directive contextuelle ou non.
