@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 20:41:28 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 22:38:13 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int		Parser::open_and_read_file(const std::string &file_name)
 	
 	this->file.open(file_name.c_str(), std::ios::in);
 	if (!this->file) {
-		Logger::error("parser error: Could not open file " + std::string(file_name), RESET);
+		Logger::error("parser error: Could not open file " + std::string(file_name));
 		return (EXIT_FAILURE);
 	}
 

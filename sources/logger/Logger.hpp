@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/23 20:48:53 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/01 16:31:08 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 22:38:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,26 @@ private:
 public:
 	static void init(void);
 	static void destroy(void);
+
+	static void	print(const char *msg, const std::string &color = RESET);
 	static void	print(const std::string &msg, const std::string &color = RESET);
+
+	static void	info(const char *msg);
 	static void	info(const std::string &msg);
-	static void	warning(const std::string &msg, const std::string &color = B_ORANGE);
-	static void	error(const std::string &msg, const std::string &color = B_RED);
-	static void	perror(const std::string &msg, const std::string &color = B_RED);
-	static void	pherror(const std::string &msg, const std::string &color = B_RED);
+
+	static void	warning(const char *msg);
+	static void	warning(const std::string &msg);
+
+	static void	error(const char *msg);
+	static void	error(const std::string &msg);
+
+	static void	perror(const char *msg);
+	static void	perror(const std::string &msg);
+
+	static void	pherror(const char *msg);
+	static void	pherror(const std::string &msg);
+
+	static void	debug(const char *msg, const std::string &color = RESET);
 	static void	debug(const std::string &msg, const std::string &color = RESET);
 
 	static void setDebug(bool debug);

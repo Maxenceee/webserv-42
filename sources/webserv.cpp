@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/22 13:21:42 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 22:39:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,8 @@ int	main(int argc, char const **argv)
 	print_name();
 	if (argc > 3 || argc < 2)
 	{
-		Logger::error("Invalid usage", RESET);
-		Logger::error("usage: [configuration file]", RESET);
+		Logger::print("Invalid usage");
+		Logger::print("usage: [configuration file]");
 		return (EXIT_FAILURE);
 	}
 	std::string fpath = argv[1];
