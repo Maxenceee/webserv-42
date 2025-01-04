@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 17:19:58 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/04 17:34:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,12 +107,18 @@ void	Parser::extract(void)
 			}
 
 			// Vérification et mise à jour du compteur d'accolades
-			for (std::vector<std::string>::const_iterator it = tokens.begin(); it != tokens.end(); ++it) {
-				if (*it == "{") {
+			for (size_t i = 0, j = 0; i < tokens.size(); i++) {
+				if (tokens[i] == "{") {
 					braceCount++;  // Incrémenter lors d'une accolade ouvrante
-				} else if (*it == "}") {
+				} else if (tokens[i] == "}") {
 					braceCount--;  // Décrémenter lors d'une accolade fermante
 				}
+
+				if (braceCount < 0) {
+					this->throwError(join(tokens, " "), "unexpected '}'", j);
+				}
+
+				j += tokens[i].length() + 1;
 			}
 
 			if (!tokens.empty()) {
