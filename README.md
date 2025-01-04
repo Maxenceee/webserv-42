@@ -27,7 +27,7 @@ $>  sudo ./setup_daemon.bash
 
 In this case you need to place your config file in `/etc/webserv` with the name `webserv.conf`.
 
-On MacOSX log file will be `/var/log/webserv.log` and `/var/log/webserv.err`, on Linux you can use `journalctl` to output logs.
+On MacOS log file will be `/var/log/webserv.log` and `/var/log/webserv.err`, on Linux you can use `journalctl` to output logs.
 
 # Basic concept
 
