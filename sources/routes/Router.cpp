@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/01 17:06:02 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 15:01:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,7 +212,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 			return (true);
 		}
 	}
-	
+
 	/**
 	 * Nginx exécute la directive `return` avant toutes les autres.
 	 * Si le code de retour est de type 3xx (redirection), alors la redirection est effectuée, sinon
@@ -231,7 +231,7 @@ bool	Router::handleRoutes(Request &request, Response &response)
 		}
 		return (true);
 	}
-	
+
 	/**
 	 * Si le router est configuré pour utiliser CGI, on execute le script CGI
 	 * et on envoie la réponse.

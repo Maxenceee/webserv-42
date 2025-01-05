@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/05 13:40:22 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 15:07:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -412,7 +412,7 @@ bool isDigit(const std::string &str)
 
 std::ostream& operator<<(std::ostream& os, struct cropoutput value) {
 	if (value.value.size() > 1000)
-		os << value.value.substr(0, 1000) << "...";
+		os << value.value.substr(0, 1000) << "... " << getSize(value.value.size() - 1000) << " more";
 	else
 		os << value.value;
 	return os;
@@ -421,7 +421,7 @@ std::ostream& operator<<(std::ostream& os, struct cropoutput value) {
 std::string	cropoutputs(const std::string &input)
 {
 	if (input.size() > 1000)
-		return (input.substr(0, 1000) + "...");
+		return (input.substr(0, 1000) + "... " + getSize(input.size() - 1000) + " more");
 	return (input);
 }
 
