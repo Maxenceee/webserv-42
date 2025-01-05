@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/05 13:26:10 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 14:47:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,6 @@ private:
  
 	void	addContextualRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line);
 	void	addNonContextualRule(const std::string &key, const std::vector<std::string> &valtokens, const size_t vallength, const std::string &context, const size_t processed, const std::string &raw_line);
-	// void	switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &terminator, const size_t processed, const std::string &raw_line);
 	void	createNewRouter(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line);
 	bool	isValidModifier(const std::string &modifier) const;
 

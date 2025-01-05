@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/05 13:51:02 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 14:49:44 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,6 +127,10 @@ void	Parser::extract(void)
 		}
 	}
 
+	if (!chunkedLine.empty()) {
+		this->throwError(chunkedLine, "unterminated directive, missing ';'", chunkedLine.length() - 1);
+	}
+
 	if (braceCount != 0) {
 		this->throwError(lastProcessedLine, "expected '}'", lastProcessedLine.length() - 1);
 	}
@@ -144,18 +148,15 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 
 		// Ouverture de bloc
 		if (token == "{") {
-			std::string key = chunkedLine;
-			trim(key);
+			std::string key = readDirectiveKey(chunkedLine);
 			if (key.empty()) {
-				this->throwError(joined, "invalid context found", lineLength + i - 1);
+				this->throwError(joined, "invalid directive found", lineLength + i - 1);
 			}
+			std::string l_context = last(context);
+			Logger::debug(RED + key + RESET + " " + GREEN + chunkedLine + RESET + " " + l_context);
 
-			std::vector<std::string> keyTokens = split(key, ' ');
-			std::string dirkey = keyTokens[0];
-			shift(keyTokens);
-			std::string val = join(keyTokens, " ");
-			this->addContextualRule(dirkey, val, last(context), lineLength + i - 1, joined);
-			context.push_back(dirkey);
+			this->addContextualRule(key, chunkedLine, l_context, lineLength + i - 1, joined);
+			context.push_back(key);
 
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
@@ -171,7 +172,6 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 		}
 		// Fin de ligne
 		else if (token == ";") {
-			// std::vector<std::string> keyValTokens = split(chunkedLine, ' ');
 			std::string key = readDirectiveKey(chunkedLine);
 			if (key.empty()) {
 				this->throwError(joined, "invalid directive found", lineLength + i - 1);
@@ -294,9 +294,7 @@ void	Parser::createNewRouter(const std::string &key, const std::string &val, con
 
 void	Parser::addContextualRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
 {
-	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
-
-	const size_t key_length = processed - val.length() - 1;
+	const size_t key_length = processed - val.length() - (val.length() > 0);
 	const size_t key_pos = key_length - key.length() - 1;
 
 	if (!this->new_server && key != "server")
@@ -360,7 +358,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 	 */
 	if (key == "listen") {
 		if (context != "server")
-			this->throwError(raw_line, "listen directive must be inside server block");
+			this->throwError(raw_line, "listen directive must be inside server block", key_pos);
 
 		std::vector<std::string> tokens = split(valtokens[0], ':');
 
@@ -426,7 +424,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 	 */
 	if (key == "server_name") {
 		if (context != "server")
-			this->throwError(raw_line, "server_name directive must be inside server block");
+			this->throwError(raw_line, "server_name directive must be inside server block", key_pos);
 
 		size_t l = 0;
 		for (size_t i = 0; i < valtokens.size(); i++)
@@ -459,7 +457,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 	}
 	else if (key == "alias") {
 		if (context == "server")
-			this->throwError(raw_line, "alias directive cannot be used in server block");
+			this->throwError(raw_line, "alias directive cannot be used in server block", key_pos);
 
 		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
@@ -681,7 +679,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (context != "location")
-			this->throwError(raw_line, "proxy_pass directive must be inside location block");
+			this->throwError(raw_line, "proxy_pass directive must be inside location block", key_pos);
 
 		std::string url = valtokens[0];
 
@@ -699,7 +697,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 			this->throwError(raw_line, "unsupported protocol (only http: and https: are supported)", key_length);
 
 		if (tu.path != "/")
-			this->throwError(raw_line, "using path in proxy_pass directive in not supported", key_length + tu.protocol.length() + 3 + tu.host.length() + tu.port_s.length() + (tu.port_s.length() > 0));
+			this->throwError(raw_line, "using path in proxy_pass directive in not supported", key_length + tu.protocol.length() + 3 + tu.host.length() + (tu.port_s.length() > 0) + tu.port_s.length());
 
 		this->tmp_router->setProxy(tu);
 		return ;
@@ -786,7 +784,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 	 */
 	if (key == "ssl_certificate") {
 		if (context != "server")
-			this->throwError(raw_line, "ssl_certificate directive must be inside server block");
+			this->throwError(raw_line, "ssl_certificate directive must be inside server block", key_pos);
 
 		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
@@ -804,7 +802,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 	 */
 	if (key == "ssl_certificate_key") {
 		if (context != "server")
-			this->throwError(raw_line, "ssl_certificate_key directive must be inside server block");
+			this->throwError(raw_line, "ssl_certificate_key directive must be inside server block", key_pos);
 
 		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
@@ -822,7 +820,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::vector<std:
 	 */
 	if (key == "ssl_ciphers") {
 		if (context != "server")
-			this->throwError(raw_line, "ssl_ciphers directive must be inside server block");
+			this->throwError(raw_line, "ssl_ciphers directive must be inside server block", key_pos);
 
 		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
