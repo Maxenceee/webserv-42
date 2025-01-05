@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 11:38:42 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/31 19:57:40 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 13:44:20 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ std::string					join(std::vector<std::string> &list, const std::string &c);
 std::string					&pop(std::string &str);
 std::string					&shift(std::string &str);
 std::string					&trim(std::string &str, char c = ' ');
+std::string					readDirectiveKey(std::string &line);
 std::string					readKey(const std::string &line);
 std::string					readValue(const std::string &line);
 std::string					to_upper(const std::string &str);

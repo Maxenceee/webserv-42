@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:17:45 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 20:11:48 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 13:26:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ private:
 	void	processInnerLines(std::vector<std::string> &tokens, std::vector<std::string> &parent);
  
 	void	addContextualRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line);
-	void	addNonContextualRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line);
+	void	addNonContextualRule(const std::string &key, const std::vector<std::string> &valtokens, const size_t vallength, const std::string &context, const size_t processed, const std::string &raw_line);
 	// void	switchConfigDirectives(const std::string &key, const std::string &val, const std::string &context, const std::string &terminator, const size_t processed, const std::string &raw_line);
 	void	createNewRouter(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line);
 	bool	isValidModifier(const std::string &modifier) const;
@@ -49,8 +49,8 @@ private:
 	void	throwError(const std::string &raw_line, const char *message, const int pos = 0);
 	void	throwError(const std::string &raw_line, const std::string &message, const int pos = 0);
 
-	void	minmaxArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens, const size_t min, const size_t max = 0);
-	bool	onoffArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens);
+	void	minmaxArgs(const std::string &raw_line, const size_t key_length, const size_t vallength, const std::vector<std::string> &valtokens, const size_t min, const size_t max = 0);
+	bool	onoffArgs(const std::string &raw_line, const size_t key_length, const size_t vallength, const std::vector<std::string> &valtokens);
 
 public:
 	Parser(Cluster &c);

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:18:32 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 22:38:13 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 13:51:02 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,15 +171,17 @@ void	Parser::processInnerLines(std::vector<std::string> &tokens, std::vector<std
 		}
 		// Fin de ligne
 		else if (token == ";") {
-			std::vector<std::string> keyValTokens = split(chunkedLine, ' ');
-			if (!keyValTokens.empty()) {
-				std::string key = keyValTokens[0];
-				shift(keyValTokens);
-				std::string val = join(keyValTokens, " ");
-				trim(key);
-				trim(val);
-				this->addNonContextualRule(key, val, last(context), lineLength + i - 1, joined);
+			// std::vector<std::string> keyValTokens = split(chunkedLine, ' ');
+			std::string key = readDirectiveKey(chunkedLine);
+			if (key.empty()) {
+				this->throwError(joined, "invalid directive found", lineLength + i - 1);
 			}
+			std::string l_context = last(context);
+			Logger::debug(RED + key + RESET + " " + GREEN + chunkedLine + RESET + " " + l_context);
+
+			std::vector<std::string> keyValTokens = parseQuotedAndSplit(chunkedLine);
+
+			this->addNonContextualRule(key, keyValTokens, chunkedLine.length(), l_context, lineLength + i - 1, joined);
 			chunkedLine.clear(); // Si la ligne est traitée, on la réinitialise
 		}
 		// On accumule si la ligne ne contient pas de token de fin
@@ -212,24 +214,24 @@ void	Parser::throwError(const std::string &raw_line, const std::string &message,
 	this->throwError(raw_line, message.c_str(), pos);
 }
 
-void	Parser::minmaxArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens, const size_t min, const size_t max)
+void	Parser::minmaxArgs(const std::string &raw_line, const size_t key_length, const size_t vallength, const std::vector<std::string> &valtokens, const size_t min, const size_t max)
 {
 	size_t pos = 0;
 
 	if (valtokens.size() < min) {
-		pos = key_length + val.length();
+		pos = key_length + vallength;
 
 		this->throwError(raw_line, "too few arguments", pos);
 	} else if (max != 0 && valtokens.size() > max) {
-		pos = key_length + val.length() - valtokens.back().length();
+		pos = key_length + vallength - valtokens.back().length();
 
 		this->throwError(raw_line, "too many arguments", pos);
 	}
 }
 
-bool	Parser::onoffArgs(const std::string &raw_line, const size_t key_length, const std::string &val, const std::vector<std::string> &valtokens)
+bool	Parser::onoffArgs(const std::string &raw_line, const size_t key_length, const size_t vallength, const std::vector<std::string> &valtokens)
 {
-	(void)val;
+	(void)vallength;
 
 	if (valtokens[0] == "on")
 		return (true);
@@ -336,12 +338,10 @@ void	Parser::addContextualRule(const std::string &key, const std::string &val, c
 	this->throwError(raw_line, "unknown directive", key_pos);
 }
 
-void	Parser::addNonContextualRule(const std::string &key, const std::string &val, const std::string &context, const size_t processed, const std::string &raw_line)
+void	Parser::addNonContextualRule(const std::string &key, const std::vector<std::string> &valtokens, const size_t vallength, const std::string &context, const size_t processed, const std::string &raw_line)
 {
-	Logger::debug(RED + key + RESET + " " + GREEN + val + RESET + " " + context);
-
 	// Taille du nom de la directive (+1 pour l'espace après la clé)
-	const size_t key_length = processed - val.length() - (val.length() > 0);
+	const size_t key_length = processed - vallength - (vallength > 0);
 	const size_t key_pos = key_length - key.length() - 1;
 
 	if (context.empty())
@@ -350,10 +350,8 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	if (context == "server")
 		this->tmp_router = this->new_server->getDefaultHandler();
 
-	if (val.empty())
-		this->throwError(raw_line, "missing directive value", processed - 1);
-
-	std::vector<std::string> valtokens = parseQuotedAndSplit(val);
+	if (vallength == 0)
+		this->throwError(raw_line, "missing directive value", processed);
 
 	/**
 	 * Directive Listen
@@ -451,7 +449,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#alias)
 	 */
 	if (key == "root") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (!isDirectory(valtokens[0])) {
 			this->throwError(raw_line, "not a directory", key_length);
@@ -463,7 +461,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 		if (context == "server")
 			this->throwError(raw_line, "alias directive cannot be used in server block");
 
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (!isDirectory(valtokens[0])) {
 			this->throwError(raw_line, "not a directory", key_length);
@@ -488,9 +486,9 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_autoindex_module.html#autoindex)
 	 */
 	if (key == "autoindex") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
-		bool onf = this->onoffArgs(raw_line, key_length, val, valtokens);
+		bool onf = this->onoffArgs(raw_line, key_length, vallength, valtokens);
 		this->tmp_router->setAutoIndex(onf);
 		return ;
 	}
@@ -504,7 +502,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 		int status = 302;
 		std::string loc = valtokens[0];
 
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 2);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 2);
 
 		if (valtokens.size() == 1 && isDigit(loc))
 		{
@@ -550,7 +548,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page)
 	 */
 	if (key == "error_page") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 0);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 2, 0);
 
 		size_t l = 0;
 		for (size_t i = 0; i < valtokens.size() - 1; i++) {
@@ -573,7 +571,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
 	 */
 	if (key == "client_max_body_size") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		size_t ts = parseSize(valtokens[0]);
 		if (ts == (size_t)-1) {
@@ -589,7 +587,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass)
 	 */
 	if (key == "fastcgi_pass") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (!isDirectory(valtokens[0])) {
 			this->throwError(raw_line, "not a directory", key_length);
@@ -604,7 +602,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_param)
 	 */
 	if (key == "fastcgi_param") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 2);		
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 2, 2);		
 
 		this->tmp_router->addCGIParam(valtokens[0], valtokens[1]);
 		return ;
@@ -617,11 +615,11 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 */
 	if (key == "add_header") {
 		bool always = false;
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 3);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 2, 3);
 
 		if (valtokens.size() == 3) {
 			if (valtokens[2] != "always")
-				this->throwError(raw_line, "unknown option", key_length + val.length() - valtokens[2].length());
+				this->throwError(raw_line, "unknown option", key_length + vallength - valtokens[2].length());
 			always = true;
 		}
 		this->tmp_router->setHeader(valtokens[0], valtokens[1], always);
@@ -634,7 +632,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_timeout)
 	 */
 	if (key == "client_header_timeout") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		time_t	t = parseTime(valtokens[0]);
 		if (t < 0) {
@@ -650,7 +648,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout)
 	 */
 	if (key == "client_body_timeout") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		time_t	t = parseTime(valtokens[0]);
 		if (t < 0) {
@@ -666,7 +664,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_method)
 	 */
 	if (key == "proxy_method") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (!Server::isValidMethod(valtokens[0]))
 			this->throwError(raw_line, "unknown method", key_length);
@@ -680,7 +678,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass)
 	 */
 	if (key == "proxy_pass") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (context != "location")
 			this->throwError(raw_line, "proxy_pass directive must be inside location block");
@@ -713,7 +711,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_body)
 	 */
 	if (key == "proxy_set_body") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		this->tmp_router->setProxyBody(valtokens[0]);
 		return ;
@@ -725,7 +723,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header)
 	 */
 	if (key == "proxy_set_header") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 2, 2);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 2, 2);
 
 		this->tmp_router->addProxyHeader(valtokens[0], valtokens[1]);
 		return ;
@@ -737,7 +735,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_header)
 	 */
 	if (key == "proxy_pass_header") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		this->tmp_router->enableProxyHeader(valtokens[0]);
 		return ;
@@ -749,9 +747,9 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_request_body)
 	 */
 	if (key == "proxy_pass_request_body") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
-		bool onf = this->onoffArgs(raw_line, key_length, val, valtokens);
+		bool onf = this->onoffArgs(raw_line, key_length, vallength, valtokens);
 		this->tmp_router->setProxyForwardBody(onf);
 		return ;
 	}
@@ -762,9 +760,9 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass_request_headers)
 	 */
 	if (key == "proxy_pass_request_headers") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
-		bool onf = this->onoffArgs(raw_line, key_length, val, valtokens);
+		bool onf = this->onoffArgs(raw_line, key_length, vallength, valtokens);
 		this->tmp_router->setProxyForwardHeaders(onf);
 		return ;
 	}
@@ -775,7 +773,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 	 * (https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_hide_header)
 	 */
 	if (key == "proxy_hide_header") {
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		this->tmp_router->hideProxyHeader(valtokens[0]);
 		return ;
@@ -790,7 +788,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 		if (context != "server")
 			this->throwError(raw_line, "ssl_certificate directive must be inside server block");
 
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (!isFile(valtokens[0]))
 			this->throwError(raw_line, "no such file", key_length);
@@ -808,7 +806,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 		if (context != "server")
 			this->throwError(raw_line, "ssl_certificate_key directive must be inside server block");
 
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		if (!isFile(valtokens[0]))
 			this->throwError(raw_line, "no such file", key_length);
@@ -826,7 +824,7 @@ void	Parser::addNonContextualRule(const std::string &key, const std::string &val
 		if (context != "server")
 			this->throwError(raw_line, "ssl_ciphers directive must be inside server block");
 
-		this->minmaxArgs(raw_line, key_length, val, valtokens, 1, 1);
+		this->minmaxArgs(raw_line, key_length, vallength, valtokens, 1, 1);
 
 		this->new_server->setSSLCiphers(valtokens[0]);
 		return ;

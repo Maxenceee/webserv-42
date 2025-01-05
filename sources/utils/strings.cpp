@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/05 13:18:00 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 12:29:58 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/05 13:40:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,23 @@ std::string		&trim(std::string &str, char c)
 	for (i = 0; str[i] == c; i++);
 	str = str.substr(i, std::string::npos);
 	return (str);
+}
+
+std::string		readDirectiveKey(std::string &line)
+{
+	std::string	ret;
+
+	if (line.empty())
+		return ("");
+	size_t	i = line.find_first_of(' ');
+	if (i == std::string::npos) {
+		ret = line;
+		line.clear();
+	} else {
+		ret.append(line, 0 , i);
+		line.erase(0, i + 1);
+	}
+	return (trim(ret, ' '));
 }
 
 std::string		readKey(const std::string &line)
