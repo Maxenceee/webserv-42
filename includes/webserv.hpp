@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:26:17 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/21 13:52:23 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/11 12:59:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <dirent.h>
-#include <poll.h>
 #include <regex.h>
 #include <signal.h>
 #include <errno.h>
@@ -62,6 +61,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h> 
 #include <netdb.h>
+#include <poll.h>
 #include <arpa/inet.h>
 
 // Open SSL Includes
