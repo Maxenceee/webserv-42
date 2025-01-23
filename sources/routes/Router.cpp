@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/05 15:01:10 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/23 14:34:22 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,6 +254,12 @@ void	Router::handleGETMethod(Request &request, Response &response)
 		return ;
 	}
 	Logger::debug("Full local path: " + fullpath);
+	
+	if (access(fullpath.c_str(), R_OK) != 0) {
+		Logger::debug("Permission denied: " + fullpath);
+		response.status(403).end();
+		return ;
+	}
 
 	if (isDirectory(fullpath)) {
 		std::string file_p = fullpath + "/"; 
@@ -303,6 +309,12 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 	}
 	Logger::debug("Full local path: " + fullpath);
 
+	if (access(fullpath.c_str(), R_OK | W_OK) != 0) {
+		Logger::debug("Permission denied: " + fullpath);
+		response.status(403).end();
+		return ;
+	}
+
 	if (isFile(fullpath)) {
 		if (appendFile(fullpath, request.getBody())) {
 			response.status(500);
@@ -332,6 +344,12 @@ void	Router::handlePUTMethod(Request &request, Response &response)
 		return ;
 	}
 	Logger::debug("Full local path: " + fullpath);
+
+	if (access(fullpath.c_str(), R_OK | W_OK) != 0) {
+		Logger::debug("Permission denied: " + fullpath);
+		response.status(403).end();
+		return ;
+	}
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
@@ -366,6 +384,12 @@ void	Router::handleDELETEMethod(Request &request, Response &response)
 		return ;
 	}
 	Logger::debug("Full local path: " + fullpath);
+
+	if (access(fullpath.c_str(), R_OK | W_OK) != 0) {
+		Logger::debug("Permission denied: " + fullpath);
+		response.status(403).end();
+		return ;
+	}
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
@@ -419,6 +443,12 @@ void	Router::handleCGI(Request &request, Response &response)
 			return ;
 		}
 		Logger::debug("Full local path: " + fullpath);
+
+		if (access(fullpath.c_str(), R_OK | X_OK) != 0) {
+			Logger::debug("Permission denied: " + fullpath);
+			response.status(403).end();
+			return ;
+		}
 		
 		if (!isFile(fullpath)) {
 			response.status(404).end();
@@ -446,6 +476,13 @@ void	Router::call(std::string method, Request &request, Response &response)
 	(this->*Router::_method_handlers[method])(request, response);
 }
 
+/**
+ * FIXME:
+ * fix route evaluation
+ * 
+ * route /char/gen will match request path /char/generate
+ * and fix trailing / case (ex char/gen/ will not match /char/gen)
+ */
 bool Router::matchRoute(const std::string& route, Response &response) const
 {
 	regex_t	regex;
