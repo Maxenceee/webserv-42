@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/01 16:34:56 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/31 16:16:17 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -330,7 +330,7 @@ void	ProxyWorker::work(void)
 	bool headers_received = false;
 
 	struct timeval timeout;
-	timeout.tv_sec = WBD_PROXY_SELECT_TIMEOUT;
+	timeout.tv_sec = WBS_PROXY_SELECT_TIMEOUT;
 	timeout.tv_usec = 0;
 
 	size_t pos;
