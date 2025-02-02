@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 17:52:09 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/31 16:30:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ int		Cluster::start(void)
 		poll_clients[serverSocket] = (wbs_pollclient){WBS_POLL_SERVER, *it};
 	}
 
-	for (wsb_v_servers_t::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	for (it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{
 		Server *server = *it;
 		Logger::print("Listening on " + getIPAddress(server->getAddress()) + ":" + toString(server->getPort()), B_GREEN);
