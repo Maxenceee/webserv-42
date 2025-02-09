@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 19:01:34 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/17 15:32:17 by mgama            ###   ########.fr       */
+/*   Updated: 2025/02/09 10:58:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -368,7 +368,7 @@ Response	&Response::end(void)
 		/**
 		 * La fonction send() sert à écrire le contenu d'un descripteur de fichier, ici
 		 * le descripteur du client. À la différence de write, la fonction send est
-		 * spécifiquement conçue pour écrire dans un socket. Elle offre une meilleure
+		 * spécifiquement conçue pour écrire dans une socket. Elle offre une meilleure
 		 * gestion de l'écriture dans un contexte de travail en réseau.
 		 */
 		(void)this->_client.send(res.c_str(), res.size());

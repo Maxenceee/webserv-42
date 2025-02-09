@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/11 19:48:08 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/31 16:30:12 by mgama            ###   ########.fr       */
+/*   Updated: 2025/02/09 10:59:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,10 +126,10 @@ int		Cluster::start(void)
 		Logger::print("Listening on " + getIPAddress(server->getAddress()) + ":" + toString(server->getPort()), B_GREEN);
 
 		/**
-		 * La fonction listen() permet de marquer un socket comme étant en
+		 * La fonction listen() permet de marquer une socket comme étant en
 		 * attente de connexions entrantes.
 		 * 
-		 * Elle prend en paramètres le descripteur de fichier du socket et la taille de la file
+		 * Elle prend en paramètres le descripteur de fichier de la socket et la taille de la file
 		 * d'attente.
 		 */
 		int error = listen(server->getSocketFD(), WBS_DEFAULT_MAX_WORKERS);
@@ -155,7 +155,7 @@ int		Cluster::start(void)
 	/**
 	 * Ignorer le signal SIGPIPE pour éviter que le serveur ne s'arrête lorsqu'un client
 	 * ferme brutalement la connexion.
-	 * Le signal SIGPIPE est envoyé lorsqu'on tente d'écrire sur un socket fermé, ce cas est géré
+	 * Le signal SIGPIPE est envoyé lorsqu'on tente d'écrire sur une socket fermé, ce cas est géré
 	 * explicitement dans la gestion des clients.
 	 */
 	signal(SIGPIPE, SIG_IGN);
@@ -178,7 +178,7 @@ int		Cluster::start(void)
 		 * des descripteurs surveillés ou jusqu'à ce que le timeout expire. L'événement détecté
 		 * est écrit dans pollfd::revents.
 		 * 
-		 * Dans ce cas, elle permet de s'assurer que le descripteur du socket est
+		 * Dans ce cas, elle permet de s'assurer que le descripteur de la socket est
 		 * prêt pour la lecture.
 		 */
 		if (poll(poll_fds.data(), poll_fds.size(), timeout) == -1)
@@ -221,7 +221,7 @@ int		Cluster::start(void)
 				case WBS_POLL_SERVER:
 					/**
 					 * La fonction accept() est utilisée pour accepter une connexion entrante d'un client.
-					 * Elle prend en paramètres le descripteur de fichier du socket ainsi que le pointeur
+					 * Elle prend en paramètres le descripteur de fichier de la socket ainsi que le pointeur
 					 * d'une structure `sockaddr` où seront écrites les informations sur le client (adresse IP, port, etc.).
 					 * 
 					 * La fonction retourne un nouveau descripteur de fichier vers le client.

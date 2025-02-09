@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 15:29:54 by mgama             #+#    #+#             */
-/*   Updated: 2024/12/20 14:45:25 by mgama            ###   ########.fr       */
+/*   Updated: 2025/02/09 11:00:35 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int	init_unix_socket()
 	strncpy(addr.sun_path, WBS_SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
 	if (bind(sockfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1) {
-		perror("Erreur lors de la liaison du socket à l'adresse");
+		perror("Erreur lors de la liaison de la socket à l'adresse");
 		return (WBS_ERR);
 	}
 
@@ -83,7 +83,7 @@ int	init_unix_socket()
 	}
 	
 	// Ton code peut continuer ici, par exemple en écoutant sur cette socket.
-	unlink(WBS_SOCKET_PATH); // Supprime le socket Unix
+	unlink(WBS_SOCKET_PATH); // Supprime la socket Unix
 	close(sockfd); // N'oublie pas de fermer la socket lorsque tu n'en as plus besoin
 
 	return (WBS_SUCCESS);

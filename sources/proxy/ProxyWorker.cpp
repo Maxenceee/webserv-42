@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/15 19:22:21 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/31 16:16:17 by mgama            ###   ########.fr       */
+/*   Updated: 2025/02/09 11:01:00 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,8 +86,8 @@ int	ProxyWorker::connect(void)
 	 */
 	for (char **addr = hostent->h_addr_list; *addr != NULL; ++addr) {
 		/**
-		 * Chaque socket ne peut être utilisé pour qu'un connexion à la fois, il est donc nécessaire
-		 * de créer un nouveau socket pour chaque tentative de connexion.
+		 * Chaque socket ne peut être utilisé pour qu'une connexion à la fois, il est donc nécessaire
+		 * de créer une nouvelle socket pour chaque tentative de connexion.
 		 */
 		this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (this->socket_fd < 0)
@@ -97,7 +97,7 @@ int	ProxyWorker::connect(void)
 		}
 
 		/**
-		 * On configure le socket pour qu'il puisse être réutilisé immédiatement après la fermeture
+		 * On configure la socket pour qu'il puisse être réutilisé immédiatement après la fermeture
 		 */
 		if (setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
 			Logger::perror("proxy worker error: setsockopt");
