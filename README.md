@@ -202,7 +202,7 @@ int main() {
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
     {
         perror("setsockopt");
-        return (EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     // Prepare sockaddr_in structure
