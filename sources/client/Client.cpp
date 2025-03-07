@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 16:35:12 by mgama             #+#    #+#             */
-/*   Updated: 2025/02/09 10:58:17 by mgama            ###   ########.fr       */
+/*   Updated: 2025/03/07 14:38:46 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,6 +158,8 @@ int	Client::process(void)
 	{
 		// La sauvegarde du temps est nécessaire pour le calcul de la durée de la requête
 		this->request_time = getTimestamp();
+		if (Logger::isDebug())
+			std::cout << this->request << std::endl;
 		return (WBS_POLL_CLIENT_CLOSED);
 	}
 
