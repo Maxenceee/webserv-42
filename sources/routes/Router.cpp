@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/06 12:05:17 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/23 14:34:22 by mgama            ###   ########.fr       */
+/*   Updated: 2025/03/13 14:30:07 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,7 +254,7 @@ void	Router::handleGETMethod(Request &request, Response &response)
 		return ;
 	}
 	Logger::debug("Full local path: " + fullpath);
-	
+
 	if (access(fullpath.c_str(), R_OK) != 0) {
 		Logger::debug("Permission denied: " + fullpath);
 		response.status(403).end();
@@ -309,11 +309,12 @@ void	Router::handlePOSTMethod(Request &request, Response &response)
 	}
 	Logger::debug("Full local path: " + fullpath);
 
-	if (access(fullpath.c_str(), R_OK | W_OK) != 0) {
-		Logger::debug("Permission denied: " + fullpath);
-		response.status(403).end();
-		return ;
-	}
+	// TODO: handle permission denied
+	// if (access(fullpath.c_str(), R_OK | W_OK) != 0) {
+	// 	Logger::debug("Permission denied: " + fullpath);
+	// 	response.status(403).end();
+	// 	return ;
+	// }
 
 	if (isFile(fullpath)) {
 		if (appendFile(fullpath, request.getBody())) {
@@ -345,11 +346,12 @@ void	Router::handlePUTMethod(Request &request, Response &response)
 	}
 	Logger::debug("Full local path: " + fullpath);
 
-	if (access(fullpath.c_str(), R_OK | W_OK) != 0) {
-		Logger::debug("Permission denied: " + fullpath);
-		response.status(403).end();
-		return ;
-	}
+	// TODO: handle permission denied
+	// if (access(fullpath.c_str(), R_OK | W_OK) != 0) {
+	// 	Logger::debug("Permission denied: " + fullpath);
+	// 	response.status(403).end();
+	// 	return ;
+	// }
 
 	if (isFile(fullpath)) {
 		if (deleteFile(fullpath)) {
