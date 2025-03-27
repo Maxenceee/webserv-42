@@ -1,5 +1,5 @@
 [Unit]
-Description=Webserv by Maxnece Gama
+Description=Webserv by Maxence Gama
 After=network.target
 
 [Service]
