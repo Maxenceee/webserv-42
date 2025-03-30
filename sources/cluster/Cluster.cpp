@@ -243,7 +243,7 @@ int		Cluster::start(void)
 					client_addr.sin_port = ntohs(client_addr.sin_port); // Corrige l'ordre des octets du port (endianness)
 
 					/**
-					 * On encapsule le client dans un try/catch pour gérer les exceptions créées lors de la création du client.
+					 * On encapsule le client dans un try/catch pour gérer les exceptions jettées lors de la création du client.
 					 */
 					try
 					{
