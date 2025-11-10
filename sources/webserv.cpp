@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 11:51:04 by mgama             #+#    #+#             */
-/*   Updated: 2025/01/04 22:39:41 by mgama            ###   ########.fr       */
+/*   Updated: 2025/11/10 17:55:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void	print_name(void)
 int	main(int argc, char const **argv)
 {
 	print_name();
+	Logger::init();
 	if (argc > 3 || argc < 2)
 	{
 		Logger::print("Invalid usage");
@@ -71,7 +72,6 @@ int	main(int argc, char const **argv)
 	signal(SIGTERM, SIG_IGN);
 
 	int status = 0;
-	Logger::init();
 	Cluster	cluster;
 	try
 	{
