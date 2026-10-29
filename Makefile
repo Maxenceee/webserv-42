@@ -1,46 +1,79 @@
-OBJ_DIR			=	.objs
-SOURCES_DIR		=	sources
+NAME            := webserv
 
-SRCS			=	$(shell find $(SOURCES_DIR) -name "*.cpp")
-OBJS			=	$(patsubst $(SOURCES_DIR)%.cpp, $(OBJ_DIR)%.o, $(SRCS))
+SOURCES_DIR     := sources
+HEADERS_DIR     := includes
+OBJ_DIR         := .objs
 
-HEADERS_DIR		=	includes
-HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.hpp") $(shell find $(SOURCES_DIR) -name "*.hpp")
+CC              := g++
+RM              := rm -rf
 
-RM				=	rm -f
-CC				=	g++
-CFLAGS			=	-g3 -std=c++98 -I $(HEADERS_DIR) -I $(SOURCES_DIR) -Wall -Wextra -Werror
-LIBS			=	-lpthread -lcrypto -lssl
-NAME			=	webserv
+CXXFLAGS        := -Wall -Wextra -Werror -std=c++98 -g3
+DEPSFLAGS       := -MMD -MP
+INCLUDES        := -I $(HEADERS_DIR) -I $(SOURCES_DIR)
+LIBS            := -lpthread -lcrypto -lssl
 
-GREEN			=	\033[1;32m
-BLUE			=	\033[1;34m
-RED				=	\033[1;31m
-YELLOW			=	\033[1;33m
-DEFAULT			=	\033[0m
-UP				=	"\033[A"
-CUT				=	"\033[K"
+CFLAGS          := $(CXXFLAGS) $(DEPSFLAGS) $(INCLUDES)
+
+SRCS            := $(shell find $(SOURCES_DIR) -name "*.cpp" 2>/dev/null)
+OBJS            := $(patsubst $(SOURCES_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+ALL_DEPS        := $(OBJS:.o=.d)
+
+TOTAL_FILES     := $(words $(OBJS))
+CURRENT_FILE    := 0
+
+BOLD            := \033[1m
+DIM             := \033[2m
+CYAN            := \033[36m
+GREEN           := \033[32m
+YELLOW          := \033[33m
+BLUE            := \033[34m
+MAGENTA         := \033[35m
+RED             := \033[31m
+RESET           := \033[0m
+
+define update_progress
+	$(eval CURRENT_FILE=$(shell expr $(CURRENT_FILE) + 1))
+	$(eval PERCENT=$(shell expr $(CURRENT_FILE) \* 100 / $(TOTAL_FILES)))
+	$(eval PROGRESS=$(shell expr $(CURRENT_FILE) \* 20 / $(TOTAL_FILES)))
+	$(eval REMAINING=$(shell expr 20 - $(PROGRESS)))
+	@printf "\r\033[K   $(GREEN)✔$(RESET) %b %-50s$(RESET)\n" "$(1)" "$(2)"
+	@printf "   [$(GREEN)%s$(DIM)%s$(RESET)] %3d%%" \
+		"$(shell printf '%0.s#' $$(seq 1 $(PROGRESS) 2>/dev/null))" \
+		"$(shell printf '%0.s-' $$(seq 1 $(REMAINING) 2>/dev/null))" \
+		"$(PERCENT)"
+endef
+
+define get_file_size
+$$(du -h $(1) 2>/dev/null | awk '{print $$1}')
+endef
 
 all: $(NAME)
 
-$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp $(HEADERS) Makefile
+$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp Makefile
 	@mkdir -p $(@D)
-	@echo "$(YELLOW)Compiling [$<]$(DEFAULT)"
+	$(call update_progress,$(CYAN)Compiling C++$(RESET), $<)
 	@$(CC) $(CFLAGS) -c $< -o $@
-	@printf ${UP}${CUT}
 
 $(NAME): $(OBJS)
-	@$(CC) $(OBJS) -o $(NAME) $(LIBS)
-	@echo "$(GREEN)$(NAME) compiled!$(DEFAULT)"
+	@printf "\r\033[K\n   $(BOLD)$(BLUE)Linking $(NAME)...$(RESET)\n"
+	@$(CC) $(CFLAGS) $(OBJS) -o $(NAME) $(LIBS)
+	@if [ -f $(NAME) ]; then \
+		printf "   $(GREEN)✔ $(NAME) compiled successfully!$(RESET) $(DIM)(%s)$(RESET)\n\n" "$(call get_file_size,$(NAME))"; \
+	else \
+		printf "   $(RED)✖ Failed to create $(NAME)$(RESET)\n\n"; \
+		exit 1; \
+	fi
+
+-include $(ALL_DEPS)
 
 clean:
-	@echo "$(RED)Cleaning build folder$(DEFAULT)"
-	@$(RM) -r $(OBJ_DIR)
+	@printf "   $(RED)➤ Cleaning objects...$(RESET)\n"
+	@$(RM) $(OBJ_DIR)
 
 fclean: clean
-	@echo "$(RED)Cleaning $(NAME)$(DEFAULT)"
+	@printf "   $(RED)➤ Removing executable...$(RESET)\n"
 	@$(RM) $(NAME)
 
-re:				fclean all
+re: fclean all
 
-.PHONY:			all clean fclean re bonus
+.PHONY: all clean fclean re
